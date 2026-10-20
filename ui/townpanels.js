@@ -1,6 +1,7 @@
 // Panels for town life: shop counters, farms, the Town Ledger and the town guide, plus
 // the gossip and Expedition relic hints villagers share in conversation (src/ui/npc.js).
 import { GOODS, amount, timeText, CANDIDATES } from '../world/life.js';
+import { CAFE_MENU, cafeAvailable } from '../world/cafe-menu.js';
 import { locateVillager } from './npc-location.js';
 import { RELICS, PROGRESS_KEY, cleanProgress } from '../adventure/data.js';
 import { esc } from './interactions.js';
@@ -195,7 +196,21 @@ function placePanelBase(life, id) {
   for (const g of sells.filter((g) => me.bag[g] > 0).slice(0, 2)) actions.push(act(`Sell back ${GOODS[g].name}`, () => life.sellItem(id, g)));
   for (const g of Object.keys(me.bag).filter((g) => me.bag[g] > 0 && ['bread', 'pie', 'fruit', 'veg'].includes(g)).slice(0, 1)) actions.push(act(`Eat the ${GOODS[g].name}`, () => life.eatItem(g)));
   if (id === 'post') actions.push(act('Post a letter to Mabel ($2)', () => life.postLetter('Mabel')));
-  return { title: `${p.name} · ${p.kind === 'farm' ? 'farm' : p.kind}`, body: rows.join('') + (sells.length || id === 'post' ? bagLine(life) : ''), actions, wide: true };
+  if (id === 'cafe') {
+    const categories = [...new Set(CAFE_MENU.map(item => item.category))];
+    rows.push('<h3>Commit Café menu</h3><p>Order at the counter. Prices include preparation and service; all orders use delivered ingredients and are served immediately.</p>');
+    for (const category of categories) {
+      rows.push('<h4>' + esc(category) + '</h4>');
+      const items = CAFE_MENU.filter(item => item.category === category);
+      rows.push('<ul>' + items.map(item =>
+        `<li>${esc(item.name)} · $${item.price} · ${cafeAvailable(p, item) ? 'in stock' : 'sold out'}</li>`
+      ).join('') + '</ul>');
+      for (const item of items.filter(item => cafeAvailable(p, item))) {
+        actions.push(act(`Order ${item.name} ($${item.price})`, () => life.orderCafe(item.id)));
+      }
+    }
+  }
+  return { title: p.name, body: rows.join('') + bagLine(life), actions, wide: true };
 }
 
 // A real survival loop: food comes out of the visitor's purchased inventory.

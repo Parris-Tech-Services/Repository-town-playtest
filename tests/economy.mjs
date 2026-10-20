@@ -2,6 +2,7 @@
 // Actual current public-sector finance and finite local transactions.
 import assert from 'node:assert/strict';
 import { TownLife, GOODS } from '../world/life.js';
+import { placePanel } from '../ui/townpanels.js';
 const homes=Array.from({length:188},(_,i)=>({coordinate:String.fromCharCode(65+i%26)+(1+Math.floor(i/26)),name:'Home '+i,door:{x:i%26*26,z:Math.floor(i/26)*46}}));
 const t=new TownLife({homes});
 assert.equal(t.villagers.length,38);
@@ -51,4 +52,16 @@ t.eatOut(resident,'cafe');
 assert.equal(resident.wallet,noMealWallet,'a failed service does not charge the customer');
 assert.equal(t.stats.meals,noMealCount,'a failed service does not create a meal');
 assert.deepEqual(cafe.stock,noMealStock,'a failed service consumes no ingredients');
+const menuWallet=t.civic.player.wallet;
+t.civic.player.wallet=100;
+cafe.stock={coffee:1};
+const menu=placePanel(t,'cafe');
+assert.match(menu.body,/Espresso · \$4 · in stock/,'the café panel lists stocked menu items');
+assert.match(menu.body,/Toast · \$5 · sold out/,'the café panel shows unavailable items');
+const espresso=menu.actions.find(action=>action.label==='Order Espresso ($4)');
+assert(espresso,'the café panel offers an order action for stocked items');
+espresso.run();
+assert.equal(t.civic.player.wallet,96,'ordering from the café menu charges the listed price');
+assert.equal(cafe.stock.coffee,0,'ordering from the café menu consumes its ingredients');
+t.civic.player.wallet=menuWallet;
 console.log('PASS: finite local trades, bank transfers, stock and insufficient funds');

@@ -1,4 +1,5 @@
 import { separatePedestrians } from './pedestrian-spacing.js';
+import { orderCafe } from './cafe-menu.js';
 import { bicycleClear, cyclingRoute } from './bicycle-safety.js';
 import { pedestrianDetour,canFinishNearOccupiedDoor } from './pedestrian-navigation.js';
 import { distributePower, townPowerDemands, POWER_LINE_IDS, GRID_FAULT_COST } from './power-grid.js';
@@ -486,6 +487,7 @@ export class TownLife {
     return `The ${p.name} buys it back for $${pay}.`;
   }
   eatItem(good) { return eatPlayer(this,good); }
+  orderCafe(itemId) { return orderCafe(this,itemId); }
   bookHotel() { return hotelCheckIn(this); }
   sleepHotel(room=null) { return sleepPlayer(this,'hotel',room); }
   needsReport() { return needsReport(this); }
@@ -567,7 +569,7 @@ export class TownLife {
       // Fuel and ore are imports the council pays for.
       const fuel = (depot.out.fuel || 0) < 60 ? 60 : 0, ore = (depot.out.ore || 0) < 20 ? 20 : 0;
       const hay = (depot.out.hay || 0) < 14 ? 14 - (depot.out.hay || 0) : 0;
-      const lamb = (depot.out.lamb || 0) < 16 ? 16 - (depot.out.lamb || 0) : 0;
+      const lamb = (depot.out.lamb || 0) < 18 ? 18 - (depot.out.lamb || 0) : 0;
       const cost = fuel * 1 + ore * 2 + hay * GOODS.hay.price + lamb * GOODS.lamb.price + coffee * GOODS.coffee.price * 0.5 + tea * GOODS.tea.price * 0.5 + parcel;
       if (cost && this.civic.treasury >= cost) {
         depot.out.fuel = (depot.out.fuel || 0) + fuel; depot.out.ore = (depot.out.ore || 0) + ore;
@@ -799,7 +801,7 @@ export class TownLife {
       ['garden', 'veg', 'greengrocer'], ['garden', 'veg', 'bakery'], ['garden', 'veg', 'pub'], ['garden', 'veg', 'cafe'], ['orchard', 'fruit', 'greengrocer'],
       ['dairy', 'milk', 'store'], ['dairy', 'milk', 'cafe'], ['dairy', 'milk', 'bakery'], ['coop', 'eggs', 'store'], ['coop', 'eggs', 'cafe'], ['coop', 'eggs', 'bakery'],
       ['depot', 'lamb', 'butcher'], ['depot', 'lamb', 'pub'], ['depot', 'lamb', 'bakery'],
-      ['depot', 'coffee', 'cafe'], ['depot', 'coffee', 'store'], ['depot', 'tea', 'store'], ['depot', 'parcel', 'post'],
+      ['depot', 'coffee', 'cafe'], ['depot', 'coffee', 'store'], ['depot', 'tea', 'store'], ['depot', 'tea', 'cafe'], ['orchard', 'fruit', 'cafe'], ['depot', 'parcel', 'post'],
       ['depot', 'fuel', 'power'], ['depot', 'ore', 'foundry'], ['recycling', 'scrap', 'foundry'], ['foundry', 'parts', 'hall'],
       ['depot', 'hay', 'sheep'], ['depot', 'hay', 'dairy'], ['silo', 'grain', 'coop'],
     ];
@@ -1040,8 +1042,22 @@ export class TownLife {
               // If an intermediate pavement junction is blocked too long,
               // safely regenerate the remaining street route instead of
               // staying frozen forever or walking through the player.
-              if(v.detourWait>4&&v.path.length>1){
-                v.path.shift();v.detourWait=0;
+              if(v.detourWait>4){
+                // Never remain trapped at a doorway or waypoint forever.
+                // Intermediate waypoints can be discarded; for the final
+                // destination either enter when already close enough or
+                // regenerate a fresh trip from the current safe position.
+                v.detourWait=0;
+                if(v.path.length>1){
+                  v.path.shift();
+                }else if(Math.hypot(v.x-destination.x,v.z-destination.z)<2.6){
+                  v.path.length=0;this.arrive(v);return;
+                }else{
+                  const goal={x:destination.x,z:destination.z};
+                  v.path=walkRoute(v,goal);
+                  // A blocked final approach will be reconsidered on the
+                  // next tick; don't teleport into an occupied doorway.
+                }
               }
               break;
             }
@@ -1057,6 +1073,7 @@ export class TownLife {
     }
     const s = v.step;
     if (!s) { this.plan(v); return; }
+    if (!v.inside && (s.kind === 'work' || s.kind === 'idle')) this.roamOutdoor(v, s, minutes);
     if (s.dur !== undefined) { s.dur -= minutes; if (s.dur <= 0) this.finish(v); return; }
     if (s.until !== undefined) {
       const until = s.until % (24 * 60), past = s.kind === 'sleep' ? (this.minute >= until && this.minute < until + 60) : this.minute >= s.until;
@@ -1064,6 +1081,33 @@ export class TownLife {
       return;
     }
     this.finish(v);
+  }
+
+  roamOutdoor(v, s, minutes) {
+    if ((s.roamWait = (s.roamWait || 0) - minutes) > 0) return;
+    if (!s.roamTarget) {
+      const stepIdx = (s.roamStep = (s.roamStep || 0) + 1);
+      const h1 = Math.sin((v.id + 1) * 12.9898 + stepIdx * 78.233) * 43758.5453;
+      const h2 = Math.sin((v.id + 1) * 93.9898 + stepIdx * 47.113) * 24634.6345;
+      const r1 = h1 - Math.floor(h1), r2 = h2 - Math.floor(h2);
+      const p = s.at ? this.places.get(s.at) : null;
+      if (p?.field) {
+        s.roamTarget = {
+          x: p.field.x0 + 2.5 + r1 * Math.max(2, p.field.x1 - p.field.x0 - 5),
+          z: p.field.z0 + 3.5 + r2 * Math.max(2, p.field.z1 - p.field.z0 - 7),
+        };
+      } else {
+        const base = s.target || { x: v.x, z: v.z };
+        const spanX = s.at === 'square' ? 5.5 : 2.4;
+        s.roamTarget = { x: base.x + (r1 - 0.5) * spanX * 2, z: base.z + (r2 - 0.5) * 1.4 };
+      }
+    }
+    const dx = s.roamTarget.x - v.x, dz = s.roamTarget.z - v.z, d = Math.hypot(dx, dz);
+    if (d < 0.25) { s.roamTarget = null; s.roamWait = 0.25; return; }
+    const step = Math.min(d, minutes * SEC_PER_MIN * WALK * 0.72);
+    const nx = v.x + (dx / d) * step, nz = v.z + (dz / d) * step;
+    if (this.pedestrianWorld?.hits?.(nx, nz, 0.55)) { s.roamTarget = null; s.roamWait = 0.2; return; }
+    v.x = nx; v.z = nz; v.heading = Math.atan2(dx, dz);
   }
 
   arrive(v) {

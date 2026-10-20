@@ -126,9 +126,10 @@ export function makeNPC(npc, makeLabel) {
   const torso = new THREE.Mesh(box(.76,.92,.4),tunic); torso.position.y=1.13;body.add(torso);
   const head = new THREE.Mesh(ball(.35),skin); head.position.y=1.97;body.add(head);
   const hair = new THREE.Mesh(box(.69,.16,.65),dark);hair.position.set(0,2.27,-.05);body.add(hair);
+  const arms = [], legs = [];
   for(const side of [-1,1]) {
-    const arm = new THREE.Mesh(box(.21,.75,.25),tunic);arm.position.set(side*.52,1.13,0);body.add(arm);
-    const leg = new THREE.Mesh(box(.29,.63,.31),dark);leg.position.set(side*.21,.35,0);body.add(leg);
+    const arm = new THREE.Mesh(box(.21,.75,.25),tunic);arm.position.set(side*.52,1.13,0);body.add(arm);arms.push(arm);
+    const leg = new THREE.Mesh(box(.29,.63,.31),dark);leg.position.set(side*.21,.35,0);body.add(leg);legs.push(leg);
     const eye = new THREE.Mesh(ball(.042),black);eye.position.set(side*.145,1.99,.3);body.add(eye);
   }
   // A coloured badge and tall hat make these characters recognisable from a distance.
@@ -147,6 +148,8 @@ export function makeNPC(npc, makeLabel) {
     root.add(label); root.userData.label=label;
   }
   root.userData.body=body;
+  root.userData.arms=arms;
+  root.userData.legs=legs;
   root.userData.npc=npc;
   root.userData.baseY=0;
   return root;
@@ -236,10 +239,16 @@ function performWork(entry,time) {
     }
     return true;
   }
-  if(entry.task==='rest' && time>=entry.activityUntil){
-    entry.activity='idle';entry.activityUntil=time+8;
+  if(entry.task==='rest') {
+    // A finished or blocked construction task must not permanently override
+    // the ordinary wandering scheduler. Wait out the brief recovery period,
+    // then resume normal activities without restarting completed construction.
+    if(time<entry.activityUntil)return true;
+    entry.task='done';
+    entry.activity='idle';
+    entry.activityUntil=time;
   }
-  return entry.task==='rest';
+  return false;
 }
 export function animateNPCs(list,time,playerPos,dt=1/60,talkingTo=null,collisionWorld=null,maxDist=65) {
   const step=Math.min(Math.max(dt,0),.15);
@@ -267,15 +276,15 @@ export function animateNPCs(list,time,playerPos,dt=1/60,talkingTo=null,collision
       } else {
         if(!entry.workSite || !performWork(entry,time)) if(time>=entry.activityUntil || entry.activity==='talk'){
           entry.walkPhase++;
-          // Spend time looking at shopfronts or resting as well as walking.
-          const walking=wander01(entry,entry.walkPhase*5)>.34;
+          // Spend time strolling along the street and looking at shopfronts.
+          const walking=wander01(entry,entry.walkPhase*5)>.18;
           entry.activity=walking?'walk':'idle';
-          entry.activityUntil=time+(walking?2.5:1.8)+wander01(entry,entry.walkPhase*5+1)*(walking?3:4);
+          entry.activityUntil=time+(walking?3.5:0.8)+wander01(entry,entry.walkPhase*5+1)*(walking?3.5:1.2);
           if(walking){
             const angle=wander01(entry,entry.walkPhase*5+2)*Math.PI*2;
-            const radius=.5+wander01(entry,entry.walkPhase*5+3)*1.15;
+            const radius=1.4+wander01(entry,entry.walkPhase*5+3)*3.4;
             entry.targetX=entry.homeX+Math.cos(angle)*radius;
-            entry.targetZ=entry.homeZ+Math.sin(angle)*radius;
+            entry.targetZ=entry.homeZ+Math.sin(angle)*Math.min(1.6,radius*.55);
           }else{
             entry.heading+= (wander01(entry,entry.walkPhase*5+4)-.5)*1.35;
           }
@@ -284,7 +293,7 @@ export function animateNPCs(list,time,playerPos,dt=1/60,talkingTo=null,collision
           const dx=entry.targetX-group.position.x,dz=entry.targetZ-group.position.z;
           const distance=Math.hypot(dx,dz);
           if(distance>.09){
-            const speed=Math.min(distance,.65*step);
+            const speed=Math.min(distance,1.15*step);
             // Use the same collision grid as the player; do not walk through houses.
             const prevX=group.position.x, prevZ=group.position.z;
             if(collisionWorld) collisionWorld.move(group.position,dx/distance*speed,dz/distance*speed,.34);
@@ -296,16 +305,24 @@ export function animateNPCs(list,time,playerPos,dt=1/60,talkingTo=null,collision
                 entry.blockedTime=0;
                 if(entry.workSite && (entry.task==='gather'||entry.task==='build')) {
                   entry.task='rest';entry.activity='idle';entry.activityUntil=time+5;
-                } else {entry.activity='idle';entry.activityUntil=time+1.5;}
+                } else {entry.activity='idle';entry.activityUntil=time+0.6;}
               }
             }else entry.blockedTime=0;
-            entry.heading=turnTowards(entry.heading,Math.atan2(dx,dz),step*3.2);
-          }else{entry.activity='idle';entry.activityUntil=time+1.5;}
+            entry.heading=turnTowards(entry.heading,Math.atan2(dx,dz),step*4.5);
+          }else{entry.activity='idle';entry.activityUntil=time+0.6;}
         }
       }
       group.rotation.y=entry.heading;
-      model.position.y=entry.activity==='walk' && !chatting
+      const walkingNow = entry.activity==='walk' && !chatting;
+      model.position.y=walkingNow
         ? Math.sin(time*10+entry.seed)*.065 : Math.sin(time*1.2+entry.seed)*.018;
+      if(group.userData.legs && group.userData.arms){
+        const swing=walkingNow?Math.sin(time*8.5+entry.seed)*.48:0;
+        group.userData.legs[0].rotation.x=swing;
+        group.userData.legs[1].rotation.x=-swing;
+        group.userData.arms[0].rotation.x=-swing*.75;
+        group.userData.arms[1].rotation.x=swing*.75;
+      }
     } else {
       // Indoor guides stay at their post and look ahead except during conversation.
       const target=chatting?Math.atan2(playerPos.x-group.position.x,playerPos.z-group.position.z):0;
