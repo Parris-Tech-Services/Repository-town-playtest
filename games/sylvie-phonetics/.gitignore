@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+.env
+.env.*
+.vercel/
+.netlify/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+.last-run.json

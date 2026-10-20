@@ -1,0 +1,9 @@
+{
+  "crude_blast_charge": {
+    "id": "crude_blast_charge",
+    "ingredients": ["unstable_powder"],
+    "result": "crude_blast_charge",
+    "announcement": "crafted_explosive",
+    "tags": ["tutorial", "explosive", "discovery"]
+  }
+}

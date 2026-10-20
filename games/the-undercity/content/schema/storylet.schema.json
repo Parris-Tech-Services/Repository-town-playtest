@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/joshualparris/theUndercity/blob/main/content/schema/storylet.schema.json",
+  "title": "The Undercity — Versioned Ambition Storylets",
+  "description": "Canonical JSON authoring format for linked ambition chapters. This schema validates shape; scripts/validate-content.mjs checks cross-file references and gameplay rules.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "content_type",
+    "id",
+    "display_name",
+    "start_progress",
+    "end_progress",
+    "chapters"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "content_type": {
+      "const": "ambition"
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]+$"
+    },
+    "display_name": {
+      "type": "string",
+      "minLength": 3
+    },
+    "start_progress": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "end_progress": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/chapter"
+      }
+    }
+  },
+  "$defs": {
+    "chapter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "storyId",
+        "title",
+        "description",
+        "location",
+        "where",
+        "progress",
+        "unlock",
+        "next_storylet",
+        "choices"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]+$"
+        },
+        "storyId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 5
+        },
+        "description": {
+          "type": "string",
+          "minLength": 40
+        },
+        "location": {
+          "type": "string"
+        },
+        "where": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "progress": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unlock": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "path",
+            "ambition_progress"
+          ],
+          "properties": {
+            "path": {
+              "type": "string"
+            },
+            "ambition_progress": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "next_storylet": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "choices": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/choice"
+          }
+        }
+      }
+    },
+    "choice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "stat",
+        "difficulty",
+        "effects",
+        "fail",
+        "success",
+        "failure"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 8
+        },
+        "stat": {
+          "enum": [
+            "observation",
+            "guile",
+            "persuasion",
+            "resolve"
+          ]
+        },
+        "difficulty": {
+          "type": "number",
+          "minimum": 0
+        },
+        "requirement": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "background": {
+              "enum": [
+                "scribe",
+                "runner",
+                "speaker",
+                "sentinel"
+              ]
+            },
+            "faction": {
+              "enum": [
+                "ledger",
+                "wardens",
+                "choir",
+                "hands",
+                "dawn"
+              ]
+            }
+          },
+          "minProperties": 1
+        },
+        "effects": {
+          "$ref": "#/$defs/effects"
+        },
+        "fail": {
+          "$ref": "#/$defs/effects"
+        },
+        "success": {
+          "type": "string",
+          "minLength": 30
+        },
+        "failure": {
+          "type": "string",
+          "minLength": 12
+        }
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pathProgress": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pathEnding": {
+          "type": "string"
+        },
+        "coin": {
+          "type": "integer"
+        },
+        "clues": {
+          "type": "integer"
+        },
+        "health": {
+          "type": "integer"
+        },
+        "sanity": {
+          "type": "integer"
+        },
+        "suspicion": {
+          "type": "integer"
+        },
+        "notoriety": {
+          "type": "integer"
+        },
+        "flag": {
+          "type": "string"
+        },
+        "items": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "relation": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        },
+        "quirks": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  }
+}

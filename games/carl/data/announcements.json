@@ -1,0 +1,29 @@
+{
+  "welcome": {
+    "text": "Welcome, {crawler}. You have been registered while aggressively failing to wear complete clothing."
+  },
+  "bump": {
+    "text": "Achievement progress: Wall Inspector. Reward pending, because even the wall is unimpressed."
+  },
+  "quit": {
+    "text": "Run ended. The viewers have filed a complaint about the lack of screaming."
+  },
+  "chest_opened": {
+    "text": "Loot event registered. Try not to treat this as proof you are good at decisions."
+  },
+  "crafted_explosive": {
+    "text": "Crafting update: crude explosive assembled. The viewers have upgraded you from doomed to interesting."
+  },
+  "sponsor_ready": {
+    "text": "Sponsor interest detected. Somewhere, someone with too much money enjoyed that."
+  },
+  "floor_start": {
+    "text": "Floor event started. Try to look survivable."
+  },
+  "dawn_bell": {
+    "text": "Dawn bell simulation complete. It is not morning. It is branding."
+  },
+  "viewer_poll": {
+    "text": "Viewer poll opened: Will the crawler die stupidly or creatively?"
+  }
+}

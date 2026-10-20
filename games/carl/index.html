@@ -1,0 +1,1383 @@
+<!doctype html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {"Dungeon_Crawler_Carl_Game_Build_Plan.md":"# Dungeon Crawler Carl Game Build Plan\n\n## Purpose\n\nBuild the current text-and-grid tutorial prototype into a full video game adaptation plan for *Dungeon Crawler Carl* that is as accurate to the books as possible while remaining practical, testable, and legally safe.\n\nThis plan assumes one of two paths:\n\n1. **Official/licensed adaptation:** the game may use book-specific names, characters, dialogue, setting details, designs, factions, items, quests, and direct references after rights clearance.\n2. **Fan/internal prototype:** the project can study the books for structure and tone, but should avoid distributing copyrighted story text, exact dialogue, official art, audiobook performance, trademarked branding, or protected character/material usage without permission.\n\nThe strongest version of the game is the licensed path. The strongest unlicensed prototype is a faithful systems prototype inspired by the structure, with placeholder names and original text.\n\n## Current Prototype Summary\n\nThe provided Python prototype contains:\n\n- A 12x12 grid tutorial guild room.\n- Carl as the player character.\n- Princess Donut following one tile behind Carl.\n- Mordecai behind a service desk.\n- Basic wall and desk collision.\n- Proximity-triggered dialogue.\n- Simple flavor text and status display.\n\nThis is a good seed because it already captures three crucial pillars:\n\n- **Companion presence:** Donut is not just flavor; she follows and reacts.\n- **Systemized dungeon logic:** movement, barriers, NPC proximity, status, and announcements can become formal mechanics.\n- **Tutorial guild framing:** Mordecai introduces game rules through in-world stress and exposition.\n\n## Accuracy Principles\n\n### Canon First\n\nEvery feature should be traceable to a canon reference before being marked final.\n\nCreate a private **Lore Bible** with:\n\n- Source book.\n- Chapter or approximate scene location.\n- Canon status: confirmed, inferred, contradiction, invented-for-gameplay.\n- Gameplay translation.\n- Risk rating: low, medium, high.\n\nExample:\n\n| Feature | Canon Status | Game Translation | Risk |\n|---|---|---|---|\n| Carl starts poorly equipped | Confirmed | Opening loadout has minimal armor and improvised gear | Low |\n| Donut follows Carl and comments frequently | Confirmed | Companion AI, banter, social stat hooks | Low |\n| Exact book dialogue | Protected text | Replace with original game dialogue unless licensed | High |\n| Tutorial floors as constrained early-game spaces | Confirmed | Floor 1 and Floor 2 onboarding arc | Low |\n\n### Accuracy Does Not Mean Literal Copying\n\nThe game should reproduce:\n\n- Rules and consequences.\n- Character roles.\n- Floor identity.\n- The escalation curve.\n- The absurd, cruel, televised RPG structure.\n- Carl and Donut's relationship dynamic.\n\nThe game should not reproduce large blocks of book prose or audiobook performance unless licensed.\n\n### Player Experience Over Scene Checklist\n\nDo not build a museum of book scenes. Build the systems that make the player feel like they are surviving the crawl:\n\n- Forced choices.\n- Dungeon timers.\n- Announcements.\n- Loot temptation.\n- Viewer pressure.\n- Exploitable rules.\n- Sponsor/show mechanics.\n- Risky progression.\n- Carl-and-Donut tactical partnership.\n\n## Core Game Vision\n\n### Genre\n\nTactical action RPG / survival roguelite with party-based companion systems, dungeon-floor progression, loot, quests, class growth, and televised-show pressure.\n\n### Camera Options\n\nRecommended target:\n\n- **Phase 1:** 2D top-down grid or tile-based tactics.\n- **Phase 2:** Isometric 2.5D with animated characters.\n- **Phase 3:** Full 3D only if the team has the budget for animation, level art, AI, and cinematic staging.\n\nThe prototype should evolve through 2D first. It lets the team validate rules, dialogue, quests, and floor design before committing to expensive visuals.\n\n### Platform\n\nRecommended initial platform:\n\n- PC first.\n- Controller support later.\n- Console only after the combat, UI, and content pipeline are stable.\n\n### Engine Recommendation\n\nBest practical options:\n\n- **Godot:** excellent for 2D/isometric tactics, fast iteration, open source, good scripting.\n- **Unity:** stronger asset ecosystem and commercial pipeline, but more overhead.\n- **Unreal:** best for 3D spectacle, least suitable for an early small-team systems prototype.\n\nRecommendation: **Godot for the first serious vertical slice**, unless the team already has strong Unity expertise.\n\n## Adaptation Scope\n\n### Minimum Complete Game\n\nThe most realistic \"complete game\" should adapt the opening arc through the early dungeon experience rather than all published books.\n\nRecommended first complete release:\n\n- Surface collapse/opening survival.\n- Floor 1 tutorial dungeon.\n- Floor 2 training escalation.\n- Floor 3 class/race/guild systems as the first major hub transformation.\n- End with a major boss/escape/set-piece that feels like a season finale.\n\nThis creates a game with a beginning, progression arc, and climax without attempting to cram eight books into one impossible project.\n\n### Expansion Model\n\nUse episodic or seasonal expansion structure:\n\n- Game 1: Tutorial and early crawl.\n- Expansion 1: Over City and class identity.\n- Expansion 2: rail/network floor systems.\n- Expansion 3: faction/show politics.\n- Later expansions: higher-floor special rules.\n\nThis mirrors the book structure better than one enormous open-world game.\n\n## Required Research Track\n\n### Canon Source Set\n\nUse the books as the primary source. As of the latest checked official author site, the listed mainline books include:\n\n- *Dungeon Crawler Carl*\n- *Carl's Doomsday Scenario*\n- *The Dungeon Anarchist's Cookbook*\n- *The Gate of the Feral Gods*\n- *The Butcher's Masquerade*\n- *The Eye of the Bedlam Bride*\n- *This Inevitable Ruin*\n- *A Parade of Horribles*\n\nSecondary sources are useful for navigation but must not override the books:\n\n- Official author site.\n- Official game/TTRPG/card-game announcements.\n- Wiki summaries.\n- Author interviews.\n- Audiobook/Immersion Tunnel only for tone reference, not copied performance.\n\n### Lore Bible Workflow\n\n1. Read or re-read the target book section.\n2. Add every relevant mechanic, character, item, location, faction, race, class, status effect, achievement, and quest to the lore bible.\n3. Mark whether it is essential, optional, or background.\n4. Convert it into gameplay rules.\n5. Review for contradictions.\n6. Rewrite all dialogue as original game text unless licensed.\n7. Playtest whether the feature feels like the books, not merely whether it references them.\n\n## Main Systems\n\n### 1. Character System\n\nCore character data:\n\n- Name.\n- Species/race.\n- Class.\n- Level.\n- Stats.\n- Skills.\n- Equipment slots.\n- Inventory.\n- Status effects.\n- Achievements.\n- Titles.\n- Faction relationships.\n- Sponsor/viewer modifiers.\n\nCarl-specific early profile:\n\n- Starts under-equipped.\n- Improvised melee and explosive tactics.\n- High survivability through rule exploitation.\n- Strong environmental interaction.\n- Tactical, angry, protective decision-making.\n\nDonut-specific early profile:\n\n- Companion character, not a pet cosmetic.\n- Starts vulnerable but becomes increasingly central.\n- Social/showmanship mechanics.\n- Ranged/magic/charisma-style contribution depending on progression point.\n- Banter and morale pressure.\n- Independent danger if separated, ignored, or targeted.\n\nMordecai-specific role:\n\n- Tutorial guide.\n- System explainer.\n- Rules interpreter.\n- Crafting/build advisor later.\n- Should feel overworked, trapped, knowledgeable, and reluctant.\n\n### 2. Party and Companion AI\n\nDonut should never feel like a static follower.\n\nFeatures:\n\n- Follow behavior with spacing options.\n- Avoid hazards.\n- React to loot, enemies, smells, status effects, and bad choices.\n- Contextual banter.\n- Combat role automation with player-issued commands.\n- Panic or refusal states.\n- Relationship trust meter.\n- Rescue and protect mechanics.\n\nCommand examples:\n\n- Stay close.\n- Hold position.\n- Hide.\n- Attack target.\n- Use ability.\n- Interact.\n- Retreat.\n\n### 3. Dungeon Floor System\n\nEach floor should be generated or authored from a data model:\n\n- Floor number.\n- Theme.\n- Legal rules.\n- Timer.\n- Stairwell rules.\n- Monster tables.\n- Quest pool.\n- Loot tables.\n- Environmental hazards.\n- Safe rooms.\n- Guilds.\n- Shops.\n- Special floor mechanics.\n- Broadcast modifiers.\n\nFloor design must avoid generic dungeon sameness. Every floor needs one dominant rule twist.\n\n### 4. System AI and Announcements\n\nThe System AI is a core feedback layer.\n\nMechanics:\n\n- Achievement popups.\n- Quest alerts.\n- Reward notifications.\n- Trap warnings.\n- Invasive commentary.\n- Tutorial hints.\n- Viewer-facing spectacle language.\n- Escalating obsession/instability tone.\n\nImplementation:\n\n- Build an event-driven announcement manager.\n- Each event has variables, severity, timing, and repetition limits.\n- Use original written lines unless licensed.\n- Maintain tone categories: tutorial, mocking, celebratory, punishment, commercial, obsessive.\n\n### 5. Combat\n\nRecommended combat style:\n\n- Real-time with tactical pause, or grid-based turn tactics.\n\nFor first build, choose **grid-based tactical turns** because it evolves naturally from the prototype.\n\nCombat rules:\n\n- Position matters.\n- Environmental objects matter.\n- Improvised weapons matter.\n- Explosives and traps are high-risk/high-reward.\n- Donut and Carl must synergize.\n- Enemy telegraphs should be readable.\n- Bosses should be puzzle-like, not just high-health enemies.\n\nCore combat actions:\n\n- Move.\n- Attack.\n- Use item.\n- Use ability.\n- Shove/pull.\n- Interact with environment.\n- Defend.\n- Command companion.\n- Flee.\n\n### 6. Loot and Inventory\n\nLoot should feel dangerous, funny, and strategic.\n\nItem model:\n\n- Name.\n- Rarity.\n- Slot.\n- Stats.\n- Active effect.\n- Passive effect.\n- Curse/side effect.\n- Description.\n- Source.\n- Canon status.\n\nInventory principles:\n\n- Limited capacity creates decisions.\n- Gear should visibly affect character identity.\n- Some rewards should be jokes mechanically useful in unexpected ways.\n- Item descriptions should be original but in the series tone.\n\n### 7. Quest System\n\nQuest data:\n\n- Title.\n- Trigger.\n- Objectives.\n- Timer.\n- Failure state.\n- Rewards.\n- Hidden consequences.\n- Announcement lines.\n- Canon reference.\n\nQuest types:\n\n- Survival.\n- Escort/protect.\n- Kill target.\n- Puzzle.\n- Social/broadcast.\n- Crafting.\n- Escape.\n- Optional chaos quest.\n\n### 8. Class, Race, and Progression\n\nThe game must delay full build identity until the canon-appropriate point.\n\nProgression stages:\n\n- Pre-class survival.\n- Basic leveling and stats.\n- Tutorial rewards.\n- Race/class selection.\n- Skill specialization.\n- Build-defining synergies.\n\nDo not give Carl and Donut late-book capabilities in the opening game unless the project intentionally becomes a non-canon sandbox.\n\n### 9. Viewer, Sponsor, and Show Mechanics\n\nThis is where the game becomes *Dungeon Crawler Carl* rather than a normal dungeon RPG.\n\nSystems:\n\n- Viewer interest score.\n- Sponsor offers.\n- Popularity boosts.\n- Broadcast events.\n- Audience-favored behavior.\n- Corporate interference.\n- Reputation tags.\n- Risk/reward spectacle bonuses.\n\nPlayer tension:\n\n- The safest action is not always the most rewarded action.\n- Entertaining choices can unlock benefits but create danger.\n- Refusing spectacle should sometimes be possible, but costly.\n\n### 10. Dialogue and Narrative\n\nDialogue requirements:\n\n- Branching conversations.\n- Banter while exploring.\n- Reactive dialogue after major events.\n- NPC memory of choices.\n- Companion interruptions.\n- System messages as separate narrative channel.\n\nAccuracy method:\n\n- Use the books to define what characters know, want, fear, and hide.\n- Write new game dialogue that expresses those traits.\n- Avoid copying book passages unless licensed.\n\nCarl voice:\n\n- Dry.\n- Protective.\n- Frustrated.\n- Practical.\n- Increasingly strategic.\n\nDonut voice:\n\n- Dramatic.\n- Opinionated.\n- Socially aware.\n- Proud.\n- Often funny but not stupid.\n\nMordecai voice:\n\n- Stressed.\n- Explanatory.\n- Cynical.\n- Professionally trapped.\n- Protective under protest.\n\n### 11. UI\n\nUI must feel like an alien reality-show RPG interface.\n\nRequired screens:\n\n- Character sheet.\n- Companion sheet.\n- Inventory.\n- Equipment.\n- Quests.\n- Achievements.\n- Floor map.\n- Announcements log.\n- Combat timeline.\n- Loot comparison.\n- Settings/accessibility.\n\nPrototype UI rule:\n\n- Every book-like system message becomes a structured UI event.\n- The player can open an archive of announcements and rewards.\n\n### 12. Save System\n\nNeeded early:\n\n- Manual save in safe areas.\n- Autosave at room transitions.\n- Combat restart option for prototype.\n- Later: harsher survival modes.\n\nData to save:\n\n- Floor state.\n- Entity positions.\n- Inventory.\n- Character stats.\n- Dialogue flags.\n- Quest flags.\n- Achievements.\n- Generated dungeon seed.\n\n## Content Plan by Milestone\n\n### Milestone 0: Clean Prototype\n\nGoal: convert the current Python script into a maintainable prototype.\n\nTasks:\n\n- Split code into modules: world, entity, input, rendering, dialogue, data.\n- Add JSON/YAML data files for characters, dialogue, maps, and items.\n- Add collision layers.\n- Add event log.\n- Add save/load.\n- Add unit tests for movement and collision.\n\nDeliverable:\n\n- Playable terminal tutorial room with clean architecture.\n\n### Milestone 1: Tutorial Guild Vertical Slice\n\nGoal: make the first room feel like a real game scene.\n\nFeatures:\n\n- Mordecai interaction menu.\n- Donut follow AI with collision-aware pathing.\n- System announcement popup.\n- Inventory with initial loadout.\n- Basic character sheet.\n- Tutorial chest.\n- Quest: speak to guide, inspect inventory, open chest, reach exit.\n- Original placeholder dialogue.\n\nDeliverable:\n\n- 10-15 minute playable tutorial.\n\n### Milestone 2: First Combat Loop\n\nGoal: prove combat, companion control, and rewards.\n\nFeatures:\n\n- Turn-based grid combat.\n- Enemy AI.\n- Carl melee action.\n- Donut support/ranged action.\n- Consumable item.\n- Environmental hazard.\n- Victory reward.\n- Failure/retry.\n- Achievement trigger.\n\nDeliverable:\n\n- One combat encounter that feels dangerous and funny.\n\n### Milestone 3: Floor 1 Mini-Dungeon\n\nGoal: create a complete early dungeon loop.\n\nFeatures:\n\n- 8-12 rooms.\n- Branching paths.\n- Locked door or puzzle.\n- Safe room.\n- Loot table.\n- 3 enemy types.\n- 1 mini-boss.\n- Quest chain.\n- Timed objective.\n- Exit/stairwell.\n\nDeliverable:\n\n- 45-60 minute playable demo.\n\n### Milestone 4: Progression and Build Identity\n\nGoal: make leveling and choices matter.\n\nFeatures:\n\n- Experience.\n- Level rewards.\n- Stat choices.\n- Skill unlocks.\n- Gear comparison.\n- Donut progression.\n- Achievement rewards with effects.\n\nDeliverable:\n\n- Replayable demo with different builds.\n\n### Milestone 5: Visual Engine Transition\n\nGoal: move from terminal/grid to visual game.\n\nOptions:\n\n- Godot tilemap.\n- Unity 2D grid.\n- Web prototype with Canvas/PixiJS.\n\nMinimum visuals:\n\n- Animated Carl token.\n- Animated Donut token.\n- NPC sprites.\n- Tilemap rooms.\n- UI panels.\n- Announcement overlays.\n- Basic combat VFX.\n\nDeliverable:\n\n- Visual version of the tutorial guild and first combat.\n\n### Milestone 6: Licensed Canon Pass\n\nGoal: only after rights are clarified, replace placeholders with approved canon material.\n\nTasks:\n\n- Rights review.\n- Character/name approval.\n- Dialogue approval.\n- Visual design approval.\n- Brand/logo approval.\n- Book-scene adaptation checklist.\n- Sensitivity and rating review.\n\nDeliverable:\n\n- Canon-approved vertical slice.\n\n## Data Architecture\n\nRecommended project structure:\n\n```text\ngame/\n  data/\n    characters/\n    dialogue/\n    floors/\n    items/\n    quests/\n    achievements/\n    enemies/\n    lore_bible/\n  src/\n    core/\n    combat/\n    dialogue/\n    dungeon/\n    ui/\n    save/\n  tests/\n  tools/\n```\n\n### Example Entity Data\n\n```json\n{\n  \"id\": \"carl\",\n  \"displayName\": \"Carl\",\n  \"role\": \"player\",\n  \"canonStatus\": \"licensed-required\",\n  \"stats\": {\n    \"strength\": 5,\n    \"dexterity\": 4,\n    \"constitution\": 6,\n    \"intelligence\": 4\n  },\n  \"tags\": [\"crawler\", \"human\", \"improviser\"]\n}\n```\n\n### Example Announcement Data\n\n```json\n{\n  \"id\": \"first_bad_choice\",\n  \"trigger\": \"player_bumps_barrier\",\n  \"tone\": \"mocking\",\n  \"licensedText\": false,\n  \"lines\": [\n    \"Achievement unlocked: You found the wall. It was there the whole time.\"\n  ],\n  \"reward\": null\n}\n```\n\n## Accuracy Checklist\n\nBefore any feature becomes final:\n\n- Does this appear in the books or official material?\n- If yes, where?\n- Is the implementation mechanically faithful?\n- Is the timing/order faithful?\n- Does the character know this yet?\n- Does this create contradictions with later events?\n- Is the dialogue original or licensed?\n- Are names/visuals safe to use for the intended release?\n- Does it feel like the dungeon is exploiting the characters for entertainment?\n\n## Corrections to the Current Prototype\n\nThe prototype is useful, but several details should be treated as placeholders until checked against canon:\n\n- Mordecai's exact form and phrasing should be verified against the relevant book scene.\n- The Tutorial Guild layout should be reconstructed from book evidence instead of invented as a 12x12 square.\n- Carl and Donut's starting stats and titles should be separated into \"known at start\" versus \"earned later.\"\n- Donut should not merely trail Carl; she needs autonomous reactions and eventually combat/social mechanics.\n- Direct quote-style dialogue should be rewritten as original placeholder lines unless licensed.\n- \"No Pants Armor Penalty\" should be a humorous internal placeholder until the actual stat/equipment rules are defined.\n\n## Legal and Production Risk\n\nHigh-risk without license:\n\n- Title/logo use in a distributed game.\n- Carl, Donut, Mordecai, and other named characters.\n- Direct book dialogue.\n- Official cover art or audiobook voices.\n- Exact floor/event recreation with protected expression.\n- Marketing as an official game.\n\nLower-risk for private prototyping:\n\n- Internal mechanics prototype.\n- Placeholder characters.\n- Original dialogue.\n- Systems inspired by LitRPG dungeon progression.\n- Private lore notes not distributed.\n\nRecommended next step:\n\n- If this is for a private prototype, keep working with placeholder/legal-safe assets.\n- If this is intended for release, pursue licensing before investing heavily in exact canon adaptation.\n\n## Team Roles Needed\n\nMinimum indie team:\n\n- Game designer/systems designer.\n- Programmer.\n- Writer/narrative designer.\n- 2D artist or technical artist.\n- UI designer.\n- QA/playtester.\n\nLarger team:\n\n- Combat designer.\n- Level designer.\n- Producer.\n- Audio designer.\n- Composer.\n- Voice director.\n- Legal/licensing contact.\n\n## Development Roadmap\n\n### Month 1\n\n- Clean prototype architecture.\n- Build lore bible template.\n- Create data-driven map, entity, and dialogue systems.\n- Add save/load.\n\n### Month 2\n\n- Build tutorial guild vertical slice.\n- Add inventory, quest log, character sheet.\n- Add event-driven announcements.\n\n### Month 3\n\n- Add turn-based combat.\n- Add first enemy.\n- Add Donut commands.\n- Add loot/reward loop.\n\n### Month 4\n\n- Build Floor 1 mini-dungeon.\n- Add multiple rooms, hazards, and mini-boss.\n- Add playtest telemetry.\n\n### Month 5\n\n- Move into visual engine.\n- Recreate vertical slice with sprites/tilemap/UI.\n- Keep data files portable.\n\n### Month 6\n\n- Polish vertical slice.\n- Lore accuracy review.\n- Legal review.\n- Decide: fan prototype, pitch deck, or licensed production.\n\n## Definition of Done for the First Serious Demo\n\nThe first demo is complete when:\n\n- The player can start, learn controls, talk to the guide, manage inventory, fight, loot, complete quests, and exit the floor section.\n- Donut meaningfully reacts and participates.\n- System announcements respond to player behavior.\n- The dungeon has a timer or pressure mechanic.\n- At least one encounter can be solved creatively through environment/item use.\n- The UI clearly exposes RPG stats, quests, loot, and achievements.\n- Every canon-derived element has a lore bible entry.\n- No direct book text is included unless licensed.\n\n## Interactive Plan Addendum\n\nThis section incorporates the tabbed game-plan material from `dungeon_crawler_carl_game_plan.html` into the master build plan.\n\n### Foundation: Tutorial Guild\n\nThe first build phase turns the existing prototype into a book-accurate Tutorial Guild scene.\n\nCore engine requirements:\n\n- Grid-based movement on a 12x12 map.\n- Carl starts in boxer shorts and leather jacket, with no pants.\n- Donut starts as Level 0 and explicitly civilian, not combat-ready.\n- Mordecai appears in Chupacabra form behind the desk.\n- Collision, proximity triggers, and dialogue cycling all work.\n\nBook-accurate additions:\n\n- Add the System interface as dungeon-OS-style pop-up notifications.\n- Treat Carl's leather jacket as a specific named inventory item, not generic clothing.\n- Display Donut's Grand Champion pedigree title in her stat block.\n- Increase Mordecai's stress level with each dialogue cycle.\n- Escalate Donut's complaints about smell, dirt, and indignity as the scene progresses.\n\n### Class and Stats System\n\nThe dungeon's class selection is book-critical and must not be treated as a generic RPG menu.\n\nCarl's path:\n\n- Starts classless.\n- Receives class-selection UI through the System.\n- Must choose before deeper progression.\n- Candidate class framework should include crawler-style baseline options plus physical, rogue, healer, enchanter, monk, and brawler-adjacent paths as data-driven records.\n- Carl's long-term combat identity leans physical, improvised, and explosive rather than formal magic.\n- The no-pants state creates a named armor penalty, not only a joke.\n\nDonut's path:\n\n- Starts Level 0, civilian, and classless.\n- Unlocks progression separately from Carl.\n- Develops toward magic, support, social power, and viewer appeal.\n- Cat traits include agility bonus, low carry weight, claws, small-body navigation, and vulnerability to heavy direct damage.\n- Grand Champion status grants cosmetic fame, social leverage, and viewer-interest modifiers.\n\n### Floor 1: The Savannas\n\nFloor 1 should be a fully playable first dungeon floor rather than a generic cave.\n\nEnvironment requirements:\n\n- Open grassland-style biome.\n- Sky-lit or illusion-lit presentation rather than ordinary underground tunnels.\n- Scattered ruins and biome transition zones.\n- Early enemies such as kobolds, goblin scouts, and small-to-mid-sized dungeon wildlife where canon-supported.\n- Saferooms with lockable doors, shops, rest, and NPC interaction.\n- Visible floor collapse deadline.\n\nKey Floor 1 elements:\n\n- Introduction of explosive items.\n- Carl discovers improvised weapons and explosive crafting.\n- Gladiator-arena-style side content if licensed and canon-verified.\n- Viewer sponsorships begin as item drops or reward events.\n- Donut earns experience and begins moving from civilian liability to active co-protagonist.\n\n### Syndicate and Viewer System\n\nThe show-within-a-game layer must be a real mechanical system.\n\nViewer sponsorships:\n\n- Alien viewers watch the dungeon as entertainment.\n- Sponsorships drop items into the dungeon in real time.\n- Popularity affects drop quality and frequency.\n- Donut is more naturally popular, which the player must manage.\n- Controversial, funny, creative, or shocking actions spike viewership.\n- Different viewer factions should prefer different behaviors.\n\nSyndicate faction:\n\n- Organized criminal and economic presence inside the dungeon.\n- Can be allied with, betrayed, avoided, or exploited.\n- Saferoom economy should feel influenced by Syndicate control where canon-supported.\n- Donut's social skills unlock dialogue paths Carl cannot access.\n- Carl's bluntness can close social routes while opening intimidation or direct-action options.\n\n### Deeper Floors and End State\n\nThe first complete game should escalate through early-book content while avoiding scope explosion.\n\nPlanned escalation:\n\n- Floor 2: more urban, ruined, or constructed spaces with vertical navigation and more complex NPC factions, pending canon verification.\n- Floor 3: celebrity-crawler status, major hub play, class/race identity, guild systems, and advanced social mechanics.\n- Floor 4 and beyond: environmental rules become more specific and punishing; bosses become character-specific instead of generic fights.\n- Lore collectibles gradually reveal the dungeon's deeper purpose.\n\n### Lore Accuracy Requirements\n\nThe following details are mandatory accuracy targets:\n\n- Carl's jacket is not optional flavor. It must be a named, stats-bearing item with durability and plot relevance.\n- Donut's breed and Grand Champion title matter mechanically. They influence charisma, fame, social checks, viewer popularity, and her identity.\n- The System is a character, not a neutral HUD. It mocks crawlers, hypes deaths, editorializes outcomes, gates features, and frames the game as entertainment.\n- The dungeon is a literal alien TV show. Viewer counts, sponsor drops, popularity, and faction tastes must affect play.\n- Mordecai's stress is both comedy and tragedy. He is competent, trapped, protective, and limited in what he can reveal.\n- Carl's lack of pants is a named debuff with armor consequences.\n- Explosive crafting is Carl's core combat identity and should be discovery-based, improvisational, and dangerous.\n- Floor collapse timers must create real pacing pressure. Players cannot grind forever.\n\n### Core Systems Breakdown\n\nCritical systems:\n\n- **System interface:** sarcastic, personality-driven dungeon-OS notifications for achievements, kills, timers, class selection, rewards, and failures.\n- **Dual protagonist system:** Carl and Donut have separate stat sheets, class trees, reputations, inventories or carry constraints, and dialogue affordances.\n\nHigh-priority systems:\n\n- **Improvised explosive crafting:** combine dungeon materials, discover recipes through experimentation, vary yield by components, allow limited combat improvisation.\n- **Viewer popularity and sponsorships:** live popularity meter, audience factions, action-specific spikes, and sponsor drops.\n\nImportant systems:\n\n- **Floor timer and collapse mechanic:** visible countdown changes pacing, NPC behavior, prices, and risk tolerance.\n- **Saferoom economy:** shops, rest, NPCs, lockable safety, Syndicate-influenced pricing, and items that hint at future hazards.\n\n### Character Specs\n\nCarl Estanza:\n\n- Starts in boxer shorts, leather jacket, socks, and little else.\n- No class at the beginning.\n- Physical, explosive, improvisational combat identity.\n- Socially blunt, accidentally honest, and more effective than expected.\n- Refuses to quit even when quitting is the rational choice.\n- Treats Donut like a responsibility while gradually accepting her as a partner.\n\nPrincess Donut:\n\n- Persian show cat and Grand Champion.\n- Starts as Level 0 civilian with no combat experience.\n- High charisma and fame potential from the beginning.\n- Complains about smell, dirt, indignity, status, and treatment.\n- Becomes more popular with viewers faster than Carl.\n- Develops magic/support/social capabilities.\n- Loves Carl deeply while expressing it through attitude, demands, and loyalty.\n\nMordecai:\n\n- Appears in Chupacabra form in the Tutorial Guild where canon-confirmed.\n- Starts stressed and becomes more frantic as danger rises.\n- Deeply competent.\n- Knows more than he can safely explain.\n- Shows affection through exasperated guidance.\n- Should feel like a tragic character forced to play a comedy role.\n\n### World Design\n\nFloor 1:\n\n- Grassland or savanna-like environment if canon-verified.\n- Sky-lit illusion or artificial biome presentation.\n- Intro enemies and environmental hazards.\n- Early arena or side-content hooks where canon-supported.\n- First improvised explosive success.\n- Donut's early XP and viewer-awareness moments.\n\nFloor 2:\n\n- More complex navigation and stronger faction presence.\n- Urban, ruined, constructed, or training-floor structure must be verified before finalization.\n- Carl and Donut's reputation begins to travel ahead of them.\n- Viewer factions and social stakes grow more complex.\n\nFloor 3:\n\n- Major hub and celebrity-status escalation.\n- Class, race, guild, and advanced social systems become central.\n- Donut's star power should materially affect options.\n- Alliances and betrayals become more important.\n\nSaferooms:\n\n- Present across floors.\n- No enemies inside.\n- Lockable doors.\n- Shop, rest, and NPC interaction.\n- Prices and inventory respond to floor danger and faction influence.\n- Stock can subtly foreshadow the next floor's needs.\n\n### Tech Stack and Data Architecture\n\nRecommended paths:\n\n- **Pygame or terminal Python:** best for extending the prototype directly.\n- **Godot 4:** best long-term indie choice for a tile-based or isometric game.\n- **Unity 2D:** better if the team wants a CRPG-like presentation and already knows C#.\n\nModular data requirements:\n\n- Dialogue stored in JSON or another data format, never hard-coded.\n- Stats, debuffs, items, classes, achievements, quests, and notifications stored as data.\n- Floor maps authored in a tile editor or structured map format.\n- System notifications built from templates that accept variables such as crawler name, item, kill type, and reward.\n- Crafting recipes represented as a graph so combinations and discovery can expand without rewriting code.\n\nFirst milestone target:\n\n- Playable Tutorial Guild plus Floor 1 entry corridor.\n- System interface with sarcastic notifications.\n- Donut following Carl with her own stat display.\n- Named leather jacket item.\n- No-pants debuff.\n- Mordecai stress progression.\n- One working crafting combination that produces an explosion.\n\n## Immediate Next Build Task\n\nTransform the current Python file into a data-driven prototype:\n\n1. Create `crawler.py` as the runner.\n2. Create `data/characters.json`.\n3. Create `data/tutorial_guild_map.txt`.\n4. Create `data/dialogue.json`.\n5. Add save/load.\n6. Add a quest log.\n7. Add an announcement manager.\n8. Add a tutorial chest.\n9. Add a first enemy encounter in a separate room.\n10. Add simple tests for movement, collision, following, and dialogue triggers.\n\nThat gives the project a real spine: the story can grow through data, and the engine can later move to Godot or Unity without throwing away the core design.\n","README.md":"# Dungeon Crawler Carl Game Prototype\n\n\u003cp align=\"left\">\n\t\u003cimg src=\"https://img.shields.io/github/actions/workflow/status/joshuaparris-max/carl/ci.yml?branch=main\" alt=\"CI\" />\n\t\u003ca href=\"https://carl-opal.vercel.app/\">\u003cimg src=\"https://img.shields.io/badge/deploy-Vercel-black?style=flat&logo=vercel\" alt=\"Vercel\"/>\u003c/a>\n\u003c/p>\n\nThis project currently has two playable forms:\n\n- A data-driven Python terminal prototype.\n- A single-file browser prototype in `index.html`.\n\nThe Python version is the systems testbed. The browser version proves the visual direction. The next production target is a Phaser 3 web build.\n\n## Run\n\nPython prototype:\n\n```powershell\npython crawler.py\n```\n\nBrowser prototype:\n\nOpen `index.html` in a modern browser.\n\n## Controls\n\n- `W/A/S/D`: move Carl\n- `X`: attack an adjacent enemy\n- `U`: use a combat item\n- `T`: talk\n- `O`: open nearby object\n- `I`: inventory\n- `C`: craft\n- `E`: equip the first available unequipped gear\n- `P`: pick up an item on Carl's tile\n- `B`: buy from a nearby shop\n- `F`: set Donut to follow\n- `H`: set Donut to hide\n- `R`: set Donut to retreat\n- `V`: save\n- `L`: load\n- `K`: restore checkpoint from the last save\n- `Q`: quit\n\n## Current Goal\n\nTalk to Mordecai, inspect Carl's inventory, open the tutorial chest, craft the first crude explosive, pick up pants, equip them, buy from the tutorial shop, trigger a hazard, and defeat the training enemy.\n\nAll story text here is original placeholder game text for prototyping.\n\n## Design Foundations\n\nThe research and design foundation docs now live in `docs/`:\n\n- `docs/architecture.md`: current code architecture, data flow, validation, event loop, and testing shape.\n- `docs/aaa_indie_solo_roadmap.md`: honest solo-dev roadmap from prototype to polished demo.\n- `docs/aaa_indie_status.md`: current status and next Phaser milestone.\n- `docs/engine_choice_phaser.md`: Phaser 3 engine decision and migration plan.\n- `docs/game_feel_and_audio_spec.md`: movement, combat, UI juice, and audio priorities.\n- `docs/visual_art_direction.md`: pixel art direction, palette, sprites, tiles, and UI art.\n- `docs/content_depth_plan.md`: Tutorial Guild expansion, Floor 1 plan, enemies, saferooms, crafting, and timer.\n- `docs/ux_polish_release_plan.md`: screens, contextual controls, accessibility, save UX, release checklist.\n- `docs/solo_dev_12_week_backlog.md`: week-by-week solo development backlog.\n- `docs/lore_bible.md`: canon tracking, source references, gameplay translation, and legal risk.\n- `docs/design_pillars.md`: tone, player experience, and core adaptation pillars.\n- `docs/system_design.md`: character progression, floor rules, companion behavior, viewer pressure, and announcements.\n- `docs/playable_features.md`: floor authoring, encounters, hazards, loot, crafting, dialogue, banter, and quests.\n\nStructured lore entries are also stored in `data/lore_bible.json` so future tools can validate content against canon status and legal risk.\n\n## Tests\n\n```powershell\npython -m unittest discover -s tests\n```\n\nThe current suite covers data validation, movement, collision, quests, announcements, item handling, equipment, pickups, shops, hazards, combat, events, turns, save/load, checkpoints, lore labels, and tutorial scenario flows.\n\n## Project Plan\n\nThis prototype is currently scoped as a **fan/internal prototype**. It uses book-inspired themes and mechanics while avoiding exact copyrighted dialogue and protected branding.\n\nFor the first playable version, the focus is:\n- opening survival and registration sequence\n- Floor 1 tutorial guild segment\n- Floor 2 escalation and training floor\n- early hub transformation or first major transition\n\nThe long-term roadmap is:\n- Phase 1: systems prototype in Python\n- Phase 2: polished 2D release\n- Phase 3: expanded content or 3D conversion\n\nPlanned platform and engine path:\n- PC-first release\n- Python terminal prototype for fast systems iteration and tests\n- single-file browser prototype for immediate visual/playtest iteration\n- recommended production engine: Phaser 3, web-first\n- later desktop packaging: Electron or Tauri\n\n## Current Roadmap\n\nThe next serious production sequence is:\n\n1. Port the Python/browser logic into a Phaser 3 project.\n2. Add movement/combat/UI juice before adding more content.\n3. Replace placeholder visuals with 16x16 pixel art.\n4. Build Floor 1 as the first complete floor.\n5. Add title, pause, game-over, transition, victory, options, and accessibility screens.\n6. Package/share a demo for playtesting.\n","data/announcements.json":"{\n  \"welcome\": {\n    \"text\": \"Welcome, {crawler}. You have been registered while aggressively failing to wear complete clothing.\"\n  },\n  \"bump\": {\n    \"text\": \"Achievement progress: Wall Inspector. Reward pending, because even the wall is unimpressed.\"\n  },\n  \"quit\": {\n    \"text\": \"Run ended. The viewers have filed a complaint about the lack of screaming.\"\n  },\n  \"chest_opened\": {\n    \"text\": \"Loot event registered. Try not to treat this as proof you are good at decisions.\"\n  },\n  \"crafted_explosive\": {\n    \"text\": \"Crafting update: crude explosive assembled. The viewers have upgraded you from doomed to interesting.\"\n  },\n  \"sponsor_ready\": {\n    \"text\": \"Sponsor interest detected. Somewhere, someone with too much money enjoyed that.\"\n  },\n  \"floor_start\": {\n    \"text\": \"Floor event started. Try to look survivable.\"\n  },\n  \"dawn_bell\": {\n    \"text\": \"Dawn bell simulation complete. It is not morning. It is branding.\"\n  },\n  \"viewer_poll\": {\n    \"text\": \"Viewer poll opened: Will the crawler die stupidly or creatively?\"\n  }\n}\n","data/characters.json":"{\n  \"carl\": {\n    \"name\": \"Carl\",\n    \"symbol\": \"C\",\n    \"position\": { \"x\": 3, \"y\": 9 },\n    \"level\": 1,\n    \"role\": \"player\",\n    \"entity_type\": \"player\",\n    \"tags\": [\"crawler\", \"human\", \"classless\", \"improviser\"],\n    \"resources\": {\n      \"health\": 12,\n      \"max_health\": 12,\n      \"stamina\": 8,\n      \"max_stamina\": 8,\n      \"armor\": 1\n    },\n    \"stats\": {\n      \"strength\": 5,\n      \"dexterity\": 4,\n      \"constitution\": 6,\n      \"charisma\": 3,\n      \"explosives\": 1\n    },\n    \"inventory\": [\"leather_jacket\"],\n    \"equipment\": {\n      \"torso\": \"leather_jacket\"\n    },\n    \"debuffs\": [\"no_pants\"],\n    \"buffs\": [],\n    \"status_effects\": [],\n    \"state\": {}\n  },\n  \"donut\": {\n    \"name\": \"Princess Donut\",\n    \"symbol\": \"D\",\n    \"position\": { \"x\": 1, \"y\": 9 },\n    \"level\": 0,\n    \"role\": \"companion\",\n    \"entity_type\": \"companion\",\n    \"tags\": [\"civilian\", \"persian\", \"grand_champion\", \"cat\"],\n    \"resources\": {\n      \"health\": 5,\n      \"max_health\": 5,\n      \"stamina\": 10,\n      \"max_stamina\": 10,\n      \"armor\": 0\n    },\n    \"stats\": {\n      \"strength\": 1,\n      \"dexterity\": 7,\n      \"constitution\": 2,\n      \"charisma\": 9,\n      \"fame\": 4\n    },\n    \"inventory\": [],\n    \"equipment\": {},\n    \"debuffs\": [\"civilian\"],\n    \"buffs\": [\"viewer_appeal\"],\n    \"status_effects\": [],\n    \"state\": {\n      \"mode\": \"follow\"\n    }\n  },\n  \"mordecai\": {\n    \"name\": \"Mordecai\",\n    \"symbol\": \"M\",\n    \"position\": { \"x\": 6, \"y\": 4 },\n    \"level\": 1,\n    \"role\": \"guide\",\n    \"entity_type\": \"npc\",\n    \"tags\": [\"manager\", \"chupacabra_form\", \"stressed\"],\n    \"resources\": {\n      \"health\": 20,\n      \"max_health\": 20,\n      \"stamina\": 10,\n      \"max_stamina\": 10,\n      \"armor\": 0\n    },\n    \"stats\": {\n      \"stress\": 6,\n      \"patience\": 2,\n      \"knowledge\": 10\n    },\n    \"inventory\": [],\n    \"equipment\": {},\n    \"debuffs\": [],\n    \"buffs\": [],\n    \"status_effects\": [],\n    \"state\": {\n      \"dialogue_stress\": 6\n    }\n  },\n  \"bopca_clerk\": {\n    \"name\": \"Bopca Clerk\",\n    \"symbol\": \"B\",\n    \"position\": { \"x\": 9, \"y\": 6 },\n    \"level\": 1,\n    \"role\": \"shopkeeper\",\n    \"entity_type\": \"npc\",\n    \"tags\": [\"shopkeeper\", \"saferoom_economy\", \"placeholder\"],\n    \"resources\": {\n      \"health\": 10,\n      \"max_health\": 10,\n      \"stamina\": 6,\n      \"max_stamina\": 6,\n      \"armor\": 0\n    },\n    \"stats\": {\n      \"charisma\": 5,\n      \"patience\": 1\n    },\n    \"inventory\": [],\n    \"equipment\": {},\n    \"debuffs\": [],\n    \"buffs\": [],\n    \"status_effects\": [],\n    \"state\": {}\n  },\n  \"training_goblin\": {\n    \"name\": \"Training Goblin\",\n    \"symbol\": \"g\",\n    \"position\": { \"x\": 8, \"y\": 8 },\n    \"level\": 1,\n    \"role\": \"enemy\",\n    \"entity_type\": \"monster\",\n    \"tags\": [\"tutorial_enemy\", \"hostile\"],\n    \"resources\": {\n      \"health\": 6,\n      \"max_health\": 6,\n      \"stamina\": 4,\n      \"max_stamina\": 4,\n      \"armor\": 0\n    },\n    \"stats\": {\n      \"strength\": 2,\n      \"dexterity\": 2,\n      \"constitution\": 2,\n      \"charisma\": 0\n    },\n    \"inventory\": [],\n    \"equipment\": {},\n    \"debuffs\": [],\n    \"buffs\": [],\n    \"status_effects\": [],\n    \"state\": {}\n  }\n}\n","data/dialogue.json":"{\n  \"mordecai\": [\n    {\n      \"stress\": 6,\n      \"text\": \"Mordecai: Listen carefully. You are alive, classless, underdressed, and already behind schedule. That is not a strategy.\"\n    },\n    {\n      \"stress\": 7,\n      \"text\": \"Mordecai: The cat is Level 0. Civilian. Do not let her get hit. Do not let yourself get hit either, but especially do not let the cat get hit.\"\n    },\n    {\n      \"stress\": 8,\n      \"text\": \"Mordecai: The System has rules. Bad rules. Cruel rules. But rules can be used, and that is the only reason I am still talking to you.\"\n    },\n    {\n      \"stress\": 9,\n      \"text\": \"Mordecai: Stop looking for pants and start looking for advantages. The dungeon does not care about dignity.\"\n    }\n  ],\n  \"bopca_clerk\": [\n    {\n      \"text\": \"Bopca Clerk: You want affordable prices? That is adorable. I sell survival, not hope.\"\n    },\n    {\n      \"text\": \"Bopca Clerk: The cat gets a discount if she stops staring at me like that.\"\n    }\n  ]\n}\n","data/hazards.json":"{\n  \"guild_grime_patch\": {\n    \"id\": \"guild_grime_patch\",\n    \"name\": \"Suspicious Grime Patch\",\n    \"symbol\": \"~\",\n    \"position\": { \"x\": 4, \"y\": 8 },\n    \"effect\": \"donut_complaint\",\n    \"severity\": 0,\n    \"tags\": [\"tutorial\", \"nonlethal\", \"filth\"]\n  },\n  \"training_trap\": {\n    \"id\": \"training_trap\",\n    \"name\": \"Training Trap\",\n    \"symbol\": \"!\",\n    \"position\": { \"x\": 6, \"y\": 8 },\n    \"effect\": \"trap\",\n    \"severity\": 3,\n    \"tags\": [\"tutorial\", \"damage\"]\n  },\n  \"rough_tile\": {\n    \"id\": \"rough_tile\",\n    \"name\": \"Rough Tile\",\n    \"symbol\": \"^\",\n    \"position\": { \"x\": 5, \"y\": 8 },\n    \"effect\": \"rough\",\n    \"severity\": 1,\n    \"tags\": [\"tutorial\", \"terrain\"]\n  }\n}\n","data/items.json":"{\n  \"leather_jacket\": {\n    \"name\": \"Carl's Leather Jacket\",\n    \"slot\": \"torso\",\n    \"armor\": 1,\n    \"durability\": 12,\n    \"tags\": [\"starting_item\", \"plot_relevant\", \"actual_protection\"],\n    \"description\": \"The only useful protection Carl had when the dungeon catalogued him.\"\n  },\n  \"unstable_powder\": {\n    \"name\": \"Unstable Dungeon Powder\",\n    \"slot\": \"material\",\n    \"crafting_power\": 2,\n    \"tags\": [\"tutorial_material\", \"explosive_component\"],\n    \"description\": \"A suspicious powder that clearly wants to become somebody else's problem.\"\n  },\n  \"crude_blast_charge\": {\n    \"name\": \"Crude Blast Charge\",\n    \"slot\": \"combat_item\",\n    \"damage\": 4,\n    \"accuracy\": 90,\n    \"tags\": [\"explosive\", \"crafted\", \"unsafe\", \"consumable\"],\n    \"description\": \"Not elegant. Not stable. Very Carl.\"\n  },\n  \"threadbare_pants\": {\n    \"name\": \"Threadbare Tutorial Pants\",\n    \"slot\": \"legs\",\n    \"armor\": 1,\n    \"durability\": 5,\n    \"tags\": [\"equipment\", \"tutorial\", \"dignity_adjacent\"],\n    \"description\": \"Barely pants. Still a tactical breakthrough.\"\n  },\n  \"stale_healing_bar\": {\n    \"name\": \"Stale Healing Bar\",\n    \"slot\": \"consumable\",\n    \"healing\": 4,\n    \"tags\": [\"consumable\", \"healing\", \"shop_item\"],\n    \"description\": \"It heals. The texture raises separate questions.\"\n  }\n}\n","data/lore_bible.json":"{\n  \"schema_version\": 1,\n  \"status_labels\": [\"confirmed\", \"inferred\", \"gameplay_adaptation\", \"placeholder\", \"requires_verification\"],\n  \"legal_risk_labels\": [\"low\", \"medium\", \"high\", \"licensed_only\"],\n  \"entries\": [\n    {\n      \"id\": \"character_carl\",\n      \"category\": \"character\",\n      \"name\": \"Carl\",\n      \"source\": \"Book 1 opening chapters\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Main player character with classless start, under-equipped gear, and improvised combat emphasis.\",\n      \"legal_risk\": \"licensed_only\",\n      \"implementation_refs\": [\"data/characters.json:carl\"]\n    },\n    {\n      \"id\": \"character_donut\",\n      \"category\": \"character\",\n      \"name\": \"Princess Donut\",\n      \"source\": \"Book 1 opening chapters\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Co-protagonist companion with separate stats, Level 0 civilian start, high charisma and fame potential.\",\n      \"legal_risk\": \"licensed_only\",\n      \"implementation_refs\": [\"data/characters.json:donut\"]\n    },\n    {\n      \"id\": \"character_mordecai\",\n      \"category\": \"character\",\n      \"name\": \"Mordecai\",\n      \"source\": \"Book 1 Tutorial Guild sequence\",\n      \"canon_status\": \"requires_verification\",\n      \"gameplay_translation\": \"Guide NPC who explains rules, gives early objectives, and escalates in stress.\",\n      \"legal_risk\": \"licensed_only\",\n      \"implementation_refs\": [\"data/characters.json:mordecai\", \"data/dialogue.json:mordecai\"]\n    },\n    {\n      \"id\": \"rule_system_announcements\",\n      \"category\": \"rule\",\n      \"name\": \"System announcements\",\n      \"source\": \"Book 1 onward\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Event-driven UI voice for achievements, rewards, class selection, floor timers, deaths, and mockery.\",\n      \"legal_risk\": \"medium\",\n      \"implementation_refs\": [\"data/announcements.json\", \"src/announcements.py\"]\n    },\n    {\n      \"id\": \"rule_floor_timers\",\n      \"category\": \"rule\",\n      \"name\": \"Floor collapse timers\",\n      \"source\": \"Book 1 onward\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Visible countdown that affects pacing, NPC behavior, availability, and end-of-floor failure.\",\n      \"legal_risk\": \"medium\",\n      \"implementation_refs\": []\n    },\n    {\n      \"id\": \"item_leather_jacket\",\n      \"category\": \"item\",\n      \"name\": \"Carl's Leather Jacket\",\n      \"source\": \"Book 1 opening chapters\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Named torso gear with armor value, durability, and plot relevance.\",\n      \"legal_risk\": \"licensed_only\",\n      \"implementation_refs\": [\"data/items.json:leather_jacket\"]\n    },\n    {\n      \"id\": \"item_no_pants\",\n      \"category\": \"equipment_state\",\n      \"name\": \"No-pants debuff\",\n      \"source\": \"Book 1 opening chapters\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Named defensive penalty and System-commentary trigger.\",\n      \"legal_risk\": \"medium\",\n      \"implementation_refs\": [\"data/characters.json:carl.debuffs\"]\n    },\n    {\n      \"id\": \"item_crude_blast_charge\",\n      \"category\": \"item\",\n      \"name\": \"Crude Blast Charge\",\n      \"source\": \"Prototype gameplay adaptation\",\n      \"canon_status\": \"gameplay_adaptation\",\n      \"gameplay_translation\": \"First safe tutorial expression of Carl's explosive crafting identity.\",\n      \"legal_risk\": \"low\",\n      \"implementation_refs\": [\"data/items.json:crude_blast_charge\"]\n    },\n    {\n      \"id\": \"location_tutorial_guild\",\n      \"category\": \"location\",\n      \"name\": \"Tutorial Guild\",\n      \"source\": \"Book 1 Tutorial Guild sequence\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Opening controlled environment for rules, inventory, System UI, and Mordecai guidance.\",\n      \"legal_risk\": \"licensed_only\",\n      \"implementation_refs\": [\"data/tutorial_guild_map.txt\"]\n    },\n    {\n      \"id\": \"system_viewers_sponsors\",\n      \"category\": \"system\",\n      \"name\": \"Viewer and sponsor pressure\",\n      \"source\": \"Book 1 onward\",\n      \"canon_status\": \"confirmed\",\n      \"gameplay_translation\": \"Popularity, sponsor drops, audience faction preferences, and spectacle incentives.\",\n      \"legal_risk\": \"medium\",\n      \"implementation_refs\": []\n    }\n  ]\n}\n","data/objects.json":"{\n  \"tutorial_chest\": {\n    \"id\": \"tutorial_chest\",\n    \"name\": \"Tutorial Chest\",\n    \"symbol\": \"?\",\n    \"position\": { \"x\": 7, \"y\": 2 },\n    \"object_type\": \"chest\",\n    \"blocks_movement\": false,\n    \"state\": {\n      \"opened\": false,\n      \"contains\": [\"unstable_powder\"]\n    }\n  },\n  \"pants_pickup\": {\n    \"id\": \"pants_pickup\",\n    \"name\": \"Threadbare Pants Pickup\",\n    \"symbol\": \"p\",\n    \"position\": { \"x\": 2, \"y\": 7 },\n    \"object_type\": \"pickup\",\n    \"blocks_movement\": false,\n    \"state\": {\n      \"picked_up\": false,\n      \"item_id\": \"threadbare_pants\"\n    }\n  },\n  \"bopca_shop\": {\n    \"id\": \"bopca_shop\",\n    \"name\": \"Overpriced Tutorial Kiosk\",\n    \"symbol\": \"$\",\n    \"position\": { \"x\": 9, \"y\": 7 },\n    \"object_type\": \"shop\",\n    \"blocks_movement\": false,\n    \"shop_inventory\": [\"stale_healing_bar\"],\n    \"state\": {\n      \"open\": true\n    }\n  }\n}\n","data/production_backlog.json":"{\n  \"schema_version\": 1,\n  \"roadmap\": \"AAA-indie solo demo\",\n  \"target_demo_window_weeks\": \"12-14\",\n  \"pillars\": [\n    \"engine_port\",\n    \"game_feel\",\n    \"visual_art\",\n    \"content_depth\",\n    \"ux_polish\",\n    \"release\"\n  ],\n  \"milestones\": [\n    {\n      \"id\": \"weeks_1_2_engine_port\",\n      \"weeks\": \"1-2\",\n      \"title\": \"Engine Port\",\n      \"goal\": \"Tutorial Guild playable in Phaser with placeholder art.\",\n      \"tasks\": [\n        \"Create phaser-client Vite project\",\n        \"Install Phaser\",\n        \"Copy JSON data into Phaser client\",\n        \"Port GameState\",\n        \"Port World\",\n        \"Port movement\",\n        \"Port quests\",\n        \"Port inventory\",\n        \"Port crafting\",\n        \"Port combat\",\n        \"Port announcements\",\n        \"Load Tutorial Guild map\",\n        \"Render placeholder tilemap\",\n        \"Implement keyboard controls\",\n        \"Implement basic HUD\"\n      ],\n      \"acceptance_criteria\": [\n        \"Tutorial Guild is playable in browser through Phaser\",\n        \"Player can complete all seven tutorial quests\",\n        \"Placeholder art is acceptable\",\n        \"No Python runtime is required for the Phaser build\"\n      ]\n    },\n    {\n      \"id\": \"weeks_3_4_juice_pass\",\n      \"weeks\": \"3-4\",\n      \"title\": \"Juice Pass\",\n      \"goal\": \"Movement, combat, quests, announcements, and audio feel good before new content.\",\n      \"tasks\": [\n        \"Smooth tile movement tweens\",\n        \"Delayed Donut follow tween\",\n        \"Blocked movement bump\",\n        \"Hit flash\",\n        \"Floating damage numbers\",\n        \"Enemy death animation\",\n        \"Camera shake\",\n        \"Quest complete banner\",\n        \"System typewriter effect\",\n        \"Chest open animation\",\n        \"Explosion particle effect\",\n        \"Footstep sounds\",\n        \"Swing and hit sounds\",\n        \"Explosion sound\",\n        \"Ambient loop\"\n      ],\n      \"acceptance_criteria\": [\n        \"Movement no longer feels like a terminal port\",\n        \"Combat hits are readable without checking logs\",\n        \"Quest completion is satisfying\",\n        \"A new player describes the game as responsive\"\n      ]\n    },\n    {\n      \"id\": \"weeks_5_7_art_pass\",\n      \"weeks\": \"5-7\",\n      \"title\": \"Art Pass\",\n      \"goal\": \"Screenshots look like a real game.\",\n      \"tasks\": [\n        \"Carl sprite\",\n        \"Donut sprite\",\n        \"Mordecai sprite\",\n        \"Training goblin sprite\",\n        \"Shopkeeper sprite\",\n        \"Chest sprite\",\n        \"Hazard tiles\",\n        \"Desk tile\",\n        \"Wall and floor tiles\",\n        \"UI frame art\",\n        \"Item icons\",\n        \"Attack animations\",\n        \"Idle animations\",\n        \"Walk cycles\"\n      ],\n      \"acceptance_criteria\": [\n        \"Carl jacket/no-pants state is readable\",\n        \"Donut is instantly identifiable\",\n        \"UI has dark amber identity\",\n        \"A still screenshot communicates the genre and tone\"\n      ]\n    },\n    {\n      \"id\": \"weeks_8_10_floor_one_content\",\n      \"weeks\": \"8-10\",\n      \"title\": \"Floor 1 Content\",\n      \"goal\": \"Complete play loop beyond the Tutorial Guild.\",\n      \"tasks\": [\n        \"Build Floor 1 map with 4x3 rooms\",\n        \"Add corridors\",\n        \"Add open saferoom\",\n        \"Add locked saferoom\",\n        \"Add three enemy types\",\n        \"Add patrol behavior\",\n        \"Add sleeping enemy trigger\",\n        \"Add mini-boss\",\n        \"Add pre-fight System announcement\",\n        \"Add 200-turn collapse timer\",\n        \"Add three crafting recipes\",\n        \"Add crafting UI\",\n        \"Add explosion radius preview\",\n        \"Add floor transition screen\",\n        \"Add victory and death conditions\"\n      ],\n      \"acceptance_criteria\": [\n        \"Player can go tutorial to Floor 1 to death or completion\",\n        \"Floor timer matters\",\n        \"Crafting feels like Carl's identity\",\n        \"Mini-boss requires more than basic attacking\"\n      ]\n    },\n    {\n      \"id\": \"weeks_11_12_polish_screens\",\n      \"weeks\": \"11-12\",\n      \"title\": \"Polish and Screens\",\n      \"goal\": \"Demo release candidate.\",\n      \"tasks\": [\n        \"Title screen\",\n        \"Main menu\",\n        \"Continue\",\n        \"Options\",\n        \"Pause\",\n        \"Game over\",\n        \"Victory summary\",\n        \"Floor transition polish\",\n        \"Auto-save on saferoom entry\",\n        \"Contextual controls bar\",\n        \"Inventory screen\",\n        \"Dialogue portraits\",\n        \"Colorblind mode\",\n        \"Reduced motion\",\n        \"Volume settings\",\n        \"Browser focus pause\",\n        \"Credits and legal screen\"\n      ],\n      \"acceptance_criteria\": [\n        \"Demo can be given to another person without explanation\",\n        \"No debug-only UI is required to play\",\n        \"Restart and continue work\",\n        \"Accessibility basics exist\"\n      ]\n    },\n    {\n      \"id\": \"weeks_13_14_buffer_release\",\n      \"weeks\": \"13-14\",\n      \"title\": \"Buffer and Release\",\n      \"goal\": \"Stabilize and prepare public playtest.\",\n      \"tasks\": [\n        \"Bug fixes\",\n        \"Balancing\",\n        \"Audio polish\",\n        \"Map readability pass\",\n        \"UI clarity pass\",\n        \"Performance pass\",\n        \"Credits and attribution\",\n        \"Itch page assets\",\n        \"Trailer or GIF capture\",\n        \"First public playtest\"\n      ],\n      \"acceptance_criteria\": [\n        \"Demo can survive external playtesting\",\n        \"Known issues are documented\",\n        \"Feedback collection is ready\"\n      ]\n    }\n  ]\n}\n","data/quests.json":"[\n  {\n    \"id\": \"speak_to_mordecai\",\n    \"title\": \"Listen Before Dying\",\n    \"description\": \"Talk to Mordecai and learn the first survival rules.\",\n    \"objectives\": [\n      {\n        \"id\": \"talk_once\",\n        \"description\": \"Get Mordecai to explain the first rule.\",\n        \"event_type\": \"spoke_to_mordecai\",\n        \"target\": 1\n      }\n    ]\n  },\n  {\n    \"id\": \"inspect_inventory\",\n    \"title\": \"Inventory Check\",\n    \"description\": \"Confirm Carl's jacket is real gear and the lack of pants is real trouble.\",\n    \"objectives\": [\n      {\n        \"id\": \"inspect_once\",\n        \"description\": \"Open Carl's inventory.\",\n        \"event_type\": \"inspected_inventory\",\n        \"target\": 1\n      }\n    ]\n  },\n  {\n    \"id\": \"open_tutorial_chest\",\n    \"title\": \"Questionable Gift\",\n    \"description\": \"Open the tutorial chest and recover the first explosive crafting material.\",\n    \"objectives\": [\n      {\n        \"id\": \"open_chest\",\n        \"description\": \"Open the tutorial chest.\",\n        \"event_type\": \"opened_tutorial_chest\",\n        \"target\": 1\n      }\n    ]\n  },\n  {\n    \"id\": \"craft_first_explosive\",\n    \"title\": \"Carl Makes A Problem\",\n    \"description\": \"Craft the first crude explosive from dungeon materials.\",\n    \"objectives\": [\n      {\n        \"id\": \"craft_charge\",\n        \"description\": \"Craft a crude blast charge.\",\n        \"event_type\": \"crafted_first_explosive\",\n        \"target\": 1\n      }\n    ]\n  },\n  {\n    \"id\": \"first_blood\",\n    \"title\": \"First Blood\",\n    \"description\": \"Defeat the tutorial enemy without pretending this is normal.\",\n    \"objectives\": [\n      {\n        \"id\": \"defeat_enemy\",\n        \"description\": \"Defeat one enemy.\",\n        \"event_type\": \"defeated_enemy\",\n        \"target\": 1\n      }\n    ]\n  },\n  {\n    \"id\": \"dress_code_violation\",\n    \"title\": \"Dress Code Violation\",\n    \"description\": \"Find something, anything, that counts as pants.\",\n    \"objectives\": [\n      {\n        \"id\": \"pickup_item\",\n        \"description\": \"Pick up one item from the floor.\",\n        \"event_type\": \"picked_up_item\",\n        \"target\": 1\n      }\n    ]\n  },\n  {\n    \"id\": \"bad_flooring\",\n    \"title\": \"Bad Flooring\",\n    \"description\": \"Learn that terrain can hate you too.\",\n    \"objectives\": [\n      {\n        \"id\": \"trigger_hazard\",\n        \"description\": \"Trigger one hazard or terrain effect.\",\n        \"event_type\": \"triggered_hazard\",\n        \"target\": 1\n      }\n    ]\n  }\n]\n","data/recipes.json":"{\n  \"crude_blast_charge\": {\n    \"id\": \"crude_blast_charge\",\n    \"ingredients\": [\"unstable_powder\"],\n    \"result\": \"crude_blast_charge\",\n    \"announcement\": \"crafted_explosive\",\n    \"tags\": [\"tutorial\", \"explosive\", \"discovery\"]\n  }\n}\n","data/tutorial_guild_map.txt":"############\n#..........#\n#..........#\n#..........#\n#.....M....#\n#...====...#\n#..........#\n#..........#\n#..........#\n#D.C.......#\n#..........#\n############\n","deploy.md":"Use **PowerShell**. Start with the inner folder that should contain `package.json`:\n\n```powershell\nSet-Location \"C:\\Users\\Josh\\OneDrive - Dubbo Christian School\\Documents\\Dungeon Crawler Carl.zip\\Dungeon Crawler Carl\"\n\nGet-ChildItem\nTest-Path \".\\package.json\"\n```\n\nIf that returns `False`, try the other folder:\n\n```powershell\nSet-Location \"C:\\Users\\Josh\\OneDrive - Dubbo Christian School\\Documents\\Dungeon Crawler Carl\"\n\nGet-ChildItem\nTest-Path \".\\package.json\"\n```\n\nOnce it returns `True`, run:\n\n```powershell\n# Create a basic .gitignore only when one does not already exist\nif (-not (Test-Path \".gitignore\")) {\n@\"\nnode_modules/\n.next/\ndist/\nout/\n.vercel/\n.env\n.env.local\n.env.development.local\n.env.test.local\n.env.production.local\n*.log\n.DS_Store\n\"@ | Set-Content \".gitignore\"\n}\n\n# Initialise Git\ngit init\ngit branch -M main\n\n# Connect the GitHub repository\nif ((git remote) -contains \"origin\") {\n    git remote set-url origin \"https://github.com/joshuaparris-max/carl.git\"\n} else {\n    git remote add origin \"https://github.com/joshuaparris-max/carl.git\"\n}\n\n# Add and commit the project\ngit add .\ngit status\ngit commit -m \"Initial Dungeon Crawler Carl deployment\"\n\n# Fetch and merge anything already in the GitHub repository\ngit fetch origin\n\ngit show-ref --verify --quiet refs/remotes/origin/main\nif ($LASTEXITCODE -eq 0) {\n    git merge origin/main --allow-unrelated-histories --no-edit\n}\n\n# Push to GitHub\ngit push -u origin main\n```\n\nGitHub may open a browser window asking you to sign in.\n\n### Deploy through Vercel\n\nIf the GitHub repository is already connected to Vercel, that push should automatically start a deployment.\n\nOtherwise:\n\n1. Open the Vercel dashboard.\n2. Select **Add New → Project**.\n3. Import `joshuaparris-max/carl`.\n4. Let Vercel detect the framework.\n5. Add any required environment variables.\n6. Select **Deploy**.\n\nFuture deployments will then only require:\n\n```powershell\ngit add .\ngit commit -m \"Describe the changes\"\ngit push\n```\n","vercel.json":"{\n  \"version\": 2,\n  \"builds\": [\n    { \"src\": \"index.html\", \"use\": \"@vercel/static\" }\n  ],\n  \"routes\": [\n    { \"src\": \"/(.*)\", \"dest\": \"/index.html\" }\n  ]\n}"};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        if (typeof xhr.onreadystatechange === 'function') xhr.onreadystatechange();
+        xhr.dispatchEvent(new Event('readystatechange'));
+        if (typeof xhr.onload === 'function') xhr.onload(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dungeon Crawler Carl - Browser Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d0d0f;
+      --panel: #151417;
+      --panel-2: #1c1917;
+      --line: rgba(232, 160, 48, .24);
+      --amber: #e8a030;
+      --amber-soft: rgba(232, 160, 48, .18);
+      --teal: #2ecfaa;
+      --red: #e84040;
+      --green: #45d483;
+      --yellow: #e5c94b;
+      --purple: #b979ff;
+      --text: #f6ead6;
+      --muted: #9c9284;
+      --stone: #242226;
+      --floor: #121215;
+      --blue-white: #cfe8ff;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 40% 0%, rgba(232, 160, 48, .08), transparent 34%),
+        radial-gradient(circle at 90% 80%, rgba(46, 207, 170, .055), transparent 30%),
+        linear-gradient(135deg, rgba(255,255,255,.022) 25%, transparent 25%) 0 0 / 4px 4px,
+        var(--bg);
+      color: var(--text);
+      font-family: Inter, system-ui, sans-serif;
+    }
+
+    .game-shell {
+      height: 100vh;
+      min-width: 1180px;
+      min-height: 690px;
+      display: grid;
+      grid-template-columns: 220px minmax(620px, 1fr) 260px;
+      grid-template-rows: minmax(0, 1fr) 120px;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .panel {
+      min-height: 0;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.012)), var(--panel);
+      box-shadow: 0 22px 65px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05);
+      overflow: hidden;
+    }
+
+    .left-panel, .right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .center-panel {
+      display: grid;
+      grid-template-rows: 62px minmax(0, 1fr);
+      padding: 12px;
+      gap: 10px;
+    }
+
+    .bottom-bar {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 260px;
+      gap: 12px;
+      padding: 12px;
+    }
+
+    .portrait {
+      border: 1px solid var(--amber);
+      border-radius: 12px;
+      background: linear-gradient(180deg, rgba(232,160,48,.14), rgba(0,0,0,.1));
+      padding: 10px;
+      position: relative;
+    }
+    .portrait.donut { border-color: var(--teal); background: linear-gradient(180deg, rgba(46,207,170,.12), rgba(0,0,0,.08)); }
+    .portrait-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--amber);
+      font-weight: 800;
+    }
+    .donut .portrait-title { color: var(--teal); }
+    .ascii {
+      height: 74px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      background: rgba(0,0,0,.24);
+      color: #ffe1a0;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 800;
+      white-space: pre;
+      text-align: center;
+      line-height: 1.05;
+      font-size: 12px;
+      margin-bottom: 9px;
+    }
+    .donut .ascii { color: #b9fff0; }
+
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+      margin: 6px 0;
+    }
+    .bar {
+      height: 10px;
+      border-radius: 999px;
+      background: #070708;
+      border: 1px solid rgba(255,255,255,.08);
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      width: 100%;
+      border-radius: inherit;
+      transition: width .25s ease, background .25s ease;
+    }
+    .badge-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+    .badge {
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 3px 7px;
+      font-size: 10px;
+      font-weight: 800;
+      color: var(--muted);
+      background: rgba(255,255,255,.035);
+      text-transform: uppercase;
+    }
+    .badge.danger { color: #fff0f0; background: rgba(232,64,64,.22); border-color: rgba(232,64,64,.55); }
+    .badge.teal { color: #d9fff7; background: rgba(46,207,170,.13); border-color: rgba(46,207,170,.45); }
+    .badge.amber { color: #ffe6ae; background: rgba(232,160,48,.16); border-color: rgba(232,160,48,.45); }
+
+    .mini-panel {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      background: rgba(0,0,0,.16);
+      padding: 10px;
+    }
+    .mini-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--amber);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 8px;
+    }
+    .inventory-list {
+      display: grid;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .item-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      padding-bottom: 5px;
+    }
+
+    .timer-card {
+      display: grid;
+      grid-template-columns: 1fr 145px;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(232,160,48,.18);
+      background: linear-gradient(90deg, rgba(232,160,48,.1), rgba(232,64,64,.04));
+    }
+    .timer-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--muted);
+      letter-spacing: .1em;
+      font-weight: 800;
+    }
+    .timer-number {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 30px;
+      text-align: right;
+      font-weight: 800;
+      color: var(--green);
+      text-shadow: 0 0 18px rgba(69,212,131,.25);
+    }
+    .timer-number.warning { color: var(--yellow); text-shadow: 0 0 18px rgba(229,201,75,.25); }
+    .timer-number.danger { color: var(--red); text-shadow: 0 0 18px rgba(232,64,64,.25); }
+
+    .grid-wrap {
+      display: grid;
+      place-items: center;
+      min-height: 0;
+      border-radius: 14px;
+      background: radial-gradient(circle at center, rgba(232,160,48,.055), transparent 62%), rgba(0,0,0,.2);
+      border: 1px solid rgba(255,255,255,.06);
+      padding: 12px;
+    }
+    .dungeon-grid {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(34px, 4.6vw));
+      grid-template-rows: repeat(12, minmax(34px, 4.6vw));
+      gap: 4px;
+      max-width: min(660px, 100%);
+      max-height: min(660px, 100%);
+      aspect-ratio: 1 / 1;
+    }
+    .cell {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 0;
+      border-radius: 8px;
+      font-family: "JetBrains Mono", monospace;
+      font-weight: 800;
+      font-size: clamp(13px, 2.1vw, 22px);
+      color: rgba(255,255,255,.58);
+      background: var(--floor);
+      border: 1px solid rgba(255,255,255,.045);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+      transition: transform .14s ease, border-color .14s ease, box-shadow .14s ease, background .14s ease;
+      cursor: pointer;
+      user-select: none;
+    }
+    .cell:hover { transform: translateY(-1px); border-color: rgba(232,160,48,.35); box-shadow: 0 0 18px rgba(232,160,48,.1); }
+    .wall {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.04) 25%, transparent 25%) 0 0 / 7px 7px,
+        linear-gradient(45deg, rgba(0,0,0,.28), transparent),
+        var(--stone);
+      color: #5a5557;
+      border-color: rgba(0,0,0,.4);
+      box-shadow: inset 0 0 16px rgba(0,0,0,.45);
+    }
+    .desk { background: linear-gradient(180deg, #5c3518, #351d0d); color: #d59a52; border-color: rgba(232,160,48,.25); }
+    .npc { color: var(--amber); box-shadow: 0 0 20px rgba(232,160,48,.22), inset 0 0 12px rgba(232,160,48,.08); }
+    .merchant { color: var(--purple); box-shadow: 0 0 18px rgba(185,121,255,.22); }
+    .player { color: var(--blue-white); animation: pulsePlayer 1.5s infinite; background: radial-gradient(circle, rgba(207,232,255,.2), var(--floor) 62%); }
+    .player.moved { animation: movePop .22s ease, pulsePlayer 1.5s infinite; }
+    .donut-cell { color: var(--teal); background: radial-gradient(circle, rgba(46,207,170,.18), var(--floor) 62%); box-shadow: 0 0 18px rgba(46,207,170,.22); }
+    .enemy { color: #ffb1b1; background: radial-gradient(circle, rgba(232,64,64,.2), #170d0d 70%); box-shadow: 0 0 18px rgba(232,64,64,.22); }
+    .enemy.hit { animation: redFlash .35s ease; }
+    .chest { color: #ffd66c; background: radial-gradient(circle, rgba(232,160,48,.32), #211507 68%); animation: treasureGlow 1.2s infinite alternate; }
+    .shop { color: #ffe073; background: radial-gradient(circle, rgba(255,224,115,.24), #211807 70%); animation: shimmer 1.6s infinite; }
+    .hazard { color: #92d7ff; background: linear-gradient(120deg, rgba(36,132,170,.2), rgba(0,0,0,.18)); animation: waterShimmer 1.4s infinite linear; }
+    .trap { color: var(--red); background: radial-gradient(circle, rgba(232,64,64,.2), #1d0c0c 70%); }
+    .rough { color: #d6d6d6; background: linear-gradient(135deg, #1f1d1d, #141414); }
+    .pickup { color: #dcffe9; background: radial-gradient(circle, rgba(255,255,255,.18), #121416 70%); box-shadow: 0 0 16px rgba(255,255,255,.16); }
+    .potion { color: #8fffad; background: radial-gradient(circle, rgba(69,212,131,.22), #0d1c13 70%); }
+    .cell-hp {
+      position: absolute;
+      left: 5px;
+      right: 5px;
+      bottom: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.5);
+      overflow: hidden;
+    }
+    .cell-hp span { display: block; height: 100%; background: var(--red); transition: width .2s ease; }
+
+    .system-box {
+      flex: 0 0 190px;
+      display: flex;
+      flex-direction: column;
+      background: #090909;
+      border: 1px solid rgba(232,160,48,.34);
+      border-radius: 12px;
+      padding: 10px;
+      box-shadow: inset 0 0 20px rgba(232,160,48,.045);
+      min-height: 0;
+    }
+    .system-title {
+      color: var(--amber);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+    .system-log {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 7px;
+      overflow: hidden;
+      flex: 1;
+      font-family: "JetBrains Mono", monospace;
+      font-size: 11px;
+      line-height: 1.35;
+      color: #f2b85c;
+    }
+    .sys-line { opacity: .78; }
+    .sys-line.new { animation: slideIn .35s ease; opacity: 1; }
+    .cursor { color: var(--amber); animation: blink 1s steps(2, start) infinite; }
+
+    .quest-box {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .quest-list {
+      overflow: hidden;
+      display: grid;
+      gap: 7px;
+      min-height: 0;
+    }
+    .quest-card {
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 10px;
+      background: rgba(0,0,0,.18);
+      padding: 7px 8px;
+      display: grid;
+      grid-template-columns: 17px 1fr;
+      gap: 7px;
+      align-items: start;
+    }
+    .quest-check {
+      width: 14px;
+      height: 14px;
+      border-radius: 4px;
+      border: 1px solid rgba(232,160,48,.6);
+      margin-top: 2px;
+    }
+    .quest-card.done { opacity: .45; }
+    .quest-card.done .quest-check { background: var(--amber); }
+    .quest-card.done .quest-name { text-decoration: line-through; }
+    .quest-name { font-size: 11px; font-weight: 800; color: var(--text); }
+    .quest-desc { font-size: 10px; color: var(--muted); line-height: 1.25; margin-top: 2px; }
+
+    .viewer-box { flex: 0 0 134px; }
+    .viewer-row { margin-bottom: 8px; }
+    .viewer-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+    .viewer-fill { height: 100%; background: linear-gradient(90deg, var(--amber), #ffdb7b); transition: width .25s ease; }
+    .viewer-fill.teal { background: linear-gradient(90deg, var(--teal), #a4ffed); }
+
+    .controls-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-content: start;
+      margin-bottom: 8px;
+    }
+    .control-pill {
+      font-family: "JetBrains Mono", monospace;
+      font-size: 10px;
+      border-radius: 999px;
+      padding: 4px 7px;
+      border: 1px solid rgba(232,160,48,.32);
+      color: #f7cf88;
+      background: rgba(232,160,48,.08);
+    }
+    .command-row {
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      align-items: center;
+      border: 1px solid rgba(232,160,48,.4);
+      border-radius: 12px;
+      background: rgba(0,0,0,.36);
+      padding: 9px 12px;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .prompt { color: var(--amber); font-weight: 800; }
+    #commandInput {
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      caret-color: var(--amber);
+      width: 100%;
+    }
+    .bottom-timer {
+      display: grid;
+      align-content: center;
+      gap: 8px;
+    }
+    .floor-bar {
+      height: 18px;
+      border-radius: 999px;
+      background: #070707;
+      border: 1px solid rgba(255,255,255,.08);
+      overflow: hidden;
+    }
+    .floor-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, var(--green), var(--yellow), var(--red));
+      transition: width .2s ease;
+    }
+    .floor-caption { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
+
+    .banner {
+      position: fixed;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-18px);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 30;
+      border: 1px solid rgba(232,160,48,.6);
+      border-radius: 999px;
+      background: rgba(12,10,6,.92);
+      color: var(--amber);
+      font-weight: 900;
+      letter-spacing: .08em;
+      padding: 10px 18px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.42), 0 0 32px rgba(232,160,48,.16);
+    }
+    .banner.show { animation: questBanner 2s ease forwards; }
+
+  /* Overlay screens */
+  .overlay { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 60; }
+  .overlay.on { display: flex; }
+  .overlay-panel { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.55)); border: 1px solid rgba(255,255,255,.05); padding: 22px; border-radius: 12px; width: min(720px, 86%); text-align: center; color: var(--text); }
+  .overlay-panel.large { width: min(960px, 92%); max-height: 86%; overflow: auto; }
+  .overlay h1 { font-size: 36px; margin-bottom: 6px; }
+  .overlay .subtitle { color: var(--muted); margin-bottom: 14px; }
+  .title-actions button, .overlay-actions button { margin: 6px; padding: 8px 14px; border-radius: 8px; background: rgba(232,160,48,.08); border: 1px solid rgba(232,160,48,.22); color: var(--amber); font-weight:800; }
+  .inventory-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap:10px; margin: 12px 0; }
+  .inventory-slot { padding:10px; border-radius:8px; background:rgba(0,0,0,.14); border:1px solid rgba(255,255,255,.04); display:flex; justify-content:space-between; align-items:center; cursor:pointer }
+  .inventory-details { text-align:left; padding:8px; border-radius:8px; background:rgba(0,0,0,.08); border:1px solid rgba(255,255,255,.03); color:var(--muted); }
+  .pants-indicator { position: absolute; right: 12px; top: 14px; width:14px; height:14px; border-radius:3px; background: rgba(232,64,64,.85); display:none }
+  .pants-indicator.on { display:block; box-shadow: 0 0 10px rgba(232,64,64,.5); }
+
+
+    @keyframes pulsePlayer {
+      0%, 100% { box-shadow: 0 0 12px rgba(207,232,255,.15); }
+      50% { box-shadow: 0 0 24px rgba(207,232,255,.36); }
+    }
+    @keyframes movePop { 0% { transform: scale(.82); } 100% { transform: scale(1); } }
+    @keyframes redFlash { 0%, 100% { filter: none; } 35% { background: #ff2d2d; color: #fff; } }
+    @keyframes treasureGlow { from { box-shadow: 0 0 12px rgba(232,160,48,.18); } to { box-shadow: 0 0 30px rgba(232,160,48,.45); } }
+    @keyframes shimmer { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+    @keyframes waterShimmer { from { background-position: 0 0; } to { background-position: 40px 0; } }
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes slideIn { from { transform: translateX(32px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes questBanner {
+      0% { opacity: 0; transform: translateX(-50%) translateY(-18px); }
+      14%, 82% { opacity: 1; transform: translateX(-50%) translateY(0); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-18px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="banner" id="questBanner"></div>
+  
+  <div id="titleScreen" class="overlay on">
+    <div class="overlay-panel">
+      <h1>Dungeon Crawler Carl</h1>
+      <p class="subtitle">A very bad day for underdressed adventurers</p>
+      <div class="title-actions">
+        <button id="btnNewGame">New Game</button>
+        <button id="btnContinue">Continue</button>
+        <button id="btnOptions">Options</button>
+      </div>
+      <div class="title-donut">Donut: *judging intensifies*</div>
+    </div>
+  </div>
+
+  <div id="inventoryModal" class="overlay">
+    <div class="overlay-panel large">
+      <h2>Inventory</h2>
+      <div class="inventory-grid" id="inventoryGrid"></div>
+      <div class="inventory-details" id="inventoryDetails">Hover an item to see details.</div>
+      <div class="overlay-actions"><button id="closeInventory">Close</button></div>
+    </div>
+  </div>
+
+  <div id="pauseScreen" class="overlay">
+    <div class="overlay-panel">
+      <h2>Paused</h2>
+      <p>The dungeon freezes. The System is mildly offended.</p>
+      <div class="overlay-actions"><button id="resumeBtn">Resume</button></div>
+    </div>
+  </div>
+
+  <div id="gameOver" class="overlay">
+    <div class="overlay-panel">
+      <h2>Game Over</h2>
+      <p id="gameOverReason">You died.</p>
+      <div class="overlay-actions"><button id="goTitle">Title</button><button id="tryAgain">Restart</button></div>
+    </div>
+  </div>
+
+  <div id="transitionScreen" class="overlay">
+    <div class="overlay-panel">
+      <h2 id="transitionText">Entering Floor 2</h2>
+      <div id="transitionCountdown">3</div>
+    </div>
+  </div>
+
+  <div id="victoryScreen" class="overlay">
+    <div class="overlay-panel">
+      <h2>Victory</h2>
+      <p>Tutorial complete. Viewer count: <span id="victoryViewers">0</span></p>
+      <div class="overlay-actions"><button id="backToTitle">Back to Title</button></div>
+    </div>
+  </div>
+  <main class="game-shell">
+    <aside class="panel left-panel">
+      <section class="portrait">
+        <div class="portrait-title"><span>Carl</span><span id="carlLevel">LVL 1</span></div>
+        <div class="ascii">╔CARL╗
+╚╦J╦╝
+ / \ 
+NO PANTS</div>
+        <div class="stat-row"><span>HP</span><span id="carlHpText">12/12</span></div>
+        <div class="bar"><div class="bar-fill" id="carlHp"></div></div>
+        <div class="stat-row"><span>Armor</span><span id="carlArmor">1</span></div>
+        <div class="stat-row"><span>Gear</span><span id="carlGear">Leather Jacket</span></div>
+        <div class="badge-row" id="carlBadges"></div>
+      </section>
+
+      <section class="portrait donut">
+        <div class="portrait-title"><span>Princess Donut</span><span id="donutLevel">LVL 0</span></div>
+        <div class="ascii"> /\_/\
+( o.o )
+ > ♛ <
+GRAND CHAMPION</div>
+        <div class="stat-row"><span>HP</span><span id="donutHpText">5/5</span></div>
+        <div class="bar"><div class="bar-fill" id="donutHp"></div></div>
+        <div class="stat-row"><span>Mode</span><span id="donutMode">follow</span></div>
+        <div class="badge-row"><span class="badge teal">Persian</span><span class="badge teal">Civilian</span></div>
+      </section>
+
+      <section class="mini-panel">
+        <div class="mini-title">Inventory</div>
+        <div class="inventory-list" id="inventoryList"></div>
+        <div id="pantsIndicator" class="pants-indicator" title="No Pants"></div>
+      </section>
+    </aside>
+
+    <section class="panel center-panel">
+      <div class="timer-card">
+        <div>
+          <div class="timer-label">Floor Collapse Countdown</div>
+          <div class="stat-row"><span>Tutorial Guild / Controlled Disaster</span><span id="turnCount">Turn 0</span></div>
+        </div>
+        <div class="timer-number" id="timerNumber">100</div>
+      </div>
+      <div class="grid-wrap">
+        <div class="dungeon-grid" id="dungeonGrid" aria-label="Dungeon grid"></div>
+      </div>
+    </section>
+
+    <aside class="panel right-panel">
+      <section class="system-box">
+        <div class="system-title">Alien Broadcast System <span class="cursor">▌</span></div>
+        <div class="system-log" id="systemLog"></div>
+      </section>
+
+      <section class="quest-box mini-panel">
+        <div class="mini-title">Quest Log</div>
+        <div class="quest-list" id="questList"></div>
+      </section>
+
+      <section class="viewer-box mini-panel">
+        <div class="mini-title">Viewer Pressure</div>
+        <div class="viewer-row">
+          <div class="viewer-label"><span>Party</span><span id="partyViewerText">0</span></div>
+          <div class="bar"><div class="viewer-fill" id="partyViewer"></div></div>
+        </div>
+        <div class="viewer-row">
+          <div class="viewer-label"><span>Carl</span><span id="carlViewerText">0</span></div>
+          <div class="bar"><div class="viewer-fill" id="carlViewer"></div></div>
+        </div>
+        <div class="viewer-row">
+          <div class="viewer-label"><span>Donut</span><span id="donutViewerText">4</span></div>
+          <div class="bar"><div class="viewer-fill teal" id="donutViewer"></div></div>
+        </div>
+      </section>
+    </aside>
+
+    <footer class="panel bottom-bar">
+      <div>
+        <div class="controls-line" id="controlsLine"></div>
+        <div class="command-row">
+          <div class="prompt">&gt;</div>
+          <input id="commandInput" autocomplete="off" spellcheck="false" aria-label="Action command" placeholder="Type a command or use keyboard shortcuts">
+        </div>
+      </div>
+      <div class="bottom-timer">
+        <div class="floor-caption">Floor timer integrity</div>
+        <div class="floor-bar"><div class="floor-fill" id="floorFill"></div></div>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    const maxTimer = 100;
+    const baseGrid = [
+      "############",
+      "#..........#",
+      "#..........#",
+      "#..........#",
+      "#.....M....#",
+      "#...====...#",
+      "#..........#",
+      "#..........#",
+      "#..........#",
+      "#DC........#",
+      "#..........#",
+      "############"
+    ].map(row => row.split(""));
+
+    const state = {
+      turn: 0,
+      timer: 100,
+      systemLog: [],
+      lastMoved: false,
+      lastHitEnemy: null,
+      entities: {
+        carl: {
+          id: "carl", name: "Carl", symbol: "C", x: 2, y: 9, level: 1, xp: 0, hp: 12, maxHp: 12,
+          armor: 1, stats: { strength: 5, dexterity: 4, charisma: 3 }, inventory: ["leather_jacket"],
+          equipment: { torso: "leather_jacket" }, debuffs: ["no_pants"], type: "player"
+        },
+        donut: {
+          id: "donut", name: "Princess Donut", symbol: "D", x: 1, y: 9, level: 0, xp: 0, hp: 5, maxHp: 5,
+          armor: 0, stats: { strength: 1, dexterity: 7, charisma: 9 }, inventory: [],
+          equipment: {}, debuffs: ["civilian"], mode: "follow", title: "Grand Champion", type: "companion"
+        },
+        mordecai: { id: "mordecai", name: "Mordecai", symbol: "M", x: 6, y: 4, hp: 20, maxHp: 20, armor: 0, type: "npc" },
+        bopca: { id: "bopca", name: "Bopca Clerk", symbol: "B", x: 9, y: 6, hp: 10, maxHp: 10, armor: 0, type: "npc" },
+        goblin: { id: "goblin", name: "Training Goblin", symbol: "g", x: 8, y: 8, hp: 6, maxHp: 6, armor: 0, type: "monster" }
+      },
+      objects: [
+        { id: "chest", name: "Tutorial Chest", symbol: "?", x: 7, y: 2, type: "chest", opened: false, contains: ["unstable_powder"] },
+        { id: "pants", name: "Threadbare Pants", symbol: "!", x: 2, y: 7, type: "pickup", picked: false, item: "threadbare_pants" },
+        { id: "potion", name: "Stale Healing Bar", symbol: "p", x: 3, y: 7, type: "pickup", picked: false, item: "stale_healing_bar" },
+        { id: "shop", name: "Overpriced Tutorial Kiosk", symbol: "$", x: 9, y: 7, type: "shop", stock: ["stale_healing_bar"] }
+      ],
+      hazards: [
+        { id: "grime", name: "Suspicious Grime Patch", symbol: "~", x: 4, y: 8, effect: "filth", severity: 0 },
+        { id: "rough", name: "Rough Tile", symbol: "^", x: 5, y: 8, effect: "rough", severity: 1 },
+        { id: "trap", name: "Training Trap", symbol: "^", x: 6, y: 8, effect: "trap", severity: 3 }
+      ],
+      items: {
+        leather_jacket: { name: "Carl's Leather Jacket", slot: "torso", armor: 1, durability: 12, tags: ["equipment"] },
+        unstable_powder: { name: "Unstable Dungeon Powder", slot: "material", craftingPower: 2, tags: ["material", "explosive_component"] },
+        crude_blast_charge: { name: "Crude Blast Charge", slot: "combat_item", damage: 4, accuracy: 90, tags: ["explosive", "consumable"] },
+        threadbare_pants: { name: "Threadbare Tutorial Pants", slot: "legs", armor: 1, durability: 5, tags: ["equipment"] },
+        stale_healing_bar: { name: "Stale Healing Bar", slot: "consumable", healing: 4, tags: ["healing", "consumable"] }
+      },
+      quests: [
+        q("speak", "Listen Before Dying", "Talk to Mordecai and learn the first survival rules.", "spoke_to_mordecai"),
+        q("inventory", "Inventory Check", "Confirm the jacket is real gear and the lack of pants is real trouble.", "inspected_inventory"),
+        q("chest", "Questionable Gift", "Open the tutorial chest and recover the first explosive material.", "opened_tutorial_chest"),
+        q("craft", "Carl Makes A Problem", "Craft the first crude explosive from dungeon materials.", "crafted_first_explosive"),
+        q("blood", "First Blood", "Defeat the tutorial enemy without pretending this is normal.", "defeated_enemy"),
+        q("pants", "Dress Code Violation", "Find something, anything, that counts as pants.", "picked_up_item"),
+        q("flooring", "Bad Flooring", "Learn that terrain can hate you too.", "triggered_hazard")
+      ],
+      viewer: { party: 0, carl: 0, donut: 4 },
+      dialogueIndex: { mordecai: 0, bopca: 0 },
+      checkpoint: null
+    };
+
+    const dialogue = {
+      mordecai: [
+        "Mordecai: Listen carefully. You are alive, classless, underdressed, and already behind schedule. That is not a strategy.",
+        "Mordecai: The cat is Level 0. Civilian. Do not let her get hit. Do not let yourself get hit either, but especially do not let the cat get hit.",
+        "Mordecai: The System has rules. Bad rules. Cruel rules. But rules can be used, and that is the only reason I am still talking to you."
+      ],
+      bopca: [
+        "Bopca Clerk: You want affordable prices? That is adorable. I sell survival, not hope.",
+        "Bopca Clerk: The cat gets a discount if she stops staring at me like that."
+      ]
+    };
+
+    const controls = [
+      "WASD move", "X attack", "U use", "T talk", "O open", "I inventory", "C craft",
+      "E equip", "P pickup", "B buy", "F/H/R Donut", "V save", "L load", "K checkpoint", "Q quit"
+    ];
+
+    function q(id, name, desc, event) {
+      return { id, name, desc, event, current: 0, target: 1, complete: false };
+    }
+
+    function system(text) {
+      state.systemLog.push("SYSTEM: " + text);
+      state.systemLog = state.systemLog.slice(-5);
+      renderSystem();
+    }
+
+    function completeQuest(event) {
+      for (const quest of state.quests) {
+        if (quest.event === event && !quest.complete) {
+          quest.current = Math.min(quest.target, quest.current + 1);
+          if (quest.current >= quest.target) {
+            quest.complete = true;
+            showBanner("QUEST COMPLETE — " + quest.name);
+          }
+        }
+      }
+    }
+
+    function changeViewer(which, amount, reason) {
+      state.viewer[which] = Math.max(0, state.viewer[which] + amount);
+      state.viewer.party = Math.max(0, state.viewer.party + Math.max(0, Math.floor(amount / 2)));
+      if (state.viewer.party >= 10) {
+        system("Sponsor interest detected. Somewhere, someone with too much money enjoyed that.");
+        state.viewer.party = 0;
+      }
+    }
+
+    function tileAt(x, y) {
+      if (y < 0 || y >= baseGrid.length || x < 0 || x >= baseGrid[0].length) return "#";
+      return baseGrid[y][x];
+    }
+
+    function entityAt(x, y) {
+      return Object.values(state.entities).find(e => e.x === x && e.y === y && e.hp > 0);
+    }
+
+    function objectAt(x, y) {
+      return state.objects.find(o => o.x === x && o.y === y && !o.picked && !(o.type === "chest" && o.opened));
+    }
+
+    function hazardAt(x, y) {
+      return state.hazards.find(h => h.x === x && h.y === y);
+    }
+
+    function blocked(x, y, ignore = []) {
+      if (["#", "="].includes(tileAt(x, y))) return true;
+      const obj = objectAt(x, y);
+      if (obj && obj.blocks) return true;
+      const entity = entityAt(x, y);
+      return entity && !ignore.includes(entity.id);
+    }
+
+    function near(a, b, d = 1) {
+      return Math.abs(a.x - b.x) <= d && Math.abs(a.y - b.y) <= d;
+    }
+
+    function advanceTurn() {
+      state.turn += 1;
+      state.timer = Math.max(0, state.timer - 1);
+      donutSupport();
+      enemyTurn();
+      if ([30, 10, 5].includes(state.timer)) system(`Timer warning: ${state.timer} turns remain. Panic is a renewable resource.`);
+      if (state.timer === 0) system("The floor timer hit zero. This run is over. The System sends thoughts and no prayers.");
+    }
+
+    function move(dx, dy) {
+      const carl = state.entities.carl;
+      const nx = carl.x + dx, ny = carl.y + dy;
+      if (blocked(nx, ny, ["carl"])) {
+        system("Crawler 4411 has located an obstacle. The obstacle remains undefeated.");
+        return true;
+      }
+      const prev = { x: carl.x, y: carl.y };
+      carl.x = nx; carl.y = ny; state.lastMoved = true;
+      followDonut(prev);
+      const hazard = hazardAt(nx, ny);
+      if (hazard) applyHazard(hazard);
+      const npc = nearestNpc();
+      if (npc) system(`${npc.name} is close enough to talk. Press T.`);
+      else donutBanter();
+      completeQuest("player_moved");
+      return true;
+    }
+
+    function followDonut(prev) {
+      const donut = state.entities.donut;
+      if (donut.mode !== "follow") return;
+      if (!blocked(prev.x, prev.y, ["donut", "carl"])) {
+        donut.x = prev.x; donut.y = prev.y;
+        return;
+      }
+      const carl = state.entities.carl;
+      const options = [
+        [Math.sign(carl.x - donut.x), 0], [0, Math.sign(carl.y - donut.y)], [0,-1], [1,0], [0,1], [-1,0]
+      ];
+      for (const [dx, dy] of options) {
+        if ((dx || dy) && !blocked(donut.x + dx, donut.y + dy, ["donut"])) {
+          donut.x += dx; donut.y += dy; return;
+        }
+      }
+    }
+
+    function donutBanter() {
+      const lines = [
+        "Donut: Carl, this floor is unspeakably filthy.",
+        "Donut: I can feel the grime between my toes. This is a hate crime against grooming.",
+        "Donut: My fans must never see me like this. Walk softer."
+      ];
+      system(lines[Math.min(state.dialogueIndex.mordecai, lines.length - 1)]);
+    }
+
+    function applyHazard(hazard) {
+      if (hazard.effect === "trap") {
+        const dmg = Math.max(1, hazard.severity - state.entities.carl.armor);
+        state.entities.carl.hp = Math.max(0, state.entities.carl.hp - dmg);
+        system(`Trap triggered: Carl takes ${dmg} damage. The floor has entered the conversation.`);
+        completeQuest("triggered_hazard");
+      } else if (hazard.effect === "rough") {
+        system("Rough terrain slows Carl down. The System applauds the floor's initiative.");
+        completeQuest("triggered_hazard");
+      } else {
+        system("Donut: Carl, this tile smells like wet garbage with ambition.");
+      }
+    }
+
+    function nearestNpc() {
+      return Object.values(state.entities).find(e => e.type === "npc" && near(state.entities.carl, e));
+    }
+
+    function talk() {
+      const npc = nearestNpc();
+      if (!npc) return system("There is nobody close enough to talk to. Somehow, this is still awkward."), true;
+      const lines = dialogue[npc.id] || [];
+      const idx = state.dialogueIndex[npc.id] || 0;
+      system(lines[idx] || `${npc.name}: ...`);
+      state.dialogueIndex[npc.id] = Math.min(idx + 1, Math.max(0, lines.length - 1));
+      if (npc.id === "mordecai" && idx >= 1) completeQuest("spoke_to_mordecai");
+      return true;
+    }
+
+    function openNearby() {
+      const carl = state.entities.carl;
+      const chest = state.objects.find(o => o.type === "chest" && !o.opened && Math.abs(o.x - carl.x) <= 1 && Math.abs(o.y - carl.y) <= 1);
+      if (!chest) return system("Nothing nearby opens. The desk remains aggressively desk-shaped."), true;
+      chest.opened = true;
+      for (const item of chest.contains) state.entities.carl.inventory.push(item);
+      system("Loot event registered. Try not to treat this as proof you are good at decisions.");
+      completeQuest("opened_tutorial_chest");
+      return true;
+    }
+
+    function inventory() {
+      system("Inventory inspected. NOTICE: Pants have not been located. The System is deeply unsurprised.");
+      completeQuest("inspected_inventory");
+      return true;
+    }
+
+    function craft() {
+      const inv = state.entities.carl.inventory;
+      const idx = inv.indexOf("unstable_powder");
+      if (idx < 0) return system("Carl needs something unstable before he can make something worse."), true;
+      inv.splice(idx, 1);
+      inv.push("crude_blast_charge");
+      system("Crafting update: crude explosive assembled. The viewers have upgraded you from doomed to interesting.");
+      completeQuest("crafted_first_explosive");
+      changeViewer("carl", 4, "crafted explosive");
+      return true;
+    }
+
+    function attack(useItem = false) {
+      const enemy = Object.values(state.entities).find(e => e.type === "monster" && e.hp > 0 && near(state.entities.carl, e, useItem ? 3 : 1));
+      if (!enemy) return system(useItem ? "No enemy is close enough to make this a responsible bad idea." : "Carl swings at the concept of danger. Nothing happens."), true;
+      let dmg = Math.max(0, 2 + Math.floor(state.entities.carl.stats.strength / 2) - enemy.armor);
+      if (useItem) {
+        const inv = state.entities.carl.inventory;
+        const itemIdx = inv.findIndex(id => (state.items[id].tags || []).includes("explosive"));
+        if (itemIdx < 0) return system("Carl has nothing explosively useful ready."), true;
+        const item = inv.splice(itemIdx, 1)[0];
+        dmg = Math.max(0, state.items[item].damage - enemy.armor);
+        changeViewer("carl", 6, "explosive problem solving");
+      } else {
+        changeViewer("carl", 1, "basic violence");
+      }
+      enemy.hp = Math.max(0, enemy.hp - dmg);
+      state.lastHitEnemy = enemy.id;
+      system(`Carl hits ${enemy.name} for ${dmg} damage.`);
+      if (enemy.hp <= 0) {
+        system(`${enemy.name} is defeated. Achievement unlocked: Applied Learning.`);
+        completeQuest("defeated_enemy");
+      }
+      return true;
+    }
+
+    function donutSupport() {
+      const donut = state.entities.donut;
+      const enemy = Object.values(state.entities).find(e => e.type === "monster" && e.hp > 0 && near(donut, e, 2));
+      if (!enemy || donut.mode === "hide") return;
+      enemy.hp = Math.max(0, enemy.hp - 1);
+      state.lastHitEnemy = enemy.id;
+      system(`Donut swipes at ${enemy.name} for 1 damage. The audience makes an undignified noise.`);
+      if (enemy.hp <= 0) {
+        completeQuest("defeated_enemy");
+        changeViewer("donut", 8, "adorable violence");
+      }
+    }
+
+    function enemyTurn() {
+      const enemy = state.entities.goblin;
+      if (!enemy || enemy.hp <= 0) return;
+      const targets = [state.entities.carl, state.entities.donut].filter(t => t.hp > 0 && near(enemy, t, 1));
+      if (!targets.length) return;
+      const target = targets.sort((a, b) => a.hp - b.hp)[0];
+      const dmg = Math.max(0, 2 - target.armor);
+      target.hp = Math.max(0, target.hp - dmg);
+      system(`${enemy.name} claws ${target.name} for ${dmg} damage.`);
+    }
+
+    function pickup() {
+      const carl = state.entities.carl;
+      const obj = state.objects.find(o => o.type === "pickup" && !o.picked && o.x === carl.x && o.y === carl.y);
+      if (!obj) return system("There is nothing here to pick up. Carl briefly considers picking up his dignity."), true;
+      obj.picked = true;
+      carl.inventory.push(obj.item);
+      system(`Picked up ${state.items[obj.item].name}. The System refuses to call this fashion.`);
+      completeQuest("picked_up_item");
+      return true;
+    }
+
+    function equip() {
+      const carl = state.entities.carl;
+      const equipped = new Set(Object.values(carl.equipment));
+      const itemId = carl.inventory.find(id => !equipped.has(id) && ["torso", "legs", "weapon"].includes(state.items[id].slot));
+      if (!itemId) return system("No unequipped gear available. This remains a wardrobe emergency."), true;
+      const item = state.items[itemId];
+      carl.equipment[item.slot] = itemId;
+      recalcArmor();
+      if (item.slot === "legs") carl.debuffs = carl.debuffs.filter(d => d !== "no_pants");
+      system(`Equipped ${item.name}. The System grudgingly acknowledges progress.`);
+      return true;
+    }
+
+    function recalcArmor() {
+      const carl = state.entities.carl;
+      carl.armor = Object.values(carl.equipment).reduce((sum, id) => sum + (state.items[id].armor || 0), 0);
+    }
+
+    function buy() {
+      const carl = state.entities.carl;
+      const shop = state.objects.find(o => o.type === "shop" && Math.abs(o.x - carl.x) <= 1 && Math.abs(o.y - carl.y) <= 1);
+      if (!shop) return system("No shop is close enough to overcharge you."), true;
+      const item = shop.stock[0];
+      carl.inventory.push(item);
+      system(`Bought ${state.items[item].name}. Capitalism has survived the apocalypse.`);
+      return true;
+    }
+
+    function companionMode(mode) {
+      state.entities.donut.mode = mode;
+      system(`Donut mode set to ${mode}. Donut has filed a verbal objection.`);
+      return true;
+    }
+
+    function saveGame() {
+      state.checkpoint = JSON.parse(JSON.stringify({
+        entities: state.entities, objects: state.objects, quests: state.quests, viewer: state.viewer, timer: state.timer, turn: state.turn
+      }));
+      localStorage.setItem("dcc-browser-save", JSON.stringify(state.checkpoint));
+      system("Game saved. The System promises nothing about emotional safety.");
+      return true;
+    }
+
+    function loadGame() {
+      const raw = localStorage.getItem("dcc-browser-save");
+      if (!raw) return system("No save file exists yet. Bold strategy."), true;
+      restore(JSON.parse(raw));
+      system("Game loaded. Previous mistakes are now current mistakes.");
+      return true;
+    }
+
+    function restoreCheckpoint() {
+      if (!state.checkpoint) return system("No checkpoint exists yet. The System enjoys your optimism."), true;
+      restore(state.checkpoint);
+      system("Checkpoint restored. Reality has been politely rewound.");
+      return true;
+    }
+
+    function restore(data) {
+      state.entities = JSON.parse(JSON.stringify(data.entities));
+      state.objects = JSON.parse(JSON.stringify(data.objects));
+      state.quests = JSON.parse(JSON.stringify(data.quests));
+      state.viewer = JSON.parse(JSON.stringify(data.viewer));
+      state.timer = data.timer;
+      state.turn = data.turn;
+    }
+
+    function quit() {
+      system("Run ended. The viewers have filed a complaint about the lack of screaming.");
+      return false;
+    }
+
+    function runAction(action, shouldAdvance = true) {
+      state.lastMoved = false;
+      state.lastHitEnemy = null;
+      action = action.trim().toLowerCase();
+      let acted = false;
+      if (["w","a","s","d"].includes(action)) {
+        const dirs = { w: [0,-1], a: [-1,0], s: [0,1], d: [1,0] };
+        acted = move(...dirs[action]);
+      } else if (action === "t") acted = talk();
+      else if (action === "o") acted = openNearby();
+      else if (action === "i") acted = inventory();
+      else if (action === "c") acted = craft();
+      else if (action === "x") acted = attack(false);
+      else if (action === "u") acted = attack(true);
+      else if (action === "p") acted = pickup();
+      else if (action === "e") acted = equip();
+      else if (action === "b") acted = buy();
+      else if (action === "f") acted = companionMode("follow");
+      else if (action === "h") acted = companionMode("hide");
+      else if (action === "r") acted = companionMode("retreat");
+      else if (action === "v") acted = saveGame();
+      else if (action === "l") acted = loadGame();
+      else if (action === "k") acted = restoreCheckpoint();
+      else if (action === "q") acted = quit();
+      else system("Invalid command. The System has added this to your permanent record.");
+
+      if (acted && shouldAdvance && action !== "q") advanceTurn();
+      render();
+    }
+
+    function clickCell(x, y) {
+      const e = entityAt(x, y);
+      const o = objectAt(x, y);
+      if (e && e.type === "monster") return runAction(near(state.entities.carl, e, 1) ? "x" : "u");
+      if (e && e.type === "npc") return runAction("t");
+      if (o && o.type === "chest") return runAction("o");
+      if (o && o.type === "pickup") {
+        if (state.entities.carl.x === x && state.entities.carl.y === y) return runAction("p");
+        return stepToward(x, y);
+      }
+      if (o && o.type === "shop") return runAction("b");
+      return stepToward(x, y);
+    }
+
+    function stepToward(x, y) {
+      const carl = state.entities.carl;
+      const dx = x === carl.x ? 0 : Math.sign(x - carl.x);
+      const dy = y === carl.y ? 0 : Math.sign(y - carl.y);
+      if (Math.abs(x - carl.x) > Math.abs(y - carl.y) && dx) runAction(dx > 0 ? "d" : "a");
+      else if (dy) runAction(dy > 0 ? "s" : "w");
+      else if (dx) runAction(dx > 0 ? "d" : "a");
+    }
+
+    function hpColor(pct) {
+      if (pct > .55) return "linear-gradient(90deg, #45d483, #9ee85c)";
+      if (pct > .25) return "linear-gradient(90deg, #e5c94b, #e8a030)";
+      return "linear-gradient(90deg, #e84040, #ff7a62)";
+    }
+
+    function render() {
+      renderGrid();
+      renderCharacters();
+      renderInventory();
+      renderQuests();
+      renderViewers();
+      renderTimers();
+    }
+
+    function renderGrid() {
+      const grid = document.getElementById("dungeonGrid");
+      grid.innerHTML = "";
+      for (let y = 0; y < 12; y++) {
+        for (let x = 0; x < 12; x++) {
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          let symbol = tileAt(x, y);
+          let cls = "";
+          if (symbol === "#") cls = "wall";
+          if (symbol === "=") cls = "desk";
+
+          const hz = hazardAt(x, y);
+          if (hz) { symbol = hz.symbol; cls = hz.effect === "trap" ? "trap" : hz.effect === "rough" ? "rough" : "hazard"; }
+          const obj = objectAt(x, y);
+          if (obj) {
+            symbol = obj.symbol;
+            cls = obj.type === "chest" ? "chest" : obj.type === "shop" ? "shop" : obj.item === "stale_healing_bar" ? "potion" : "pickup";
+          }
+          const ent = entityAt(x, y);
+          if (ent) {
+            symbol = ent.id === "donut" ? "🐱" : ent.symbol;
+            cls = ent.type === "player" ? "player" : ent.type === "companion" ? "donut-cell" : ent.type === "monster" ? "enemy" : ent.id === "bopca" ? "merchant" : "npc";
+            if (ent.type === "player" && state.lastMoved) cls += " moved";
+            if (ent.id === state.lastHitEnemy) cls += " hit";
+          }
+          cell.className += " " + cls;
+          cell.textContent = symbol === "." ? "" : symbol;
+          if (ent && ent.type === "monster") {
+            const hp = document.createElement("div");
+            hp.className = "cell-hp";
+            hp.innerHTML = `<span style="width:${(ent.hp / ent.maxHp) * 100}%"></span>`;
+            cell.appendChild(hp);
+          }
+          cell.addEventListener("click", () => clickCell(x, y));
+          grid.appendChild(cell);
+        }
+      }
+    }
+
+    function renderCharacters() {
+      const carl = state.entities.carl, donut = state.entities.donut;
+      document.getElementById("carlLevel").textContent = `LVL ${carl.level}`;
+      document.getElementById("carlHpText").textContent = `${carl.hp}/${carl.maxHp}`;
+      const cp = carl.hp / carl.maxHp;
+      document.getElementById("carlHp").style.width = `${cp * 100}%`;
+      document.getElementById("carlHp").style.background = hpColor(cp);
+      document.getElementById("carlArmor").textContent = carl.armor;
+      document.getElementById("carlGear").textContent = Object.values(carl.equipment).map(id => state.items[id].name.replace("Carl's ", "")).join(", ") || "None";
+      document.getElementById("carlBadges").innerHTML = carl.debuffs.map(d => `<span class="badge danger">${d.replace("_", " ")}</span>`).join("") + `<span class="badge amber">XP ${carl.xp}</span>`;
+
+      document.getElementById("donutLevel").textContent = `LVL ${donut.level}`;
+      document.getElementById("donutHpText").textContent = `${donut.hp}/${donut.maxHp}`;
+      const dp = donut.hp / donut.maxHp;
+      document.getElementById("donutHp").style.width = `${dp * 100}%`;
+      document.getElementById("donutHp").style.background = hpColor(dp);
+      document.getElementById("donutMode").textContent = donut.mode;
+    }
+
+    function renderInventory() {
+      const counts = {};
+      for (const id of state.entities.carl.inventory) counts[id] = (counts[id] || 0) + 1;
+      document.getElementById("inventoryList").innerHTML = Object.entries(counts).map(([id, n]) => {
+        const item = state.items[id];
+        const equipped = Object.values(state.entities.carl.equipment).includes(id);
+        return `<div class="item-line"><span>${item.name}${n > 1 ? " x" + n : ""}</span><span>${equipped ? "equipped" : item.slot}</span></div>`;
+      }).join("") || `<div class="item-line"><span>Empty</span><span>sad</span></div>`;
+    }
+
+    function renderQuests() {
+      document.getElementById("questList").innerHTML = state.quests.map(quest => `
+        <div class="quest-card ${quest.complete ? "done" : ""}">
+          <div class="quest-check"></div>
+          <div><div class="quest-name">${quest.name}</div><div class="quest-desc">${quest.desc} ${quest.current}/${quest.target}</div></div>
+        </div>`).join("");
+    }
+
+    function renderViewers() {
+      for (const key of ["party", "carl", "donut"]) {
+        document.getElementById(`${key}ViewerText`).textContent = state.viewer[key];
+        document.getElementById(`${key}Viewer`).style.width = `${Math.min(100, state.viewer[key] * 10)}%`;
+      }
+    }
+
+    function renderTimers() {
+      const pct = state.timer / maxTimer;
+      document.getElementById("timerNumber").textContent = state.timer;
+      document.getElementById("turnCount").textContent = `Turn ${state.turn}`;
+      document.getElementById("floorFill").style.width = `${pct * 100}%`;
+      const timer = document.getElementById("timerNumber");
+      timer.className = "timer-number" + (pct <= .25 ? " danger" : pct <= .55 ? " warning" : "");
+    }
+
+    function renderSystem() {
+      document.getElementById("systemLog").innerHTML = state.systemLog.map((line, idx, arr) => `<div class="sys-line ${idx === arr.length - 1 ? "new" : ""}">${line}</div>`).join("");
+    }
+
+    function showBanner(text) {
+      const banner = document.getElementById("questBanner");
+      banner.textContent = text;
+      banner.classList.remove("show");
+      void banner.offsetWidth;
+      banner.classList.add("show");
+    }
+
+    document.getElementById("commandInput").addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        const input = event.currentTarget;
+        runAction(input.value);
+        input.value = "";
+      }
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.target.id === "commandInput" && event.key !== "Escape") return;
+      const key = event.key.toLowerCase();
+      if ("wasdxtouicepbfhrvlkq".includes(key) && key.length === 1) {
+        event.preventDefault();
+        runAction(key);
+      }
+    });
+
+    // Overlay controls and UI improvements
+    function showOverlay(id) {
+      document.querySelectorAll('.overlay').forEach(o=>o.classList.remove('on'));
+      const el = document.getElementById(id);
+      if (el) el.classList.add('on');
+    }
+    function hideOverlay(id) { document.getElementById(id)?.classList.remove('on'); }
+
+    document.getElementById('btnNewGame').addEventListener('click', () => { hideOverlay('titleScreen'); system('New run started. The System is unimpressed.'); render(); });
+    document.getElementById('btnContinue').addEventListener('click', () => { hideOverlay('titleScreen'); loadGame(); render(); });
+    document.getElementById('btnOptions').addEventListener('click', () => { system('Options are too many. Pick chaos.'); });
+
+    document.getElementById('closeInventory').addEventListener('click', () => hideOverlay('inventoryModal'));
+    document.getElementById('resumeBtn').addEventListener('click', () => hideOverlay('pauseScreen'));
+    document.getElementById('goTitle').addEventListener('click', () => location.reload());
+    document.getElementById('tryAgain').addEventListener('click', () => { hideOverlay('gameOver'); restoreCheckpoint(); render(); });
+    document.getElementById('backToTitle').addEventListener('click', () => location.reload());
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        const any = Array.from(document.querySelectorAll('.overlay.on')).length;
+        if (any) document.querySelectorAll('.overlay.on').forEach(x=>x.classList.remove('on'));
+        else showOverlay('pauseScreen');
+      }
+      if (e.key.toLowerCase() === 'i') { showInventoryModal(); }
+    });
+
+    function showInventoryModal() {
+      const grid = document.getElementById('inventoryGrid');
+      grid.innerHTML = '';
+      const counts = {};
+      for (const id of state.entities.carl.inventory) counts[id] = (counts[id] || 0) + 1;
+      for (const [id, n] of Object.entries(counts)) {
+        const item = state.items[id];
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot';
+        slot.dataset.item = id;
+        slot.innerHTML = `<div>${item.name} ${n>1? 'x'+n: ''}</div><div>${item.slot}</div>`;
+        slot.addEventListener('mouseenter', () => { document.getElementById('inventoryDetails').textContent = Object.entries(item).map(([k,v])=>`${k}: ${v}`).join(' | '); });
+        slot.addEventListener('mouseleave', () => { document.getElementById('inventoryDetails').textContent = 'Hover an item to see details.'; });
+        slot.addEventListener('click', () => { runAction('e'); hideOverlay('inventoryModal'); });
+        grid.appendChild(slot);
+      }
+      showOverlay('inventoryModal');
+    }
+
+    // Collapsible quest log
+    document.querySelectorAll('.quest-box .mini-title').forEach(h => h.style.cursor = 'pointer');
+    document.querySelectorAll('.quest-box .mini-title').forEach(h => h.addEventListener('click', () => {
+      const list = document.querySelector('.quest-list'); list.style.display = list.style.display === 'none' ? 'grid' : 'none';
+    }));
+
+    // Contextual controls: show only relevant actions
+    function updateControls() {
+      const controlsLine = document.getElementById('controlsLine');
+      const carl = state.entities.carl;
+      const nearby = { npc: !!nearestNpc(), chest: !!state.objects.find(o=>o.type==='chest'&&Math.abs(o.x-carl.x)<=1&&Math.abs(o.y-carl.y)<=1), pickup: !!state.objects.find(o=>o.type==='pickup'&&o.x===carl.x&&o.y===carl.y), shop: !!state.objects.find(o=>o.type==='shop'&&Math.abs(o.x-carl.x)<=1&&Math.abs(o.y-carl.y)<=1), enemy: !!Object.values(state.entities).find(e=>e.type==='monster'&&near(carl,e,1)) };
+      const list = [];
+      list.push('WASD move');
+      if (nearby.enemy) list.push('X attack');
+      if (nearby.enemy) list.push('U use');
+      if (nearby.npc) list.push('T talk');
+      if (nearby.chest) list.push('O open');
+      list.push('I inventory');
+      if (nearby.pickup) list.push('P pickup');
+      if (nearby.shop) list.push('B buy');
+      list.push('F/H/R Donut');
+      list.push('V save');
+      list.push('Q quit');
+      controlsLine.innerHTML = list.map(c=>`<span class="control-pill">${c}</span>`).join('');
+    }
+
+    // Auto-save when entering shop/saferoom
+    const prevPos = { x: state.entities.carl.x, y: state.entities.carl.y };
+    const origMove = move;
+    window.move = function(dx, dy) {
+      const res = origMove(dx, dy);
+      const carl = state.entities.carl;
+      const shop = state.objects.find(o=>o.type==='shop'&&Math.abs(o.x-carl.x)<=0&&Math.abs(o.y-carl.y)<=0);
+      if (shop) saveGame();
+      updateControls();
+      return res;
+    };
+
+    // Render pants indicator
+    const origRenderChars = renderCharacters;
+    window.renderCharacters = function() {
+      origRenderChars();
+      const carl = state.entities.carl;
+      const ind = document.getElementById('pantsIndicator');
+      if (carl.debuffs && carl.debuffs.includes('no_pants')) ind.classList.add('on'); else ind.classList.remove('on');
+    };
+
+    // Show title on load
+    showOverlay('titleScreen');
+
+    document.getElementById("controlsLine").innerHTML = controls.map(c => `<span class="control-pill">${c}</span>`).join("");
+    system("Welcome, Carl. You have been registered while aggressively failing to wear complete clothing.");
+    render();
+  </script>
+</body>
+</html>

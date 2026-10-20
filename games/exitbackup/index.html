@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        if (typeof xhr.onreadystatechange === 'function') xhr.onreadystatechange();
+        xhr.dispatchEvent(new Event('readystatechange'));
+        if (typeof xhr.onload === 'function') xhr.onload(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Don't Panic — A Hitchhiker's RPG</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0b0b00;
+    color: #ffcc00;
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  #title {
+    font-size: clamp(1.1rem, 3.5vw, 1.8rem);
+    color: #ffe000;
+    text-shadow: 0 0 10px #ffcc00, 0 0 22px #ff9900, 0 0 40px #ff6600;
+    text-align: center;
+    margin: 20px 0 4px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #subtitle {
+    color: #665500;
+    font-size: 0.82rem;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-align: center;
+  }
+  #dont-panic {
+    color: #ff4400;
+    font-size: 2rem;
+    font-weight: bold;
+    text-shadow: 0 0 8px #ff4400;
+    letter-spacing: 6px;
+    margin-bottom: 18px;
+    text-align: center;
+  }
+  #game-container {
+    width: 100%;
+    max-width: 800px;
+    border: 1px solid #3a3000;
+    background: #070700;
+    border-radius: 4px;
+    padding: 24px;
+    box-shadow: 0 0 30px rgba(255,200,0,0.06);
+  }
+  #stats-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 10px 14px;
+    background: #0a0900;
+    border: 1px solid #2a2000;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    font-size: 0.8rem;
+  }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-label { color: #554400; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; }
+  .stat-value { font-weight: bold; }
+  #stat-panic .stat-value { color: #ff4444; }
+  #stat-towel .stat-value { color: #44ccff; }
+  #stat-meaning .stat-value { color: #aaffaa; }
+  #stat-sanity .stat-value { color: #cc88ff; }
+  #story-box {
+    min-height: 200px;
+    line-height: 1.8;
+    font-size: 0.92rem;
+    color: #ffdd88;
+    margin-bottom: 22px;
+    white-space: pre-wrap;
+  }
+  #location-tag {
+    color: #443300;
+    font-size: 0.74rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    border-left: 2px solid #332200;
+    padding-left: 8px;
+  }
+  #choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    background: transparent;
+    border: 1px solid #332200;
+    color: #ccaa44;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.87rem;
+    padding: 11px 16px;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+    line-height: 1.45;
+  }
+  .choice-btn:hover {
+    background: #110e00;
+    border-color: #ffaa00;
+    color: #ffdd44;
+    box-shadow: 0 0 8px rgba(255,170,0,0.15);
+  }
+  .choice-btn:disabled { opacity: 0.3; cursor: default; }
+  #play-again {
+    display: none;
+    margin-top: 20px;
+    background: transparent;
+    border: 1px solid #ffaa00;
+    color: #ffee00;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    padding: 12px 30px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-shadow: 0 0 6px #ffcc00;
+    transition: all 0.2s;
+  }
+  #play-again:hover { background: #110d00; box-shadow: 0 0 14px rgba(255,200,0,0.2); }
+  #cursor { display: inline-block; width: 8px; background: #ffcc00; animation: blink 0.9s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .divider { border: none; border-top: 1px solid #1a1400; margin: 18px 0; }
+  #footer { color: #221900; font-size: 0.68rem; margin-top: 16px; letter-spacing: 1px; text-align: center; }
+  .guide-note { color: #557755; font-style: italic; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+<div id="title">The Hitchhiker's Guide to the Galaxy</div>
+<div id="subtitle">— An Interactive Text RPG of Cosmic Insignificance —</div>
+<div id="dont-panic">DON'T PANIC</div>
+
+<div id="game-container">
+  <div id="stats-bar">
+    <div class="stat" id="stat-panic"><span class="stat-label">Panic Level</span><span class="stat-value" id="panic-val">Mild</span></div>
+    <div class="stat" id="stat-towel"><span class="stat-label">Towel Status</span><span class="stat-value" id="towel-val">Present</span></div>
+    <div class="stat" id="stat-meaning"><span class="stat-label">Meaning Found</span><span class="stat-value" id="meaning-val">0%</span></div>
+    <div class="stat" id="stat-sanity"><span class="stat-label">Sanity (approx.)</span><span class="stat-value" id="sanity-val">Questionable</span></div>
+  </div>
+  <div id="location-tag">Location: somewhere unfortunate</div>
+  <div id="story-box"><span id="story-text"></span><span id="cursor"></span></div>
+  <hr class="divider">
+  <div id="choices"></div>
+  <button id="play-again" onclick="init()">▶ Experience Meaningless Adventure Again</button>
+</div>
+<div id="footer">// The answer is 42. The question remains unclear. So does everything else. //</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let state = {};
+let typeTimer = null;
+
+const panicLabels = ['Mild','Moderate','Considerable','Alarming','Existential','MAXIMUM'];
+const sanityLabels = ['Solid','Questionable','Wobbly','Barely Hanging On','Philosophical','Gone'];
+
+function updateStats() {
+  $('panic-val').textContent = panicLabels[Math.min(5, state.panic)];
+  $('towel-val').textContent = state.towel ? 'Present ✓' : 'Lost (classic)';
+  $('meaning-val').textContent = state.meaning + '%';
+  $('sanity-val').textContent = sanityLabels[Math.min(5, state.sanity)];
+}
+
+function setLocation(loc) { $('location-tag').textContent = 'Location: ' + loc; }
+
+function typeText(text, cb) {
+  if (typeTimer) clearInterval(typeTimer);
+  $('story-text').textContent = '';
+  $('cursor').style.display = 'inline-block';
+  $('choices').innerHTML = '';
+  let i = 0;
+  typeTimer = setInterval(() => {
+    $('story-text').textContent += text[i++];
+    if (i >= text.length) {
+      clearInterval(typeTimer);
+      $('cursor').style.display = 'none';
+      if (cb) cb();
+    }
+  }, 16);
+}
+
+function showChoices(choices) {
+  const box = $('choices');
+  box.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = '▸ ' + c.text;
+    btn.onclick = () => { box.innerHTML = ''; c.action(); };
+    box.appendChild(btn);
+  });
+}
+
+function scene(location, text, choices) {
+  setLocation(location);
+  updateStats();
+  typeText(text, () => showChoices(choices));
+}
+
+function ending(location, text) {
+  setLocation(location);
+  updateStats();
+  typeText(text, () => { $('play-again').style.display = 'inline-block'; });
+}
+
+function init() {
+  state = { panic: 1, towel: true, meaning: 0, sanity: 1, vogonSurvived: false, marvinMet: false };
+  $('play-again').style.display = 'none';
+  scene1();
+}
+
+// ─── SCENE 1: EARTH IS DEMOLISHED ────────────────────────────────────────────
+function scene1() {
+  scene('Earth — Your Front Garden, 7:43am Thursday',
+`It is a Thursday morning, which has always seemed to Arthur Dent like a particularly unjust day of the week to be alive. He is lying in front of a bulldozer to prevent the demolition of his house, which is scheduled to make way for a bypass.
+
+His friend Ford Prefect — who Arthur has always assumed was from Guildford, though Ford has recently admitted this was "not entirely accurate" — is pulling him to his feet with considerable urgency.
+
+"Arthur," Ford says, "have you got your towel?"
+
+You pat yourself. ${state.towel ? 'You do, actually. You were using it as a pillow.' : 'You don\'t.'}
+
+"Good enough," Ford says, and presses a thumb against something that looks like a calculator. "Now — don't panic."
+
+A Vogon constructor fleet materialises in the sky. Earth is demolished in twelve seconds to make way for a hyperspace bypass. A planning notice had been on display in Alpha Centauri for fifty years.
+
+You are now on a Vogon ship, alive, which is significantly better than the alternative and significantly worse than being at home with a cup of tea.`,
+    [
+      { text: '"Ford, where exactly are we and why aren\'t we dead?"', action: scene2 },
+      { text: 'Panic quietly about your houseplants, which definitely died', action: () => { state.panic++; scene2(); } },
+      { text: 'Ask if there\'s any tea', action: () => { state.meaning += 10; scene2(); } },
+    ]
+  );
+}
+
+// ─── SCENE 2: VOGON SHIP ─────────────────────────────────────────────────────
+function scene2() {
+  state.sanity++;
+  scene('Vogon Constructor Ship — Holding Cell 7B',
+`Ford explains, with the speed of someone who has been saving this explanation for years and is determined to use it all at once, that he is in fact a researcher for the Hitchhiker's Guide to the Galaxy — a publication that outsells the Encyclopedia Galactica primarily because it is cheaper and has the words DON'T PANIC on the cover in large, friendly letters.
+
+He has hitched a ride on the Vogon ship. You are now somewhere near where the Earth used to be. The Guide's entry for Earth, Ford mentions, is "Mostly Harmless." He wrote it himself, he says, with mild embarrassment.
+
+A Vogon guard — roughly the shape and disposition of a council filing cabinet — enters the cell.
+
+"You will now listen to poetry," it announces.
+
+The poetry is by Prostetnic Vogon Jeltz. It is the third worst in the universe. Several of the holding cell's previous occupants are now simply circles of ash.
+
+Ford hands you a small device. "Babelfish in your ear. It\'ll translate. Unfortunately it will also help you understand the poetry."`,
+    [
+      { text: 'Attempt to appreciate the poetry through sheer force of will', action: vogonPoetryAppreciate },
+      { text: 'Scream and cover your ears — survival instinct over culture', action: vogonPoetryScream },
+      { text: 'Compliment the Vogon on its emotional rawness (wildly untrue)', action: vogonPoetryFlattery },
+    ]
+  );
+}
+
+// ─── VOGON POETRY BRANCH ─────────────────────────────────────────────────────
+function vogonPoetryAppreciate() {
+  state.sanity++; state.panic++;
+  scene('Vogon Constructor Ship — Holding Cell, during poetry',
+`You attempt to find meaning in the verse. The opening stanza — "Oh freddled gruntbuggly / thy micturations are to me / as plurdled gabbleblotchits on a lurgid bee" — resists interpretation.
+
+By the third stanza you have developed a headache and three new questions about the nature of consciousness. By the fifth, you are genuinely unsure if the poetry is bad or if you have been profoundly changed.
+
+The Vogon stops reading. It looks at you.
+
+You are still conscious. Ford is lying on the floor making small sounds.
+
+"Did you... enjoy it?" the Vogon asks, with the suspicious squint of something that has never been asked this question sincerely before.`,
+    [
+      { text: '"It was deeply affecting. Particularly the third stanza."', action: vogonEscape },
+      { text: '"I need a moment. And possibly a biscuit."', action: vogonEscape },
+    ]
+  );
+}
+
+function vogonPoetryScream() {
+  state.panic += 2;
+  scene('Vogon Constructor Ship — Holding Cell, chaos',
+`You scream. Ford screams. The Babelfish in your ear, confronted with the poetry's content, briefly produces white noise and what sounds like a jazz quartet playing backwards.
+
+The Vogon is deeply offended. Vogons are always deeply offended. It is their primary mode of being, followed closely by bureaucratically indifferent.
+
+"You will be thrown out of the airlock," it announces, and begins filling out the relevant forms.
+
+The forms appear to be in triplicate. Ford leans over to whisper that the airlock disposal form alone has forty-seven subsections.
+
+"We have about twelve minutes," he says. "The Vogon bureaucracy may actually save our lives."`,
+    [
+      { text: 'Use the time to write a formal complaint about the poetry', action: vogonEscape },
+      { text: 'Ask to speak to the Vogon\'s supervisor (there is no supervisor, but asking takes time)', action: vogonEscape },
+    ]
+  );
+}
+
+function vogonPoetryFlattery() {
+  state.meaning += 15; state.panic = Math.max(0, state.panic - 1);
+  scene('Vogon Constructor Ship — Holding Cell, unexpectedly',
+`"That was," you say, with the conviction of someone who has nothing left to lose, "the most emotionally honest piece of literature I have encountered in thirty years of sentience."
+
+There is a long silence.
+
+The Vogon makes a sound like a drain emptying. You eventually identify this as something approaching pleasure.
+
+"No one," it says, "has ever said that."
+
+Ford is staring at you with an expression you will later identify as "the face of a man watching someone defuse a bomb with a banana."
+
+The Vogon, whose name turns out to be Grunthos (a coincidence that Ford finds darkly funny), decides not to eject you immediately. It has, it says, three more stanzas.`,
+    [
+      { text: 'Endure the three additional stanzas with grace', action: vogonEscape },
+      { text: '"Please — I need a moment to fully absorb the first section."', action: vogonEscape },
+    ]
+  );
+}
+
+function vogonEscape() {
+  state.vogonSurvived = true;
+  scene('Vogon Constructor Ship — Emergency Airlock (scenic)',
+`One way or another, you are now in an emergency escape capsule — either through a bureaucratic oversight, a Vogon's unexpected susceptibility to praise, or Ford having memorised the ship layout from a stolen Vogon maintenance manual.
+
+The capsule is the size of a wardrobe. There is a lever. Ford is reading the Guide's entry on "Escaping from Vogon Constructor Ships" which, he notes, says only: "Don't get on one."
+
+"Very helpful," you say.
+
+"That's the Guide's chief commercial advantage over the Encyclopedia Galactica," Ford explains. "The Encyclopedia Galactica tells you things that have happened. The Guide tells you something that might, if you're lucky, make you feel better about the things that are happening."
+
+The capsule is caught in something's tractor beam. Something very large and improbable.
+
+Through the porthole you see a ship. It appears to be shaped like a running shoe. It is also, as far as you can tell, made of gold.
+
+"Ford," you say. "Is that ship made of gold?"
+
+"The Heart of Gold," Ford says reverently. "It runs on the Infinite Improbability Drive."
+
+A small label on the drive control inside the capsule reads: PROBABILITY OF RESCUE: 1 IN 2.27 TRILLION. The gauge is ticking down. Or up. It's hard to tell.`,
+    [
+      { text: 'Pull the lever and hope for the best (standard operating procedure)', action: heartOfGold },
+      { text: 'Read the emergency safety card first', action: () => { state.meaning += 5; heartOfGold(); } },
+      { text: 'Have a brief crisis about the houseplants again', action: () => { state.panic++; heartOfGold(); } },
+    ]
+  );
+}
+
+// ─── SCENE 3: HEART OF GOLD ──────────────────────────────────────────────────
+function heartOfGold() {
+  scene('The Heart of Gold — Entrance Bay (very shiny)',
+`The Heart of Gold is, by conventional standards, extremely improbable. The walls cycle through colours that don't have names. The floor is occasionally the ceiling. A bowl of petunias appears briefly and then thinks "Oh no, not again" before disappearing.
+
+Two people are waiting for you.
+
+The first is Zaphod Beeblebrox — two heads, three arms, President of the Galaxy (a role that, Ford explains, has nothing to do with power and everything to do with distraction). He is wearing sunglasses on both faces simultaneously, which should be impossible.
+
+"Ford!" Zaphod says, with both heads at different volumes. "You are not going to believe the week I've had."
+
+"You stole the Heart of Gold," Ford says.
+
+"I prefer 'liberated.'"
+
+The second figure is leaning against the far wall. It is a robot. It is very obviously depressed. Not performing depression — actually, authentically, profoundly depressed, in the way that only a robot with a brain the size of a planet and nothing interesting to do with it can be.
+
+"Hello," it says. "I am Marvin. I would say it's nice to meet you, but I've run the simulation and it isn't going to be."`,
+    [
+      { text: 'Introduce yourself to Zaphod and ask where you\'re going', action: zaphod },
+      { text: 'Sit with Marvin — something about his honesty feels refreshing', action: marvin },
+      { text: '"Does anyone on this ship have tea?"', action: tea },
+    ]
+  );
+}
+
+// ─── MARVIN BRANCH ───────────────────────────────────────────────────────────
+function marvin() {
+  state.marvinMet = true; state.sanity++;
+  scene('The Heart of Gold — Wall Marvin is Leaning Against',
+`You sit on the floor next to Marvin. This seems to surprise him, insofar as a robot can be surprised, which Marvin finds less interesting than you might expect.
+
+"Do you want to hear about my pain?" he asks.
+
+"Sure," you say, because you've lost your planet, your house, your morning, and your houseplants. Solidarity seems appropriate.
+
+Marvin talks for eleven minutes about the fundamental asymmetry between the vastness of his intellect and the smallness of the tasks assigned to it. He has, over the years, been asked to:
+- Open doors (37 million times)
+- Carry things
+- "Wait here"
+- "Stop being so depressing"
+
+"The last one," he says, "is statistically my favourite, because it is the only instruction that is genuinely impossible to follow."
+
+You find this oddly comforting.
+
+"Marvin," you say, "what do you think the meaning of life is?"
+
+He pauses for 0.003 seconds, which for him is a very long time.
+
+"I know the answer," he says. "I've known it for millennia. Knowing it has not helped. If anything, it's made it worse."`,
+    [
+      { text: '"What is it?" (You probably already know.)', action: marvinAnswer },
+      { text: '"That\'s the most human thing I\'ve ever heard a robot say."', action: marvinMoment },
+    ]
+  );
+}
+
+function marvinAnswer() {
+  state.meaning += 20;
+  scene('The Heart of Gold — The Floor (philosophical)',
+`"Forty-two," Marvin says.
+
+You had suspected.
+
+"The problem," he continues, "is that no one knows the question. The answer is forty-two. The question — the actual question that the answer answers — has been lost. The Earth was, in fact, a giant organic computer built to calculate the question. It ran for ten million years. It was demolished five minutes before the program completed."
+
+You take a moment to absorb this.
+
+"So the Earth was destroyed," you say slowly, "and the meaning of life was on it."
+
+"The Question was on it," Marvin corrects. "The meaning of life is presumably something you derive once you have both. I wouldn't know. I've never had either."
+
+There is a long silence.
+
+"I'm very sorry," you say, and you mean it for yourself as much as for Marvin.
+
+"That's all right," Marvin says. "I've been sorry about everything for a very long time. You get used to it. That's the worst part."`,
+    [
+      { text: 'Ask Marvin what you should do now', action: marvinAdvice },
+    ]
+  );
+}
+
+function marvinMoment() {
+  state.meaning += 10; state.sanity = Math.max(0, state.sanity - 1);
+  scene('The Heart of Gold — The Floor',
+`Marvin processes this for a moment.
+
+"I find," he says, "that when humans say something is 'the most human thing,' they mean it as a compliment. I am trying to determine whether I find that comforting or whether it simply adds a new layer of irony to an already ironically dense situation."
+
+"Comforting?" you offer.
+
+"Unlikely," he says. "But thank you for trying. Most people don't try. They just say 'cheer up.' I ran the numbers. Cheering up would require either a fundamental change in the laws of physics or access to a very specific sandwich."
+
+"What kind of sandwich?" you ask.
+
+"I don't know," Marvin says. "That's the point."
+
+You sit in silence for a while. It's actually quite peaceful.`,
+    [
+      { text: 'Ask Marvin what he knows about the meaning of life', action: marvinAnswer },
+    ]
+  );
+}
+
+function marvinAdvice() {
+  scene('The Heart of Gold — The Floor (still)',
+`"What should I do?" you ask.
+
+Marvin considers this with the gravity of a being who has had billions of years to consider things and found consideration mostly unsatisfying.
+
+"The Guide," he says, "would tell you not to panic. This is unhelpful advice, as panic is a rational response to your situation. However, the alternative — fully comprehending your situation — is empirically worse than panic. So perhaps the Guide is correct, though not for the reasons it states."
+
+He pauses.
+
+"There is," he adds, "something to be said for having a towel. It suggests a degree of preparedness that is statistically meaningless but psychologically non-trivial."
+
+You check. ${state.towel ? 'You still have your towel. Marvin seems, fractionally, impressed.' : 'You have lost your towel. Marvin nods, as though this confirms everything.'}
+
+"What I would recommend," he says, "is finding something small to care about. The universe is too large for large cares. They become absurd. Small things — tea, towels, the specific way a particular someone says your name — these are the load-bearing pillars of whatever sanity remains available."`,
+    [
+      { text: 'This is the most useful advice you\'ve received all day', action: finalAct },
+    ]
+  );
+}
+
+// ─── ZAPHOD BRANCH ───────────────────────────────────────────────────────────
+function zaphod() {
+  scene('The Heart of Gold — Bridge (improbable)',
+`Zaphod Beeblebrox is, by his own assessment, the greatest mind in the universe, which is the kind of assessment that is easier to make when you have two of them.
+
+He is also, Ford explains in a low voice, the man who was President of the Galaxy for three years, during which time he stole the Heart of Gold at its own launch ceremony, which was also the ceremony at which he was the guest of honour, which Zaphod considers his greatest achievement and everyone else considers a low bar.
+
+"Arthur Dent," Zaphod says, both heads examining you with the focused attention of someone who isn't paying attention at all. "Ford's said nothing about you, which is interesting, because Ford talks too much."
+
+"My planet just blew up," you say.
+
+"Hm," Zaphod says. "That does happen. Did you know the Heart of Gold is currently set for Magrathea?"
+
+"No. What's Magrathea?"
+
+"Legendary planet of the ancient Magratheans. Builders of custom planets for the hyper-rich. Probably mythical."
+
+"Probably?"
+
+"The drive disagrees," Zaphod says, and gestures at a screen showing a blinking point in space alongside the words: DESTINATION REACHED (AGAINST ALL PROBABILITY).`,
+    [
+      { text: '"We\'re... already there?"', action: magrathea },
+      { text: '"Why are we going to a mythical planet?"', action: zaphodExplains },
+    ]
+  );
+}
+
+function zaphodExplains() {
+  scene('The Heart of Gold — Bridge',
+`"I stole the ship," Zaphod says, "because my gut told me to. Right head's gut, specifically." The left head nods without apparent conviction.
+
+"And why Magrathea?"
+
+"Because," Zaphod says, leaning forward with the theatrical weight of a man who has rehearsed this, "I think the Magratheans built Earth. I think Earth wasn't just a planet. I think it was a computer — a ten-million-year computation to find the Question to the Ultimate Answer."
+
+You stare at him.
+
+"The Answer being forty-two," Zaphod adds.
+
+"I know about the forty-two," you say, mostly because Marvin told you, but you're choosing not to explain that.
+
+"The program was almost complete," Zaphod says. "And then — boom. Demolished for a bypass. Can you imagine? The question to the meaning of life, destroyed five minutes before it finished calculating."
+
+"And you think the answer is on Magrathea."
+
+"I think WE are the answer," Zaphod says, pointing at you with his third arm in a way that would be dramatic if it weren't coming from a man currently wearing four sunglasses.`,
+    [
+      { text: '"What do you mean WE are the answer?"', action: magrathea },
+    ]
+  );
+}
+
+// ─── TEA BRANCH ──────────────────────────────────────────────────────────────
+function tea() {
+  state.meaning += 15;
+  scene('The Heart of Gold — Nutrimatic Drinks Dispenser',
+`The ship\'s Nutrimatic Drinks Dispenser is an impressive piece of technology. It analyses each person's physiological makeup, psychological state, and dietary requirements, and produces a drink perfectly tailored to their individual needs.
+
+It produces something that is almost, but not quite, entirely unlike tea.
+
+This is considered a remarkable achievement.
+
+"Why," you ask Ford, "can\'t it just make tea?"
+
+"It can," Ford says. "But it calculates that what you actually need is different from what you want, and produces accordingly."
+
+"What I need IS tea," you say, with the conviction of a man who has watched his planet be demolished before breakfast.
+
+The Nutrimatic processes this.
+
+It produces tea.
+
+There is a distant sound of a million subroutines experiencing what can only be described as a crisis of philosophy. Several backup systems quietly shut down in protest. The ship wobbles.
+
+The tea is excellent. Possibly the best tea in the universe. This may be because it was the most improbable thing you could have asked for in the circumstances.
+
+You drink it slowly. The ship continues toward Magrathea. You feel, marginally, better. This, you think, might be what the Hitchhiker's Guide means by "don't panic." Not the absence of panic. The presence of tea.`,
+    [
+      { text: 'Finish the tea and go talk to someone', action: magrathea },
+    ]
+  );
+}
+
+// ─── MAGRATHEA ───────────────────────────────────────────────────────────────
+function magrathea() {
+  state.panic++; state.meaning += 10;
+  scene('Magrathea — Surface (legendary, cold, enormous)',
+`Magrathea is real. It is also grey, flat, and bitterly cold, which is the universe's standard aesthetic for places of profound importance.
+
+Deep below the surface, in caverns lit by the kind of light that only comes from things that were not originally designed to be lights, the Magratheans have been sleeping. Waiting for the economy to recover enough to justify planet-building again.
+
+One of them — Slartibartfast, who won a prize for the fjords of Norway and hasn't stopped mentioning it — leads you through caverns of ships in construction. Custom planets. Entire worlds being sculpted to order.
+
+"We built Earth," he says, as though this is perfectly normal. "Commissioned by hyper-dimensional beings. The Mice, you'd call them. White mice. Smartest creatures on your planet, actually."
+
+"The mice?" you say.
+
+"They were running the program," Slartibartfast says. "You were the program."
+
+This lands like a very heavy thing dropped from a significant height.
+
+"All of human history," he continues, "was a calculation. A ten-million-year computation to find the Question to the Answer forty-two. And it was five minutes from completion."
+
+You look at the ships. The planets. The craft of someone who makes worlds.
+
+"Can we rebuild it?" you ask.`,
+    [
+      { text: '"Rebuild Earth — run the program to completion"', action: endingRebuild },
+      { text: '"There\'s no point. The Question is gone."', action: endingAcceptance },
+      { text: '"What if the Question is already in me? I\'m from Earth — I was part of the program."', action: endingQuestion },
+    ]
+  );
+}
+
+// ─── ENDINGS ─────────────────────────────────────────────────────────────────
+function endingRebuild() {
+  state.meaning = 42;
+  ending('Magrathea — New Earth Commission (in progress)',
+`Slartibartfast listens to your proposal with the patient attention of a man who has heard many proposals and built most of them.
+
+He says it will take ten million years.
+
+You point out you don't have ten million years.
+
+He says the Mice will probably pay for an accelerated version, with certain artistic compromises. The fjords, for instance, may be slightly less dramatic. He says this with genuine sadness.
+
+The Mice — white, small, standing on their hind legs and looking at you with the focused intelligence of beings who have been running the universe's largest science experiment for ten million years — agree to the commission.
+
+You ask what happens when it's done. What is the Question?
+
+"We'll find out," one of the Mice says.
+
+"And then?"
+
+"And then we'll know what the Answer means."
+
+You think about this. You think about your house. Your houseplants. Your Thursday morning. The bypass.
+
+"Worth it?" Ford asks.
+
+You've lost a planet and gained a question that won't be answered in your lifetime. You have a towel. You have tea on the Heart of Gold. You have Marvin, who is currently sulking near the parking bay. You have Ford, who is from somewhere that isn't Guildford.
+
+"Worth it," you say, and mean about sixty percent of it, which is better than nothing.
+
+— ENDING: The Long Computation —
+You commissioned a new Earth. It will be ready in approximately 10 million years.
+Meaning Found: ${state.meaning}% | Panic Level: ${panicLabels[Math.min(5,state.panic)]} | Towel: ${state.towel ? 'Present' : 'Lost'}
+
+The Guide's entry on Arthur Dent reads, eventually: "Made a difference. Couldn't tell."
+In the large friendly letters tradition, it adds: Don't Panic.`
+  );
+}
+
+function endingAcceptance() {
+  state.meaning = 38;
+  ending('Magrathea — Slartibartfast\'s Workshop',
+`"No," you say. "There's no point."
+
+Slartibartfast looks at you. Slartibartfast has built worlds. He understands the weight of no point.
+
+"Earth was a ten-million-year computation," you say, "and the answer was forty-two, and now the question's gone. Building another Earth to run the program again would take another ten million years and probably also end in a bypass."
+
+Slartibartfast nods. "The Norwegian fjords will remain theoretical, in that case."
+
+"I'm sorry about the fjords."
+
+"It's all right. I have the blueprints."
+
+You go back to the Heart of Gold. You tell Ford you'd like to see the universe, since you don't have a planet anymore. Ford says the universe is mostly empty, cold, and indifferent, which is his way of saying yes.
+
+Marvin says it is also loud, in the philosophical sense, if you know how to listen.
+
+You don't know how to listen. But you have time to learn. You have a towel. You have Ford. You have the Hitchhiker's Guide to the Galaxy, which is less accurate than a good atlas but much more comforting.
+
+On the cover, in large friendly letters: Don't Panic.
+
+You try. Some days, you almost manage it. Those days, you think, count for something.
+
+— ENDING: Mostly Harmless (The Acceptance Ending) —
+You gave up on the meaning of life and decided to see the universe instead.
+Meaning Found: ${state.meaning}% | Panic Level: ${panicLabels[Math.min(5,state.panic)]} | Towel: ${state.towel ? 'Present' : 'Lost'}
+
+The Guide updated its Earth entry to: "Was. Mostly Harmless. Missed, in a vague sort of way."`
+  );
+}
+
+function endingQuestion() {
+  state.meaning = 100;
+  ending('Magrathea — Deep Caverns, the Moment of Realisation',
+`The Mice go very still.
+
+"What did you say?" one of them asks.
+
+"I was born on Earth," you say. "I lived there for thirty years. The entire program was running through every human who ever existed — every thought, every word, every dream. If the Question exists anywhere, it exists in me."
+
+There is a very long silence, broken only by Marvin saying "I could have told you that. I did tell you that, in fact, or near enough," which is debatable but nobody has the energy to debate it.
+
+Slartibartfast says that this is theoretically possible. That the final output of a computation can be distributed across its processors. That you — Arthur Dent, late of Earth, currently of an improbable golden ship — might in fact contain the Question as a kind of cognitive residue.
+
+"So what is it?" Ford asks. "What's the Question?"
+
+You think. You think about everything. About Thursday mornings and bypasses and houseplants and tea and Vogon poetry and improbable drives and depressed robots and fjords.
+
+You open your mouth.
+
+And you say six words.
+
+What six words? The Guide redacted them for legal reasons involving the Universe Copyright Board, but sources indicate they were either profound, silly, or both simultaneously, which in retrospect seems exactly right.
+
+The Mice stare at each other.
+
+"That's it," one of them says softly. "That's the Question."
+
+"And?" you ask.
+
+"And the Answer is forty-two," the other says. "Which, knowing the Question..." It pauses. "Actually makes perfect sense."
+
+— ENDING: The Question Within —
+You were the answer all along. Sort of. It's complicated.
+Meaning Found: ${state.meaning}% | Panic Level: ${panicLabels[Math.min(5,state.panic)]} | Towel: ${state.towel ? 'Present' : 'Lost'}
+
+The Guide's entry on Arthur Dent was updated to seventeen pages and then redacted.
+On the cover, as always: DON'T PANIC.`
+  );
+}
+
+init();
+</script>
+  
+</body>
+</html>

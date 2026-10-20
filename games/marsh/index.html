@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {"README-1.md":"# Grey March: Lanterns of Sanctum\n\nA static-browser prototype that combines three layers into one campaign:\n\n- hex overland travel\n- ASCII town exploration\n- tactical encounter combat\n\n## What is in this build\n\nThis is a fresh combined game, not a direct raw merge of the three original codebases.\nIt keeps the key shape of the idea:\n\n- **Zoom 1:** overworld hex travel in the Grey March\n- **Zoom 2:** town exploration via ASCII maps\n- **Zoom 3:** tactical encounters with a 4-person party\n- shared NPC memory, lore, faction reputation, quests, inventory, party wounds, and time\n\n## Controls\n\n### World\n- Click a neighbouring hex to move\n- Enter settlements from the side panel\n- Explore marked sites from the side panel\n\n### Town\n- Use the North / South / East / West buttons\n- Arrow keys also work on desktop\n- Talk to nearby NPCs or enter nearby buildings from the actions panel\n\n### Combat\n- Use the action buttons for the active hero\n- Click highlighted board cells to move or target\n- End turn when done\n\n## Core content in this prototype\n\n- 4 settlements: Hearthwick, Sanctum, Gloam Ferry, Brindlewatch\n- 4 wilderness sites\n- 5 questlines with shared lore and repeated NPC references\n- 3 factions\n- persistent party health and conversation memory\n- local save/load\n\n## Files\n\n- `index.html`\n- `style.css`\n- `content.js`\n- `game.js`\n- `manifest.webmanifest`\n- `sw.js`\n- `LICENSE`\n\n## Run locally\n\nOpen `index.html` in a browser.\n\nFor service worker testing, serve the folder from a simple local server, for example:\n\n```bash\npython -m http.server 8080\n```\n\nThen open:\n\n```text\nhttp://localhost:8080/\n```\n\n## Publish to GitHub Pages\n\n```powershell\ncd \"C:\\path\\to\\grey-march-combined\"\ngit init\ngit branch -M main\ngit add .\ngit commit -m \"Initial combined game\"\ngit remote add origin https://github.com/\u003cyour-user>/\u003cyour-repo>.git\ngit push -u origin main\n```\n\nThen set GitHub Pages to deploy from the `main` branch root.\n","README-2.md":"# Grey March: Lanterns of Sanctum\n\nA static-browser prototype that combines three layers into one campaign:\n\n- hex overland travel\n- ASCII town exploration\n- tactical encounter combat\n\n## What is in this build\n\nThis is a fresh combined game, not a direct raw merge of the three original codebases.\nIt keeps the key shape of the idea:\n\n- **Zoom 1:** overworld hex travel in the Grey March\n- **Zoom 2:** town exploration via ASCII maps\n- **Zoom 3:** tactical encounters with a 4-person party\n- shared NPC memory, lore, faction reputation, quests, inventory, party wounds, and time\n\n## Controls\n\n### World\n- Click a neighbouring hex to move\n- Enter settlements from the side panel\n- Explore marked sites from the side panel\n\n### Town\n- Use the North / South / East / West buttons\n- Arrow keys also work on desktop\n- Talk to nearby NPCs or enter nearby buildings from the actions panel\n\n### Combat\n- Use the action buttons for the active hero\n- Click highlighted board cells to move or target\n- End turn when done\n\n## Core content in this prototype\n\n- 4 settlements: Hearthwick, Sanctum, Gloam Ferry, Brindlewatch\n- 4 wilderness sites\n- 5 questlines with shared lore and repeated NPC references\n- 3 factions\n- persistent party health and conversation memory\n- local save/load\n\n## Files\n\n- `index.html`\n- `style.css`\n- `content.js`\n- `game.js`\n- `manifest.webmanifest`\n- `sw.js`\n- `LICENSE`\n\n## Run locally\n\nOpen `index.html` in a browser.\n\nFor service worker testing, serve the folder from a simple local server, for example:\n\n```bash\npython -m http.server 8080\n```\n\nThen open:\n\n```text\nhttp://localhost:8080/\n```\n\n## Publish to GitHub Pages\n\n```powershell\ncd \"C:\\path\\to\\grey-march-combined\"\ngit init\ngit branch -M main\ngit add .\ngit commit -m \"Initial combined game\"\ngit remote add origin https://github.com/\u003cyour-user>/\u003cyour-repo>.git\ngit push -u origin main\n```\n\nThen set GitHub Pages to deploy from the `main` branch root.\n","README.md":"# Grey March: Lanterns of Sanctum\n\nA static-browser prototype that combines three layers into one campaign:\n\n- hex overland travel\n- ASCII town exploration\n- tactical encounter combat\n\n## What is in this build\n\nThis is a fresh combined game, not a direct raw merge of the three original codebases.\nIt keeps the key shape of the idea:\n\n- **Zoom 1:** overworld hex travel in the Grey March\n- **Zoom 2:** town exploration via ASCII maps\n- **Zoom 3:** tactical encounters with a 4-person party\n- shared NPC memory, lore, faction reputation, quests, inventory, party wounds, and time\n\n## Controls\n\n### World\n- Click a neighbouring hex to move\n- Enter settlements from the side panel\n- Explore marked sites from the side panel\n\n### Town\n- Use the North / South / East / West buttons\n- Arrow keys also work on desktop\n- Talk to nearby NPCs or enter nearby buildings from the actions panel\n\n### Combat\n- Use the action buttons for the active hero\n- Click highlighted board cells to move or target\n- End turn when done\n\n## Core content in this prototype\n\n- 4 settlements: Hearthwick, Sanctum, Gloam Ferry, Brindlewatch\n- 4 wilderness sites\n- 5 questlines with shared lore and repeated NPC references\n- 3 factions\n- persistent party health and conversation memory\n- local save/load\n\n## Files\n\n- `index.html`\n- `style.css`\n- `content.js`\n- `game.js`\n- `manifest.webmanifest`\n- `sw.js`\n- `LICENSE`\n\n## Run locally\n\nOpen `index.html` in a browser.\n\nFor service worker testing, serve the folder from a simple local server, for example:\n\n```bash\npython -m http.server 8080\n```\n\nThen open:\n\n```text\nhttp://localhost:8080/\n```\n\n## Publish to GitHub Pages\n\n```powershell\ncd \"C:\\path\\to\\grey-march-combined\"\ngit init\ngit branch -M main\ngit add .\ngit commit -m \"Initial combined game\"\ngit remote add origin https://github.com/\u003cyour-user>/\u003cyour-repo>.git\ngit push -u origin main\n```\n\nThen set GitHub Pages to deploy from the `main` branch root.\n","audit/BEAUTIFUL_CODE_STANDARD_AUDIT.md":"# Marsh — Beautiful Code Standard Audit\n\n**Audit date:** 17 September 2026  \n**Repository tier:** Experimental / static PWA game  \n**Standard:** The Beautiful Code Standard\n\n## Overall finding\n\nMarsh has a clear static-game shape, but the repository contains exact duplicate files: three copies of the same README, duplicate `index` files, duplicate stylesheet files, plus a combined ZIP export. That directly conflicts with one source of truth and delete-aggressively principles.\n\n## Priorities\n\n1. Keep one `README.md`, one `index.html` and one `style.css`; remove the identical numbered copies.\n2. Remove the ZIP export from ordinary source control if it merely packages the same repo content.\n3. Add a lightweight browser smoke test for the game loop.\n4. Add deterministic tests around core rules if development continues.\n5. Review the ~61 KB `game.js` only for real responsibility boundaries; do not split for metrics.\n\n## Bottom line\n\n**The easiest Beautiful Code win is deletion: one canonical copy of each thing, then a small behavioural test.**\n","content.js":"window.CONTENT = {\n  title: 'Grey March: Lanterns of Sanctum',\n  version: '0.1.0',\n  worldName: 'The Grey March',\n  saveKey: 'grey-march-combined-save-v1',\n  renownGoal: 10,\n  timeLimitDays: 14,\n  factions: {\n    wardens: { id: 'wardens', name: 'Wardens of the Green March', color: '#81b875' },\n    gilt: { id: 'gilt', name: 'Gilt Caravan Guild', color: '#d9b260' },\n    veil: { id: 'veil', name: 'Ashen Veil', color: '#9d7adb' }\n  },\n  terrainDefs: {\n    plains: { name: 'Plains', color: '#cdbf87', move: 1, risk: 0.12 },\n    road: { name: 'Road', color: '#bea373', move: 1, risk: 0.06 },\n    forest: { name: 'Forest', color: '#5f7f4d', move: 2, risk: 0.2 },\n    hills: { name: 'Hills', color: '#90704f', move: 2, risk: 0.16 },\n    swamp: { name: 'Swamp', color: '#57604a', move: 3, risk: 0.24 },\n    ruins: { name: 'Ruins', color: '#7a6d63', move: 2, risk: 0.18 },\n    river: { name: 'Ford', color: '#678ca8', move: 2, risk: 0.14 }\n  },\n  items: {\n    ration: { id: 'ration', name: 'Ration', type: 'supply', value: 1 },\n    tonic: { id: 'tonic', name: 'Field Tonic', type: 'consumable', value: 6, heal: 5 },\n    charm: { id: 'charm', name: 'Roadside Charm', type: 'quest', value: 8 },\n    ledger: { id: 'ledger', name: 'Lantern Ledger', type: 'quest', value: 0 },\n    beaconOil: { id: 'beaconOil', name: 'Beacon Oil', type: 'quest', value: 0 },\n    ferryKey: { id: 'ferryKey', name: 'Ferry Cache Key', type: 'quest', value: 0 },\n    ashRelic: { id: 'ashRelic', name: 'Ash Relic', type: 'quest', value: 0 },\n    silverLeaf: { id: 'silverLeaf', name: 'Silver Leaf', type: 'trade', value: 5 },\n    blackSalt: { id: 'blackSalt', name: 'Black Salt', type: 'trade', value: 4 },\n    lanternGlass: { id: 'lanternGlass', name: 'Lantern Glass', type: 'trade', value: 7 },\n    shrineBell: { id: 'shrineBell', name: 'Shrine Bell Clapper', type: 'quest', value: 0 },\n    guildSeal: { id: 'guildSeal', name: 'Guild Seal', type: 'quest', value: 0 },\n    satchel: { id: 'satchel', name: 'Courier Satchel', type: 'quest', value: 0 }\n  },\n  partyArchetypes: {\n    fighter: {\n      id: 'fighter', name: 'Mara Thorn', role: 'Fighter', color: '#cf7e5a',\n      maxHp: 34, ac: 17, init: 1, speed: 4, attackBonus: 6,\n      basic: { name: 'Slash', range: 1, damage: [1, 8, 3] },\n      special: { name: 'Shield Bash', range: 1, damage: [1, 6, 2], effect: 'stun', desc: 'Deal damage and stun for 1 round.' }\n    },\n    rogue: {\n      id: 'rogue', name: 'Kest Vane', role: 'Rogue', color: '#67a7d9',\n      maxHp: 26, ac: 15, init: 4, speed: 5, attackBonus: 7,\n      basic: { name: 'Throw Knife', range: 4, damage: [1, 6, 4] },\n      special: { name: 'Backstab', range: 1, damage: [2, 6, 3], effect: 'bleed', desc: 'Heavy melee strike that causes bleed.' }\n    },\n    cleric: {\n      id: 'cleric', name: 'Sister Hale', role: 'Cleric', color: '#b8c97b',\n      maxHp: 28, ac: 16, init: 0, speed: 4, attackBonus: 5,\n      basic: { name: 'Radiant Bolt', range: 4, damage: [1, 8, 3] },\n      special: { name: 'Healing Word', range: 4, heal: [1, 6, 4], desc: 'Restore health to an ally.' }\n    },\n    wizard: {\n      id: 'wizard', name: 'Ivo Glass', role: 'Wizard', color: '#b497e8',\n      maxHp: 22, ac: 13, init: 2, speed: 4, attackBonus: 6,\n      basic: { name: 'Fire Bolt', range: 5, damage: [1, 10, 3] },\n      special: { name: 'Arc Burst', range: 3, damage: [1, 8, 2], splash: 1, desc: 'Damage target and nearby foes.' }\n    }\n  },\n  enemies: {\n    raider: { id: 'raider', name: 'Road Raider', maxHp: 16, ac: 13, init: 1, speed: 4, attackBonus: 4, damage: [1, 6, 2], ai: 'rush', glyph: 'r' },\n    hound: { id: 'hound', name: 'Ash Hound', maxHp: 12, ac: 12, init: 3, speed: 5, attackBonus: 4, damage: [1, 6, 1], ai: 'flank', glyph: 'h' },\n    acolyte: { id: 'acolyte', name: 'Veil Acolyte', maxHp: 14, ac: 12, init: 2, speed: 4, attackBonus: 4, damage: [1, 8, 1], ai: 'ranged', glyph: 'a', range: 4 },\n    bruiser: { id: 'bruiser', name: 'Guild Bruiser', maxHp: 20, ac: 14, init: 0, speed: 3, attackBonus: 5, damage: [1, 8, 2], ai: 'rush', glyph: 'b' },\n    cantor: { id: 'cantor', name: 'Ash Cantor', maxHp: 24, ac: 14, init: 2, speed: 4, attackBonus: 6, damage: [1, 10, 2], ai: 'ranged', glyph: 'c', range: 5 }\n  },\n  encounterMaps: {\n    cellar: {\n      w: 8, h: 8,\n      rows: [\n        '........',\n        '..##....',\n        '..##.^..',\n        '........',\n        '.^....#.',\n        '...#....',\n        '........',\n        '........'\n      ]\n    },\n    road: {\n      w: 8, h: 8,\n      rows: [\n        '........',\n        '...#....',\n        '..^.....',\n        '........',\n        '.....#..',\n        '........',\n        '..#.....',\n        '........'\n      ]\n    },\n    tower: {\n      w: 8, h: 8,\n      rows: [\n        '....#...',\n        '..##.#..',\n        '...^....',\n        '.#......',\n        '......#.',\n        '...^....',\n        '..#.....',\n        '........'\n      ]\n    },\n    shrine: {\n      w: 8, h: 8,\n      rows: [\n        '........',\n        '...^....',\n        '..#.#...',\n        '........',\n        '...#....',\n        '........',\n        '.^......',\n        '........'\n      ]\n    }\n  },\n  region: {\n    width: 8,\n    height: 7,\n    start: { q: 1, r: 4 },\n    tiles: [\n      'hhhpffhh',\n      'hfpprfhh',\n      'fppprprh',\n      'fprrppph',\n      'prrppfrh',\n      'pprpprrh',\n      'hhpprshh'\n    ]\n  },\n  settlements: [\n    { id: 'hearthwick', name: 'Hearthwick', q: 1, r: 4, kind: 'village', desc: 'A warm road village of smoke, hens, and low stone walls.' },\n    { id: 'sanctum', name: 'Sanctum', q: 4, r: 3, kind: 'town', desc: 'A lamp-lit town built around an old archive and a guarded square.' },\n    { id: 'gloamferry', name: 'Gloam Ferry', q: 5, r: 5, kind: 'river-port', desc: 'A sullen ferry stop of wet wood, rope, and whispered bargains.' },\n    { id: 'brindlewatch', name: 'Brindlewatch', q: 3, r: 1, kind: 'watchtown', desc: 'A hill watch with a half-kept beacon and soldiers short on sleep.' }\n  ],\n  sites: [\n    { id: 'old_bell_shrine', name: 'Old Bell Shrine', q: 2, r: 5, kind: 'shrine', desc: 'A weathered roadside shrine with a silenced bell.' },\n    { id: 'lantern_tower', name: 'Lantern Tower', q: 6, r: 2, kind: 'tower', desc: 'A lonely tower used to signal caravans through the mist.' },\n    { id: 'ashen_ruin', name: 'Ashen Ruin', q: 6, r: 4, kind: 'ruin', desc: 'Blackened stones where the Veil keeps returning.' },\n    { id: 'reed_ford', name: 'Reed Ford', q: 4, r: 6, kind: 'ford', desc: 'A cold crossing marked by split reeds and broken cart tracks.' }\n  ],\n  towns: {\n    hearthwick: {\n      id: 'hearthwick', width: 17, height: 11, start: { x: 2, y: 5 },\n      rows: [\n        '#################',\n        '#..G....=....S..#',\n        '#.......=.......#',\n        '#..T....=....M..#',\n        '#.......=.......#',\n        '#=======+=======#',\n        '#.......=.......#',\n        '#..H....=....P..#',\n        '#.......=.......#',\n        '#...............#',\n        '#################'\n      ],\n      legends: {\n        G: { name: 'Gate', type: 'exit' },\n        T: { name: 'Crooked Lantern Inn', type: 'building', scene: 'hearthwick_inn' },\n        S: { name: 'Roadside Shrine', type: 'building', scene: 'hearthwick_shrine' },\n        M: { name: 'Mud Market', type: 'building', scene: 'hearthwick_market' },\n        H: { name: 'Mayor\\'s Hall', type: 'building', scene: 'hearthwick_hall' },\n        P: { name: 'Pig Yard', type: 'building', scene: 'hearthwick_yard' }\n      },\n      npcs: [\n        { id: 'rowan_pike', x: 4, y: 7, glyph: 'R' },\n        { id: 'tessa_reed', x: 3, y: 3, glyph: 'T' },\n        { id: 'sister_elira', x: 14, y: 1, glyph: 'E' }\n      ]\n    },\n    sanctum: {\n      id: 'sanctum', width: 19, height: 13, start: { x: 2, y: 6 },\n      rows: [\n        '###################',\n        '#..G.....=...A....#',\n        '#........=........#',\n        '#..T.....=....M...#',\n        '#........=........#',\n        '#========+========#',\n        '#........=........#',\n        '#..C.....=....L...#',\n        '#........=........#',\n        '#..W.....=....S...#',\n        '#........=........#',\n        '#.................#',\n        '###################'\n      ],\n      legends: {\n        G: { name: 'North Gate', type: 'exit' },\n        T: { name: 'Lantern Cup Tavern', type: 'building', scene: 'sanctum_tavern' },\n        A: { name: 'Archive Annex', type: 'building', scene: 'sanctum_archive' },\n        M: { name: 'Guild Exchange', type: 'building', scene: 'sanctum_exchange' },\n        C: { name: 'Chapel Court', type: 'building', scene: 'sanctum_chapel' },\n        L: { name: 'Lamp House', type: 'building', scene: 'sanctum_lamp' },\n        W: { name: 'West Watch', type: 'building', scene: 'sanctum_watch' },\n        S: { name: 'South Steps', type: 'exit' }\n      },\n      npcs: [\n        { id: 'yselle_quill', x: 14, y: 1, glyph: 'Y' },\n        { id: 'captain_bram', x: 3, y: 9, glyph: 'B' },\n        { id: 'nyra_voss', x: 15, y: 3, glyph: 'N' },\n        { id: 'innkeep_morrow', x: 3, y: 3, glyph: 'M' }\n      ]\n    },\n    gloamferry: {\n      id: 'gloamferry', width: 17, height: 11, start: { x: 2, y: 5 },\n      rows: [\n        '#################',\n        '#..G....=....D..#',\n        '#.......=.......#',\n        '#..T....=....W..#',\n        '#.......=.......#',\n        '#=======+=======#',\n        '#.......=.......#',\n        '#..F....=....S..#',\n        '#.......=.......#',\n        '#~~~~~~~~~~~~~~~#',\n        '#################'\n      ],\n      legends: {\n        G: { name: 'Road Gate', type: 'exit' },\n        D: { name: 'Dock Office', type: 'building', scene: 'gloam_dock' },\n        T: { name: 'Wet Rope Tavern', type: 'building', scene: 'gloam_tavern' },\n        W: { name: 'Warehouse', type: 'building', scene: 'gloam_warehouse' },\n        F: { name: 'Ferry Slip', type: 'building', scene: 'gloam_ferry' },\n        S: { name: 'South Mooring', type: 'exit' }\n      },\n      npcs: [\n        { id: 'corven_reed', x: 3, y: 7, glyph: 'C' },\n        { id: 'dockmaster_ira', x: 13, y: 1, glyph: 'I' },\n        { id: 'veska_dane', x: 13, y: 7, glyph: 'V' }\n      ]\n    },\n    brindlewatch: {\n      id: 'brindlewatch', width: 17, height: 11, start: { x: 2, y: 5 },\n      rows: [\n        '#################',\n        '#..G....=....B..#',\n        '#.......=.......#',\n        '#..T....=....A..#',\n        '#.......=.......#',\n        '#=======+=======#',\n        '#.......=.......#',\n        '#..Y....=....S..#',\n        '#.......=.......#',\n        '#...............#',\n        '#################'\n      ],\n      legends: {\n        G: { name: 'Gate', type: 'exit' },\n        B: { name: 'Beacon Stairs', type: 'building', scene: 'brindle_beacon' },\n        T: { name: 'Watch Mess', type: 'building', scene: 'brindle_mess' },\n        A: { name: 'Armoury', type: 'building', scene: 'brindle_armoury' },\n        Y: { name: 'Yard', type: 'building', scene: 'brindle_yard' },\n        S: { name: 'South Slope', type: 'exit' }\n      },\n      npcs: [\n        { id: 'serah_cole', x: 13, y: 1, glyph: 'S' },\n        { id: 'quartermaster_olin', x: 13, y: 3, glyph: 'O' },\n        { id: 'scout_fera', x: 3, y: 7, glyph: 'F' }\n      ]\n    }\n  },\n  npcs: {\n    rowan_pike: { id: 'rowan_pike', name: 'Rowan Pike', town: 'hearthwick', role: 'Mayor', faction: 'wardens' },\n    tessa_reed: { id: 'tessa_reed', name: 'Tessa Reed', town: 'hearthwick', role: 'Innkeeper', faction: 'gilt' },\n    sister_elira: { id: 'sister_elira', name: 'Sister Elira', town: 'hearthwick', role: 'Road Priest', faction: 'wardens' },\n    yselle_quill: { id: 'yselle_quill', name: 'Yselle Quill', town: 'sanctum', role: 'Archivist', faction: 'wardens' },\n    captain_bram: { id: 'captain_bram', name: 'Captain Bram Kestrel', town: 'sanctum', role: 'Guard Captain', faction: 'wardens' },\n    nyra_voss: { id: 'nyra_voss', name: 'Nyra Voss', town: 'sanctum', role: 'Guild Factor', faction: 'gilt' },\n    innkeep_morrow: { id: 'innkeep_morrow', name: 'Morrow Fen', town: 'sanctum', role: 'Tavern Keeper', faction: 'gilt' },\n    corven_reed: { id: 'corven_reed', name: 'Corven Reed', town: 'gloamferry', role: 'Ferryman', faction: 'gilt' },\n    dockmaster_ira: { id: 'dockmaster_ira', name: 'Ira Pell', town: 'gloamferry', role: 'Dockmaster', faction: 'gilt' },\n    veska_dane: { id: 'veska_dane', name: 'Veska Dane', town: 'gloamferry', role: 'Smuggler', faction: 'veil' },\n    serah_cole: { id: 'serah_cole', name: 'Serah Cole', town: 'brindlewatch', role: 'Beacon Warden', faction: 'wardens' },\n    quartermaster_olin: { id: 'quartermaster_olin', name: 'Quartermaster Olin', town: 'brindlewatch', role: 'Quartermaster', faction: 'gilt' },\n    scout_fera: { id: 'scout_fera', name: 'Fera Lark', town: 'brindlewatch', role: 'Scout', faction: 'wardens' }\n  },\n  quests: {\n    cellar_cult: {\n      id: 'cellar_cult', name: 'Ash Beneath the Cup', giver: 'innkeep_morrow',\n      summary: 'Something under Sanctum\\'s tavern keeps drawing cloaked visitors at dusk.',\n      reward: { gold: 12, renown: 2, faction: { wardens: 1, veil: -1 } }\n    },\n    lost_ledger: {\n      id: 'lost_ledger', name: 'The Missing Lantern Ledger', giver: 'yselle_quill',\n      summary: 'Recover the ledger taken from Sanctum\\'s archive before the Guild buries the trail.',\n      reward: { gold: 10, renown: 2, faction: { wardens: 1, gilt: -1 } }\n    },\n    beacon_watch: {\n      id: 'beacon_watch', name: 'The Sleeping Beacon', giver: 'serah_cole',\n      summary: 'Carry oil and clear the Lantern Tower so the March can signal again.',\n      reward: { gold: 9, renown: 2, faction: { wardens: 2 } }\n    },\n    ferry_cache: {\n      id: 'ferry_cache', name: 'Keys in the Mud', giver: 'corven_reed',\n      summary: 'Find the stolen key and settle who really owns the cache at Gloam Ferry.',\n      reward: { gold: 8, renown: 2, faction: { gilt: 1 } }\n    },\n    bell_shrine: {\n      id: 'bell_shrine', name: 'A Bell for the Road', giver: 'sister_elira',\n      summary: 'Recover the missing shrine bell clapper from the Old Bell Shrine and decide where it belongs.',\n      reward: { gold: 6, renown: 1, faction: { wardens: 1 } }\n    }\n  },\n  rumours: [\n    'Tessa swears Sanctum\\'s tavern has more visitors after midnight than before sunset.',\n    'The beacon above Brindlewatch has been dark too long, and raiders know it.',\n    'A ferryman lost a key, but the key may have belonged to smugglers first.',\n    'Someone from the Archive keeps buying black salt and pretending it\\'s for cleaning.',\n    'The old bell shrine still rings in dreams, even without its clapper.'\n  ]\n};\n"};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        if (typeof xhr.onreadystatechange === 'function') xhr.onreadystatechange();
+        xhr.dispatchEvent(new Event('readystatechange'));
+        if (typeof xhr.onload === 'function') xhr.onload(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#18120f">
+  <meta name="description" content="A three-layer browser adventure: hexcrawl, ASCII towns, and tactical combat.">
+  <title>Grey March: Lanterns of Sanctum</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Grey March: Lanterns of Sanctum</h1>
+        <p class="subtitle">One campaign, three zoom levels: road, town, and encounter.</p>
+      </div>
+      <div class="header-actions">
+        <button id="newBtn">New Campaign</button>
+        <button id="saveBtn">Save</button>
+        <button id="loadBtn">Load</button>
+      </div>
+    </header>
+
+    <section id="statusStrip" class="status-strip"></section>
+
+    <main>
+      <section id="worldScreen" class="screen world-layout">
+        <div class="panel map-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Overland Map</h2>
+              <p class="muted">Tap a neighbouring hex to travel. Enter settlements to drop into the town map.</p>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="worldCanvas" width="900" height="640" aria-label="Grey March hex map"></canvas>
+          </div>
+        </div>
+        <aside id="worldSide" class="panel side-panel"></aside>
+      </section>
+
+      <section id="townScreen" class="screen town-layout" hidden>
+        <div class="panel town-main">
+          <div class="panel-head">
+            <div>
+              <h2 id="townTitle">Town</h2>
+              <p id="townSubtitle" class="muted"></p>
+            </div>
+            <div class="row">
+              <button id="townExitBtn" class="secondary">Leave town</button>
+            </div>
+          </div>
+          <div class="town-grid-wrap">
+            <pre id="townGrid" class="ascii-grid" aria-label="ASCII town map"></pre>
+          </div>
+          <div id="townMovePad" class="move-pad">
+            <button data-dir="n">North</button>
+            <div class="move-row">
+              <button data-dir="w">West</button>
+              <button data-dir="s">South</button>
+              <button data-dir="e">East</button>
+            </div>
+          </div>
+        </div>
+        <aside class="panel town-side">
+          <div id="townInfo" class="tab-content"></div>
+          <div class="card">
+            <h3>Actions</h3>
+            <div id="townActions" class="choice-list"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="combatScreen" class="screen combat-layout" hidden>
+        <aside id="combatParty" class="panel column"></aside>
+        <section class="center-column">
+          <div id="combatBoard" class="panel combat-board"></div>
+          <div id="combatActions" class="panel action-bar"></div>
+        </section>
+        <aside class="column stack">
+          <div id="combatInfo" class="panel"></div>
+          <div class="panel log-panel">
+            <h3>Combat Log</h3>
+            <div id="combatLog" class="mini-list"></div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalRoot" class="modal-root" hidden></div>
+
+  <script src="content.js"></script>
+  <script src="game.js"></script>
+  
+</body>
+</html>
