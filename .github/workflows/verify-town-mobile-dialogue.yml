@@ -1,0 +1,55 @@
+name: Verify Town mobile dialogue preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/verify-town-mobile-dialogue.yml'
+      - 'qa-tests/mobile-dialogue-acceptance.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-dialogue:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout QA harness
+        uses: actions/checkout@v4
+        with:
+          path: qa
+      - name: Checkout canonical game test dependencies
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: main
+          path: source
+          persist-credentials: false
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Install Playwright and headless Chromium
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Test actual public QA URL at Android-sized viewport
+        working-directory: source/repository-town
+        run: |
+          cp ../../qa/qa-tests/mobile-dialogue-acceptance.mjs tests/mobile-dialogue-acceptance.mjs
+          node tests/mobile-dialogue-acceptance.mjs
+      - name: Preserve report and screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: town-mobile-dialogue-browser-acceptance
+          path: |
+            source/repository-town/mobile-dialogue-qa.json
+            source/repository-town/mobile-dialogue-*.png
+          retention-days: 14
+          if-no-files-found: warn
