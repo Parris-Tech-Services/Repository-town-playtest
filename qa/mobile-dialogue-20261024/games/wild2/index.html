@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {"README.md":"# DOVAHKIIN — The Last Dragonborn\n\nA **Skyrim / Elder Scrolls–themed text adventure** that runs entirely in the browser. No build step, no dependencies — a single self-contained `index.html`.\n\nYou begin bound for the executioner's block at Helgen and rise to become the Last Dragonborn, choosing your path through the main saga to one of several endings.\n\n## Game concept\n\n- **Choose your race** (Nord, Dunmer, or Khajiit) — each grants different stat bonuses and changes story flavour.\n- Branching journey through familiar beats: Helgen, your first Shout, Bleak Falls Barrow, High Hrothgar, the Companions, and the confrontation with Alduin.\n- Stats — **HP**, **Stamina**, and **Shouts known** — shift with your choices.\n- **Multiple endings**, including triumph, mercy, and a darker vampire path.\n\n## Controls\n\n- Click the on-screen **choice buttons** to advance.\n- A typewriter effect prints each passage; choices appear when it finishes.\n- At an ending, use **▶ Play Again** to restart.\n\n## Saved progress\n\nEndings you reach are saved in your browser via **localStorage** and shown as\n`ENDINGS DISCOVERED: N / 3` beneath the game. Clearing site data resets this.\n\n## How to run\n\nOpen `index.html` in any modern browser — double-click it, or serve the folder:\n\n```bash\npython -m http.server 8000\n# then visit http://localhost:8000\n```\n\n## Status\n\n**Playable and complete.** Race selection, the branching main quest, and multiple\nendings are implemented. Intentionally lightweight — a narrative game, not an engine.\n\n## Possible future improvements\n\n- Mid-quest save/resume (currently only endings are tracked).\n- More side branches (Thieves Guild, Dark Brotherhood, civil war).\n- Ambient audio toggle.\n"};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        xhr.dispatchEvent(new Event('readystatechange'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wild2 — The Last Dragonborn</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a0005;
+    color: #e8c87a;
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  #game-container { max-width: 760px; width: 100%; }
+  h1 {
+    text-align: center;
+    font-size: clamp(1.3rem, 4vw, 2.1rem);
+    color: #c0392b;
+    text-shadow: 0 0 20px #c0392b, 0 0 40px #8e1a10;
+    letter-spacing: 4px;
+    margin-bottom: 4px;
+    padding-top: 10px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #666;
+    font-size: 0.78rem;
+    letter-spacing: 2px;
+    margin-bottom: 22px;
+  }
+  #stats-bar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    background: #0d0008;
+    border: 1px solid #3a1a00;
+    border-radius: 4px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    font-size: 0.83rem;
+  }
+  .stat { display: flex; align-items: center; gap: 7px; }
+  .stat-label { color: #666; }
+  .stat-hp { color: #e74c3c; }
+  .stat-stam { color: #27ae60; }
+  .stat-shouts { color: #3498db; }
+  .stat-race { color: #e8c87a; }
+  #story-box {
+    background: #070003;
+    border: 1px solid #2a0a00;
+    border-radius: 4px;
+    padding: 20px 24px;
+    min-height: 180px;
+    margin-bottom: 16px;
+    font-size: clamp(0.84rem, 2.2vw, 0.96rem);
+    line-height: 1.78;
+    color: #d4b483;
+    white-space: pre-wrap;
+  }
+  .em { color: #e8c87a; font-style: italic; }
+  .shout { color: #3498db; font-weight: bold; text-shadow: 0 0 8px #3498db; }
+  .dragon { color: #c0392b; font-weight: bold; }
+  .ending-gold { color: #f1c40f; }
+  .ending-dark { color: #8e44ad; }
+  #choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    background: #0a0005;
+    color: #e8c87a;
+    border: 1px solid #8e6020;
+    border-radius: 3px;
+    padding: 12px 18px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(0.81rem, 2vw, 0.92rem);
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  }
+  .choice-btn:hover {
+    background: #8e6020;
+    color: #000;
+    box-shadow: 0 0 12px #e8c87a;
+  }
+  .choice-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  #play-again {
+    display: none;
+    margin-top: 18px;
+    background: #0a0005;
+    color: #c0392b;
+    border: 1px solid #c0392b;
+    border-radius: 3px;
+    padding: 12px 28px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+    width: 100%;
+  }
+  #play-again:hover {
+    background: #c0392b;
+    color: #000;
+    box-shadow: 0 0 16px #c0392b;
+  }
+  #chapter-label {
+    color: #4a2000;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  #race-select {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <h1>DOVAHKIIN</h1>
+  <div class="subtitle">— The Last Dragonborn — An Elder Scrolls Text Adventure —</div>
+  <div id="stats-bar">
+    <div class="stat"><span class="stat-label">Race:</span><span class="stat-race" id="s-race">—</span></div>
+    <div class="stat"><span class="stat-label">HP:</span><span class="stat-hp" id="s-hp">100</span></div>
+    <div class="stat"><span class="stat-label">Stamina:</span><span class="stat-stam" id="s-stam">100</span></div>
+    <div class="stat"><span class="stat-label">Shouts:</span><span class="stat-shouts" id="s-shouts">0</span></div>
+  </div>
+  <div id="chapter-label">Prologue</div>
+  <div id="story-box"></div>
+  <div id="choices"></div>
+  <button id="play-again" onclick="startGame()">▶ Play Again</button>
+</div>
+
+<script>
+const state = { hp: 100, stamina: 100, shouts: 0, race: '', chapter: 1, flags: {} };
+
+const raceBonus = {
+  Nord:   { hp: 20,  stamina: 0,   shouts: 1, desc: 'Battle-hardened sons and daughters of Skyrim — frost resistant, proud, and born for war.' },
+  Dunmer: { hp: 0,   stamina: 10,  shouts: 0, desc: 'Dark Elves of Morrowind — cunning, fire-resistant, and deeply distrusted by the Nords around you.' },
+  Khajiit:{ hp: 0,   stamina: 20,  shouts: 0, desc: "Cat-folk of Elsweyr — nimble, sharp-eyed, and treated like criminals at every city gate." },
+};
+
+function updateStats() {
+  document.getElementById('s-race').textContent = state.race || '—';
+  document.getElementById('s-hp').textContent = Math.max(0, state.hp);
+  document.getElementById('s-stam').textContent = Math.max(0, state.stamina);
+  document.getElementById('s-shouts').textContent = state.shouts;
+  document.getElementById('chapter-label').textContent = chapterName(state.chapter);
+}
+
+function chapterName(n) {
+  return ['Prologue','Act I','Act II','Act III','Act IV','Act V','Act VI'][n] || 'Act ' + n;
+}
+
+let twTimer = null;
+function typeText(text, callback) {
+  const box = document.getElementById('story-box');
+  box.innerHTML = '';
+  if (twTimer) clearTimeout(twTimer);
+  let i = 0;
+  function step() {
+    if (i < text.length) {
+      if (text[i] === '<') {
+        const end = text.indexOf('>', i);
+        i = end + 1;
+        box.innerHTML = text.substring(0, i);
+        twTimer = setTimeout(step, 0);
+      } else {
+        i++;
+        box.innerHTML = text.substring(0, i);
+        twTimer = setTimeout(step, 17);
+      }
+    } else if (callback) callback();
+  }
+  step();
+}
+
+function showChoices(choices) {
+  const div = document.getElementById('choices');
+  div.innerHTML = '';
+  choices.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c.label;
+    btn.onclick = () => {
+      div.querySelectorAll('button').forEach(b => b.disabled = true);
+      if (c.effect) c.effect();
+      setTimeout(() => goTo(c.next), 320);
+    };
+    div.appendChild(btn);
+  });
+}
+
+function goTo(id) {
+  const scene = scenes[id];
+  if (!scene) return;
+  state.chapter = scene.chapter || state.chapter;
+  updateStats();
+  document.getElementById('play-again').style.display = 'none';
+  document.getElementById('choices').innerHTML = '';
+  const text = typeof scene.text === 'function' ? scene.text() : scene.text;
+  if (text && text.indexOf('ENDING:') > -1) recordEnding(id);
+  typeText(text, () => {
+    const choices = typeof scene.choices === 'function' ? scene.choices() : scene.choices;
+    if (choices && choices.length) {
+      showChoices(choices);
+    } else {
+      document.getElementById('play-again').style.display = 'block';
+    }
+  });
+}
+
+const scenes = {
+  race_select: {
+    chapter: 0,
+    text: `<span class="em">The executioner's block at Helgen. Your hands are bound. The year is 4E 201.</span>
+
+A cart rattles through a mountain pass. Around you: a Stormcloak soldier singing under his breath, the Imperial Captain studying a list of names, and a Nord prisoner watching you with a curious frown.
+
+<span class="em">"Hey. You. What are you in for?"</span>
+
+You don't remember. The last thing you recall is walking south from — somewhere. The cold feels familiar, wherever you're from.
+
+Who are you?`,
+    choices: [
+      {
+        label: '🛡  Nord — "Skyrim is my home. These chains are an insult."',
+        next: 'helgen',
+        effect: () => { state.race = 'Nord'; state.hp += 20; state.shouts += 1; state.flags.raceBonus = 'hp'; }
+      },
+      {
+        label: '🔥  Dunmer — "I have walked darker roads than this execution."',
+        next: 'helgen',
+        effect: () => { state.race = 'Dunmer'; state.stamina += 10; state.flags.raceBonus = 'stam'; }
+      },
+      {
+        label: '🐾  Khajiit — "This one has escaped worse, yes? Perhaps."',
+        next: 'helgen',
+        effect: () => { state.race = 'Khajiit'; state.stamina += 20; state.flags.raceBonus = 'agility'; }
+      },
+    ]
+  },
+
+  helgen: {
+    chapter: 1,
+    text() {
+      const raceLines = {
+        Nord: `The Captain crosses your name off the list with a grunt. <span class="em">"Nord. Probably a Stormcloak sympathiser. Execute with the rest."</span>`,
+        Dunmer: `The Captain eyes your ash-grey skin. <span class="em">"Dark Elf. No record of you. Doesn't matter. You were in the wrong place."</span>`,
+        Khajiit: `The Captain wrinkles her nose. <span class="em">"Khajiit. We don't need a reason."</span> She marks your name with a slash.`,
+      };
+      return `${raceLines[state.race] || ''}
+
+The block is cold stone. The headsman raises his axe.
+
+Then the sky <span class="dragon">SCREAMS</span>.
+
+A shape like a mountain with wings drops from the clouds and lands on the keep's tower with a sound that collapses the tower entirely. Its roar is not sound — it is <span class="em">language</span>, ancient and absolute, and something in your chest answers it without your permission.
+
+<span class="dragon">YOL — fire pours from the dragon's throat in a sheet of orange ruin.</span>
+
+Chaos. The headsman is gone. Your bindings burn through. A Stormcloak — Ralof — hauls you upright.
+
+<span class="em">"Move! Through the keep — NOW!"</span>
+
+${state.race === 'Nord' ? 'Your Nord blood surges. You have never felt more alive.' : state.race === 'Dunmer' ? 'You move with Dunmer composure — controlled terror, the best kind.' : 'Khajiit reflexes take over before your mind catches up.'}
+
+HP: ${state.hp} | Stamina: ${state.stamina}`;
+    },
+    choices: [
+      { label: '⚔  Follow Ralof through the Imperial Keep — fight your way out', next: 'keep_fight' },
+      { label: '🏃  Break away alone — use the chaos to slip out a side passage', next: 'keep_stealth' },
+    ]
+  },
+
+  keep_fight: {
+    chapter: 1,
+    text: `The keep is a war between Imperial soldiers and the dragon's fire. Ralof hands you a woodcutter's axe taken from a dead guard. It is not a fine weapon. It does not need to be.
+
+You carve through two Imperials in the smoke-filled corridor — not with skill, but with desperation, which in a pinch works just as well. Ralof roars beside you.
+
+Then the dragon's claw punches through the ceiling above. <span class="dragon">Stone, fire, two soldiers — all gone.</span> The beast's eye fills the gap, pupil contracting as it fixes on you.
+
+It does not breathe fire. It <span class="em">waits</span>.
+
+Then it speaks, low and earthshaking: <span class="shout">"DOVAHKIIN."</span>
+
+You don't know the word. But your bones do.
+
+HP -15 | Stamina -10`,
+    choices: [
+      { label: '🗣  Shout back — something rises in your throat unbidden', next: 'first_shout', effect: () => { state.hp -= 15; state.stamina -= 10; } },
+      { label: '🏃  Flee — whatever that word means, survive first', next: 'bleak_falls', effect: () => { state.hp -= 15; state.stamina -= 10; } },
+    ]
+  },
+
+  keep_stealth: {
+    chapter: 1,
+    text: `You find a servants' passage — low-ceilinged, smoke-filled, and blessedly empty. Your ${state.race === 'Khajiit' ? 'Khajiit eyes pierce the dark like torchlight' : 'eyes adjust slowly'} to the gloom.
+
+You navigate by feel and luck, past a wine cellar, past a collapsed torture room, past a door that opens — impossibly — onto a courtyard where the dragon has just landed.
+
+Its head swings toward you like a compass needle finding north.
+
+It does not attack. It tilts its head. That enormous, ancient, unblinking eye studies you the way you might study a word you half-recognise in a foreign language.
+
+<span class="em">"Dovahkiin,"</span> it says, and the stone under your feet cracks from the resonance.
+
+Then it launches into the sky and is gone.
+
+Stamina +10 (adrenaline reserves)`,
+    choices: [
+      { label: '🗺  Follow Ralof to Riverwood — regroup and recover', next: 'bleak_falls', effect: () => { state.stamina += 10; } },
+      { label: '🗣  Chase the dragon — something in you demands to understand that word', next: 'first_shout', effect: () => { state.stamina += 10; } },
+    ]
+  },
+
+  first_shout: {
+    chapter: 2,
+    text: `You chase the word the dragon left in your chest.
+
+In the ruins near Helgen, you find an old Word Wall — Atmoran carvings worn smooth by centuries of wind. As you approach, the runes glow a deep cold blue. They are not being illuminated. They are being <span class="em">read</span> by something in you.
+
+The word enters your mind complete: <span class="shout">FUS — Force.</span>
+
+You open your mouth and speak it, and the air ahead of you bends like glass, strikes an old pine tree, and folds it in half.
+
+Silence. Then Ralof, from behind you, very quietly: <span class="em">"By Talos."</span>
+
+A Greybeard's messenger hawk lands on a nearby rock. Its leg carries a single line of script: <span class="em">"DOVAHKIIN. HIGH HROTHGAR AWAITS."</span>
+
+Shouts Known: +1 (FUS — Unrelenting Force, first Word)`,
+    choices: [
+      { label: '🏔  Climb the 7,000 Steps to High Hrothgar immediately', next: 'high_hrothgar', effect: () => { state.shouts += 1; } },
+      { label: '⚔  Go to Bleak Falls Barrow first — the Jarl of Whiterun needs a Dragonstone', next: 'bleak_falls', effect: () => { state.shouts += 1; } },
+    ]
+  },
+
+  bleak_falls: {
+    chapter: 2,
+    text: `Bleak Falls Barrow crouches on a cliff above the tundra like a bad memory. The Nords buried their dead here for a thousand years, and the dead — as is their habit in Skyrim — did not stay buried.
+
+Draugr fill the corridors: ancient soldiers animated by whatever necromantic grudge keeps them from rest. They move slowly. They hit like siege engines.
+
+You find the Dragonstone deep in the barrow, past a master-locked gate and a spider the size of a pony. The stone is carved with a map of dragon burial sites — places where Alduin buried his lieutenants to raise them in a later age. This age.
+
+On the way out, you pass another Word Wall. This one hums a different note: <span class="shout">RO — Balance.</span>
+
+The second word of Unrelenting Force. With both words together, the shout knocks a Draugr Deathlord clean through a stone wall.
+
+HP -20 | Shouts +1`,
+    choices: [
+      { label: '🏔  Bring the Dragonstone to Whiterun, then climb to High Hrothgar', next: 'high_hrothgar', effect: () => { state.hp -= 20; state.shouts += 1; } },
+      { label: '🐉  A dragon attacks Whiterun — fight it now, Greybeards later', next: 'whiterun_dragon', effect: () => { state.hp -= 20; state.shouts += 1; } },
+    ]
+  },
+
+  high_hrothgar: {
+    chapter: 3,
+    text: `Seven thousand steps. The Greybeards measure devotion in altitude.
+
+The Throat of the World pierces the cloud layer at four thousand steps. At six thousand, the wind is a living thing trying to push you off the mountain. At the top: a monastery of grey stone, four old men, and a silence so profound it has texture.
+
+Master Arngeir speaks. The other three Greybeards do not speak — when they last spoke, they levelled a small town.
+
+<span class="em">"You are Dragonborn. Not the first. Likely not the last. But you are here, and Alduin is not yet risen to his full strength. There is a shout — DRAGONREND — that can force a dragon to land. We did not create it. The ancient heroes of the Merethic Era did, at great cost."</span>
+
+He teaches you a third Word: <span class="shout">DAH — Push.</span>
+
+FUS RO DAH. The complete shout. The air becomes a weapon.
+
+<span class="em">"To learn DRAGONREND, you must read the Elder Scroll at the summit of this mountain — and survive what you see in it."</span>
+
+Shouts +1`,
+    choices: [
+      { label: '📜  Seek the Elder Scroll — risk madness to gain DRAGONREND', next: 'elder_scroll', effect: () => { state.shouts += 1; } },
+      { label: '🦇  Seek the vampire lord Harkon instead — power without wisdom', next: 'ending_vampire', effect: () => { state.shouts += 1; } },
+      { label: '🐺  Join the Companions at Whiterun — earn werewolf strength for the fight', next: 'companions', effect: () => { state.shouts += 1; } },
+    ]
+  },
+
+  whiterun_dragon: {
+    chapter: 3,
+    text: `<span class="dragon">Mirmulnir</span> — an ancient dragon, scales the colour of dried blood — circles the Western Watchtower while Whiterun's guards die below.
+
+You stand in the open field with a bow borrowed from a dying Companion. Mirmulnir swoops. You roll. His fire chars the earth where you stood. The Companions fight with reckless courage. The guards fight with disciplined desperation.
+
+When Mirmulnir finally crashes to earth, wings broken by a dozen arrows, you approach. The dragon looks at you with one ember-orange eye.
+
+<span class="em">"Dovahkiin,"</span> it rasps. <span class="em">"You cannot stop him. He has eaten centuries. You have eaten — what? Twenty years?"</span>
+
+You drive your blade into its skull.
+
+The dragon's soul tears free of its body like heat from cooling stone — and floods into you. Every guard present falls to their knees.
+
+<span class="em">"DRAGONBORN!"</span> they shout, one voice.
+
+You absorb the soul and with it: <span class="shout">YOL — Fire.</span>
+
+Shouts +1 | HP -25`,
+    choices: [
+      { label: '🏔  Climb to High Hrothgar — answer the Greybeards\' summons', next: 'high_hrothgar', effect: () => { state.hp -= 25; state.shouts += 1; } },
+    ]
+  },
+
+  companions: {
+    chapter: 4,
+    text: `The Companions of Whiterun are Nord warrior-poets who drink mead and compose battlefield sagas with equal seriousness. Kodlak Whitemane, their Harbinger, receives you in Jorrvaskr's mead hall.
+
+<span class="em">"We have heard of you, Dragonborn. There is strength in you — but strength without a brotherhood is just a tool waiting to break."</span>
+
+You train with them for weeks. You learn their secret: the senior members are werewolves, bound by Hircine's gift and Hircine's curse. Kodlak wants to die free of it. The younger ones aren't sure.
+
+When Kodlak is killed by the Silver Hand in a sudden raid, you lead the Companions on a revenge march that ends in a fortress covered in silver and blood. You recover Kodlak's fragment of Wuuthrad, the legendary axe.
+
+In his honour — and with his blessing, offered from the afterlife in Sovngarde — you choose:
+
+Stamina +30 | HP -20`,
+    choices: [
+      { label: '🐺  Accept the beast blood — become a werewolf for the fight ahead', next: 'werewolf_path', effect: () => { state.stamina += 30; state.hp -= 20; } },
+      { label: '📜  Refuse — go to the Greybeards and seek the Elder Scroll instead', next: 'elder_scroll', effect: () => { state.stamina += 30; state.hp -= 20; } },
+    ]
+  },
+
+  werewolf_path: {
+    chapter: 4,
+    text: `The beast blood is given in a ritual older than the Companions themselves. You drink from the Hagraven's cup. The world goes red.
+
+As a werewolf you move between heartbeats. Dragons that can outfly an arrow cannot outrun you. You tear through a dragon priest's cultists in a dungeon east of Windhelm — the Dragon Priest <span class="dragon">Volsung</span> falls to your claws before he can finish incanting.
+
+From his mask, you learn a new Word of Power: <span class="shout">TIID — Time.</span> The beginning of Slow Time.
+
+But there is a cost. Each morning you wake human with hands you don't fully trust, and Hircine watches from his Hunting Grounds with patient, amber eyes.
+
+Shouts +1 | HP +20 | Stamina -15 (the change is exhausting)`,
+    choices: [
+      { label: '📜  Press on to the Throat of the World — seek the Elder Scroll', next: 'elder_scroll', effect: () => { state.shouts += 1; state.hp += 20; state.stamina -= 15; state.flags.werewolf = true; } },
+    ]
+  },
+
+  elder_scroll: {
+    chapter: 5,
+    text: `The Elder Scroll sits at the summit of the Throat of the World in a brass cradle. It is not a scroll so much as a wound in time — folded probability, compressed into vellum that was never made from any animal.
+
+Reading an Elder Scroll causes blindness in lesser scholars. What it causes in a Dragonborn is something different: you fall into the past.
+
+The ancient heroes who forged DRAGONREND stand before you like ghosts of sunlight. They speak in turns, their voices carrying the grief of people who have given everything:
+
+<span class="em">"We had to make Alduin understand mortality. He has never been mortal. He cannot conceive of it. So we built a shout that forces him to feel finite — just for a moment. Just long enough."</span>
+
+<span class="shout">JOOR ZAH FRUL — Mortal, Finite, Temporary.</span>
+
+You return from the vision. Your nose is bleeding. You know the shout.
+
+Alduin circles overhead. He knows you're here. Of course he does.
+
+Shouts +1`,
+    choices: [
+      { label: '🐉  Shout DRAGONREND and face Alduin — end this now', next: 'alduin_fight', effect: () => { state.shouts += 1; } },
+      { label: '🌑  Pursue Alduin into Sovngarde — follow him to the realm of the dead', next: 'sovngarde', effect: () => { state.shouts += 1; } },
+    ]
+  },
+
+  alduin_fight: {
+    chapter: 6,
+    text() {
+      return `<span class="dragon">ALDUIN</span> — World Eater, Firstborn of Akatosh, the Black Dragon — drops from the cloud ceiling like a falling mountain.
+
+<span class="shout">JOOR ZAH FRUL!</span>
+
+The shout hits him and Alduin lurches, wings faltering. For the first time in recorded history, the World Eater is forced to land. He is not used to earth. He is not used to facing something that can hurt him.
+
+You press the attack. He roars. His tail sweeps you off your feet — HP -30. You rise.
+
+${state.flags.werewolf ? 'The beast blood surges. You become something between man and wolf and dragonfire — something Alduin has never seen. He hesitates.' : state.race === 'Nord' ? 'Your Nord blood answers his draconic power with something just as old — the stubbornness of a people who built a civilization on a frozen mountain.' : state.race === 'Khajiit' ? 'Khajiit agility saves your life twice — rolling under his claws, under his fire, finding the angles.' : 'Dunmer fire resistance lets you survive the first breath weapon when nothing else could.'}
+
+You drive your blade into the joint where wing meets spine. He screams — not fire, just sound, raw and ancient and terrible.
+
+<span class="dragon">"You have won nothing, Dovahkiin. I will return. I always return. It is written—"</span>
+
+<span class="shout">FUS RO DAH!</span>
+
+The shout catches him mid-sentence and hurls him into the Word Wall behind him. The stone cracks. So does something in Alduin.
+
+HP -30`;
+    },
+    choices: [
+      { label: '🔥  Absorb his soul — end the World Eater permanently', next: 'ending_alduin_victory', effect: () => { state.hp -= 30; } },
+      { label: '🌑  Banish him to Sovngarde — let the ancient heroes judge him', next: 'sovngarde', effect: () => { state.hp -= 30; } },
+    ]
+  },
+
+  sovngarde: {
+    chapter: 6,
+    text: `Sovngarde — the Nordic afterlife — exists in a mist of battle-song and golden light. The dead here are not sad. They are waiting. They have been waiting since Alduin began devouring souls at the hall's gate, growing stronger on the grief of the honoured dead.
+
+You arrive living — an offence to the natural order that every soul you meet politely ignores. The ancient heroes, Gormlaith, Hakon, and Felldir, find you at once.
+
+<span class="em">"We forged DRAGONREND together. We can use it together."</span>
+
+Four voices. One shout. <span class="shout">JOOR ZAH FRUL</span> in four-part harmony shakes the golden mist apart.
+
+Alduin, stripped of the souls he was consuming, is smaller than you expected. Not small — never small — but possible. He fights like a cornered god, which is what he is.
+
+When it ends, his soul hangs in the air before you. A decision: absorb it and gain power beyond measure, or release it into the timestream to be reborn as something smaller and, perhaps, wiser.
+
+Shouts +1`,
+    choices: [
+      { label: '⚡  Absorb Alduin\'s soul — take the World Eater\'s power as your own', next: 'ending_alduin_victory', effect: () => { state.shouts += 1; } },
+      { label: '🕊  Release his soul — mercy for the firstborn of a god', next: 'ending_mercy', effect: () => { state.shouts += 1; } },
+    ]
+  },
+
+  // ENDINGS
+  ending_alduin_victory: {
+    chapter: 6,
+    text() {
+      return `<span class="ending-gold">The World Eater's soul tears into you like a river into dry ground.</span>
+
+You feel the weight of geological time — every era Alduin consumed, every civilisation he ended and began again, cycling like seasons. The Thu'um in your throat becomes something else: not just the Voice of a Dragonborn, but the Voice of something that has eaten eras.
+
+You return to Skyrim alive. You always return to Skyrim alive.
+
+In Whiterun, Jarl Balgruuf meets you at the gate. The Companions lower their weapons when you pass. ${state.flags.werewolf ? 'Even Hircine, watching from his Hunting Grounds, inclines his antlered head.' : ''}
+
+<span class="em">"Is it done?"</span> Lydia asks.
+
+<span class="ending-gold">"It is done."</span>
+
+The moons are brighter that night. Every bard in every tavern in Skyrim plays the same song — an old one, older than any of them know — and none of them can explain why.
+
+You are the Last Dragonborn. You are also the first morning in a long time that hasn't smelled of ash.
+
+Somewhere in the timestream, small and new and bewildered, something that used to be a World Eater opens its eyes for the first time.
+
+<span class="ending-gold">★ ENDING: ALDUIN DEFEATED — THE DRAGONBORN'S TRIUMPH ★</span>
+HP: ${Math.max(0,state.hp)} | Shouts Known: ${state.shouts} | Race: ${state.race}`;
+    },
+    choices: []
+  },
+
+  ending_vampire: {
+    chapter: 5,
+    text() {
+      return `<span class="ending-dark">Castle Volkihar rises from a frozen lake like a fist of black ice.</span>
+
+Lord Harkon receives you in his throne room — a man who has not been a man for four thousand years, dressed in dark finery, offering you a goblet of blood with the manners of an emperor.
+
+<span class="em">"The Dragonborn,"</span> he says. <span class="em">"I have waited for one of you. There is a prophecy — the Tyranny of the Sun. We will blot out the light. Your Shouts and my bloodline combined could—"</span>
+
+<span class="em">"Could what?"</span> you ask.
+
+<span class="em">"Rule,"</span> he says simply. <span class="em">"What else is there?"</span>
+
+You think of Helgen burning. You think of the executioner's block, and how close you came to dying anonymously in the snow. You think of what it felt like when the dragon first called your name.
+
+<span class="ending-dark">You drink from Harkon's goblet.</span>
+
+The sun dims. You are powerful beyond anything the Greybeards imagined. You are also never warm again.
+
+Alduin, unchecked, devours three more eras while you consolidate your vampire court. The world ends — beautifully, terribly, in frost and darkness — and you rule the dark for exactly as long as a vampire lord can rule anything: until someone stronger comes along.
+
+They always come along.
+
+<span class="ending-dark">★ ENDING: LORD OF THE VOLKIHAR — THE SUN DIMS ★</span>
+Shouts Known: ${state.shouts} | Race: ${state.race} | Centuries Ruled: 3`;
+    },
+    choices: []
+  },
+
+  ending_mercy: {
+    chapter: 6,
+    text() {
+      return `<span class="ending-gold">You open your hand and let the soul go.</span>
+
+The other heroes — Gormlaith, Hakon, Felldir — are silent. This was not what they forged DRAGONREND for. This was not the plan.
+
+But plans are what you make before you look your enemy in the eye.
+
+Alduin's soul disperses into the timestream like smoke into wind. He will return, someday, in some era — but smaller, and perhaps carrying the memory of this moment: a mortal who could have taken everything and chose not to.
+
+Sovngarde brightens. The fog Alduin fed on lifts. The souls of thousands of Nords who had been trapped at the gate flood inward, laughing, shouting, reuniting with faces they haven't seen in decades.
+
+You are escorted back to Nirn by Tsun himself, the guardian of the bridge, who strikes you across the chest once — hard — as a mark of respect that leaves you breathless.
+
+<span class="ending-gold">You wake on the Throat of the World in sunlight. Paarthurnax, the ancient dragon who taught the Greybeards, lands beside you and regards you for a long moment.</span>
+
+<span class="em">"You showed him mercy,"</span> Paarthurnax says. <span class="em">"That was either very wise or very foolish. In my experience, those are the same thing."</span>
+
+He launches into the sky. You descend the 7,000 steps.
+
+At the bottom, Skyrim waits — cold and vast and, for now, safe.
+
+<span class="ending-gold">★ ENDING: THE MERCIFUL DRAGONBORN — ALDUIN RELEASED ★</span>
+HP: ${Math.max(0,state.hp)} | Shouts Known: ${state.shouts} | Race: ${state.race}`;
+    },
+    choices: []
+  },
+};
+
+// ─── SAVED PROGRESS (localStorage) ────────────────────────────────────────────
+const SAVE_KEY = 'wild2_endings';
+const TOTAL_ENDINGS = 3;
+
+function loadEndings() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || []; }
+  catch (e) { return []; }
+}
+
+function recordEnding(id) {
+  const found = loadEndings();
+  if (!found.includes(id)) {
+    found.push(id);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(found)); } catch (e) {}
+  }
+  renderProgress();
+}
+
+function renderProgress() {
+  let el = document.getElementById('progress-bar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'progress-bar';
+    el.style.cssText = 'font-size:0.72rem;color:#4a2000;letter-spacing:0.1em;text-align:center;margin-top:14px;';
+    document.getElementById('game-container').appendChild(el);
+  }
+  el.textContent = 'ENDINGS DISCOVERED: ' + loadEndings().length + ' / ' + TOTAL_ENDINGS + ' (saved on this device)';
+}
+
+function startGame() {
+  state.hp = 100; state.stamina = 100; state.shouts = 0; state.race = ''; state.chapter = 1; state.flags = {};
+  document.getElementById('play-again').style.display = 'none';
+  updateStats();
+  renderProgress();
+  goTo('race_select');
+}
+
+startGame();
+</script>
+  
+</body>
+</html>

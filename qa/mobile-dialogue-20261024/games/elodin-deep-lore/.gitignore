@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+.DS_Store
+
+# Build outputs
+dist/
+build/
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+
+# Project-specific exclusions
+Aetheria-Lore-Deep/
+compressed/
+*.pdf
+*.exe
+Prompts1to180-20260413T054759Z-3-001/
+*.csv
+*.txt
+*.url

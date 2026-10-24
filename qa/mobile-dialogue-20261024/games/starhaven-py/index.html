@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Python game</title>
+<style>
+  :root { color-scheme: dark; }
+  html, body { margin: 0; height: 100%; background: #0b0f0c; color: #b8f5c0; font: 15px/1.45 ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace; }
+  body { display: flex; flex-direction: column; }
+  header { display: flex; gap: 8px; align-items: center; padding: 8px 12px; background: #111a14; border-bottom: 1px solid #234; }
+  header h1 { font-size: 15px; margin: 0; flex: 1; color: #e7ffe9; }
+  button { font: inherit; background: #1d3324; color: #dfffe3; border: 1px solid #3c6b49; border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+  #screen { flex: 1; overflow: auto; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+  #screen .you { color: #ffe08a; }
+  #screen .err { color: #ff9c9c; }
+  form { display: flex; gap: 8px; padding: 8px 12px calc(8px + env(safe-area-inset-bottom)); background: #111a14; border-top: 1px solid #234; }
+  input { flex: 1; font: inherit; background: #050805; color: #e7ffe9; border: 1px solid #3c6b49; border-radius: 8px; padding: 8px 10px; min-width: 0; }
+  #status { color: #8fb79a; font-size: 12px; }
+</style>
+</head>
+<body>
+<header><h1 id="title">Python game</h1><span id="status">Loading Python…</span><button id="restart" type="button">New game</button></header>
+<div id="screen" role="log" aria-live="polite"></div>
+<form id="form"><input id="cmd" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type a command and press Enter" aria-label="Command"><button>Enter</button></form>
+<script>
+  // The game, its sources and the save are filled in by tools/pack_games.mjs.
+  window.GAME = {"title":"StarHaven (Python)","main":"Strarhaven.py","module":null,"path":[],"sources":{"Strarhaven.py":"# ==============================\n# STARHAVEN: A TEXT MURDER MYSTERY (single file)\n# ==============================\n# Commands (examples):\n#   help, look, map, go n/e/s/w, take [item], drop [item], inv, inspect [thing]\n#   talk [name], accuse [name], arrest [name], use console, time, save, load, quit\n#\n# Win: Arrest the real killer, bring them (restrained) to COMMAND DECK, then \"use console\".\n# Lose: Arrest the wrong person, or time hits 0 (station falls into the sun).\n#\n# Tip: \"talk Mira\", \"inspect cufflink\", \"take cuffs\", \"map\", \"time\"\n# ==============================\n\n\nfrom dataclasses import dataclass, field\nfrom typing import Dict, List, Optional, Tuple\nimport json, os, random, textwrap\n\n# ------- Utilities -------\ndef wrap(s:str): return \"\\n\".join(textwrap.wrap(s, width=88))\ndef say(s:str=\"\"): print(wrap(s) if s else \"\")\n\n# ------- World Data -------\nDIRS = {\"n\":(0,-1),\"s\":(0,1),\"e\":(1,0),\"w\":(-1,0)}\n\n@dataclass\nclass Item:\n    id: str\n    name: str\n    desc: str\n    portable: bool = True\n\n@dataclass\nclass Room:\n    id: str\n    name: str\n    desc: str\n    x: int\n    y: int\n    items: List[str] = field(default_factory=list)\n    npcs: List[str] = field(default_factory=list)\n    passable: bool = True\n\n@dataclass\nclass NPC:\n    id: str\n    name: str\n    title: str\n    room: str\n    alibi: str\n    truth_when_innocent: str\n    lie_when_guilty: str\n    cooperative: bool = True\n    arrested: bool = False\n\nclass Game:\n    def __init__(self, seed: Optional[int]=None):\n        self.rng = random.Random(seed)\n        self.time = 60  # minutes until stellar impact\n        self.rooms: Dict[str, Room] = {}\n        self.items: Dict[str, Item] = {}\n        self.npcs: Dict[str, NPC] = {}\n        self.player_room = \"atrium\"\n        self.inv: List[str] = []\n        self.killer_id: str = \"\"\n        self.killer_evidence: Dict[str,List[str]] = {}  # npc_id -> list of item_ids\n        self.brigrm = \"brig\"\n        self.cmdrm  = \"command\"\n        self._build_world()\n        self._seed_case()\n\n    # ----- World Setup -----\n    def _add_room(self, id, name, desc, x, y, items=None, npcs=None):\n        self.rooms[id] = Room(id, name, desc, x, y, items or [], npcs or [])\n\n    def _add_item(self, id, name, desc, portable=True):\n        self.items[id] = Item(id, name, desc, portable)\n\n    def _add_npc(self, id, name, title, room, alibi, truth, lie):\n        self.npcs[id] = NPC(id, name, title, room, alibi, truth, lie)\n\n    def _build_world(self):\n        # Map (5x3): y=0..2, x=0..4\n        self._add_room(\"atrium\",\"Grand Atrium\",\n            \"A vaulted hub of glass and brass. Guests murmur beneath a holographic sun.\",\n            2,1, items=[\"cuffs\"])\n        self._add_room(\"gala\",\"Gala Dome\",\n            \"A crystal hemisphere with a view of the star. Tables abandoned mid-toast.\", 2,0,\n            items=[\"cufflink\",\"manifest\"])\n        self._add_room(\"labs\",\"Bio-Labs\",\n            \"Sterile corridors and nutrient fog. Security panels blink amber.\", 1,0,\n            items=[\"stimulant\",\"overwritten_log\"])\n        self._add_room(\"hangar\",\"Shuttle Hangar\",\n            \"Docked skiffs hum softly. The escape shuttle is locked behind red bars.\", 4,1,\n            items=[\"forged_card\"])\n        self._add_room(\"command\",\"Command Deck\",\n            \"Tiered consoles and a captain’s chair. The Master Console awaits.\", 3,0,\n            items=[\"thruster_invoice\"])\n        self._add_room(\"brig\",\"Security Brig\",\n            \"Energy bars and cold benches. An arrest field projector hums.\", 0,1)\n        self._add_room(\"gardens\",\"Starlight Gardens\",\n            \"Bioluminescent vines wind around art installations.\", 1,2,\n            items=[\"dna_fiber\"])\n        self._add_room(\"suites\",\"VIP Suites\",\n            \"Private doors, hush-fields, and the perfume of old money.\", 3,2,\n            items=[\"weapon_garrote\"])\n        self._add_room(\"service\",\"Service Ducts\",\n            \"Tight passages. The station’s veins and secrets.\", 4,2,\n            items=[\"maintenance_key\"])\n        self._add_room(\"observ\",\"Observatory\",\n            \"A darkened lens toward eternity. One pane bears a smeared print.\", 0,0,\n            items=[\"smeared_print\"])\n\n        # Items\n        self._add_item(\"cuffs\",\"Restraint Cuffs\",\"Security-issue restraints. Required to arrest.\")\n        self._add_item(\"weapon_garrote\",\"Monofilament Garrote\",\"A deadly, almost invisible wire.\")\n        self._add_item(\"forged_card\",\"Forged Access Card\",\"Fake credentials to restricted areas.\")\n        self._add_item(\"overwritten_log\",\"Overwritten Maint Log\",\"Someone scrubbed a schedule entry.\")\n        self._add_item(\"cufflink\",\"Bloodied Cufflink\",\"A luxury cufflink marred by blood.\")\n        self._add_item(\"stimulant\",\"Stimulant Vial\",\"Keeps one wired through the night.\")\n        self._add_item(\"thruster_invoice\",\"Thruster Fuel Invoice\",\"Large purchase to adjust trajectory.\")\n        self._add_item(\"manifest\",\"Shuttle Manifest\",\"Lists who booked hangar access windows.\")\n        self._add_item(\"dna_fiber\",\"Microscopic Fiber\",\"Matches a rare weave—if tested.\")\n        self._add_item(\"smeared_print\",\"Smeared Fingerprint\",\"Partial, odd—like gel gloves were used.\")\n        self._add_item(\"maintenance_key\",\"Maintenance Master Key\",\"Opens service panels.\")\n        self._add_item(\"codes_token\",\"Master Codes Token\",\n                        \"Decryption seed for trajectory lockout. Found only on the killer.\", portable=False)\n\n        # Suspects\n        self._add_npc(\"voss\",\"Dr. Selene Voss\",\"biotech magnate\",\"labs\",\n                      \"Was calibrating gene arrays in Bio-Labs.\",\n                      \"You can ask the lab AI—my access badge logged me in at 23:10.\",\n                      \"I never left the gala. Dozens saw me.\")\n        self._add_npc(\"rourke\",\"Admiral Kade Rourke\",\"retired fleet\",\"observ\",\n                      \"Consulting star charts in the Observatory.\",\n                      \"An ensign pinged me there; check the telescope usage logs.\",\n                      \"I was in my suite polishing medals; no one saw me.\")\n        self._add_npc(\"chen\",\"Minister Lira Chen\",\"trade minister\",\"gala\",\n                      \"Negotiating a treaty in the Gala Dome.\",\n                      \"Security holo shows me on the dais at 23:40.\",\n                      \"Alone in prayer in the gardens; no recordings.\")\n        self._add_npc(\"vale\",\"Orin Vale\",\"media baron\",\"suites\",\n                      \"Interview prep in the VIP Suites.\",\n                      \"My producer ping records prove I stayed in-suite.\",\n                      \"I toured the labs with permission—routine stuff.\")\n        self._add_npc(\"das\",\"Prof. Mira Das\",\"AI ethicist\",\"atrium\",\n                      \"Debating sentience law by the atrium sculpture.\",\n                      \"The sculpture’s mic captured the debate; timestamped.\",\n                      \"I took a quiet walk in the unmonitored ducts.\")\n        self._add_npc(\"pax\",\"Pax Morita\",\"chief engineer\",\"service\",\n                      \"Inspecting service ducts after an anomaly.\",\n                      \"Maintenance drone #7 tagged me on route S-Delta.\",\n                      \"Chatting with donors in the Dome all evening.\")\n\n    def _seed_case(self):\n        suspects = list(self.npcs.keys())\n        self.killer_id = self.rng.choice(suspects)\n        # Assign signature evidence sets (lightly thematic)\n        evidence_pool = {\n            \"voss\":[\"dna_fiber\",\"stimulant\",\"forged_card\"],\n            \"rourke\":[\"cufflink\",\"smeared_print\",\"thruster_invoice\"],\n            \"chen\":[\"manifest\",\"forged_card\",\"weapon_garrote\"],\n            \"vale\":[\"cufflink\",\"manifest\",\"stimulant\"],\n            \"das\":[\"overwritten_log\",\"dna_fiber\",\"smeared_print\"],\n            \"pax\":[\"maintenance_key\",\"overwritten_log\",\"thruster_invoice\"],\n        }\n        self.killer_evidence = {sus:self.rng.sample(evidence_pool[sus],3) for sus in suspects}\n\n        # Scatter items somewhat plausibly\n        movable = [iid for iid,it in self.items.items() if it.portable and iid!=\"codes_token\"]\n        # Distribute into random rooms (avoiding brig/command a bit)\n        drop_rooms = [rid for rid in self.rooms if rid not in (self.brigrm,self.cmdrm)]\n        for iid in movable:\n            # Keep initial authored placements but allow shuffle if not pre-placed\n            placed = any(iid in r.items for r in self.rooms.values())\n            if not placed:\n                self.rooms[self.rng.choice(drop_rooms)].items.append(iid)\n\n    # ----- Core Loop Helpers -----\n    def room_at_xy(self, x,y) -> Optional[Room]:\n        for r in self.rooms.values():\n            if r.x==x and r.y==y and r.passable: return r\n        return None\n\n    def current_room(self)->Room: return self.rooms[self.player_room]\n\n    def spend(self, minutes:int=1):\n        self.time = max(0, self.time - minutes)\n        if self.time == 0:\n            say(\"\\nThe station groans as safeties fail. Starhaven kisses the sun. All goes white.\")\n            raise SystemExit\n\n    # ----- I/O -----\n    def look(self):\n        r = self.current_room()\n        say(f\"\\n{r.name}\\n{r.desc}\")\n        if r.items:\n            say(\"Items here: \" + \", \".join(self.items[i].name for i in r.items))\n        if r.npcs:\n            say(\"You see: \" + \", \".join(self.npcs[n].name for n in r.npcs))\n        # exits\n        exits = []\n        for d,(dx,dy) in DIRS.items():\n            if self.room_at_xy(self.current_room().x+dx, self.current_room().y+dy):\n                exits.append(d)\n        say(\"Exits: \" + \", \".join(exits) if exits else \"No exits.\")\n        self.spend(0)\n\n    def show_map(self):\n        # simple 5x3 grid rendering\n        xs = [r.x for r in self.rooms.values()]; ys = [r.y for r in self.rooms.values()]\n        W,H = max(xs)+1, max(ys)+1\n        grid = [[\"   \"]*W for _ in range(H)]\n        for r in self.rooms.values():\n            label = r.name.split()[0][:3].upper()\n            grid[r.y][r.x] = label\n        px,py = self.current_room().x, self.current_room().y\n        grid[py][px] = \"[X]\"\n        say(\"\\nSTARHAVEN DECK PLAN:\")\n        for y in range(H):\n            say(\" \".join(grid[y]))\n        self.spend(0)\n\n    def show_time(self):\n        say(f\"Time to solar impact: {self.time} minutes.\")\n        self.spend(0)\n\n    def inv_show(self):\n        if self.inv:\n            say(\"You carry: \" + \", \".join(self.items[i].name for i in self.inv))\n        else:\n            say(\"You carry nothing.\")\n        self.spend(0)\n\n    # ----- Actions -----\n    def move(self, d:str):\n        d = d.lower()\n        if d not in DIRS: say(\"Use: go n/e/s/w\"); return\n        dx,dy = DIRS[d]\n        r = self.current_room()\n        target = self.room_at_xy(r.x+dx, r.y+dy)\n        if not target:\n            say(\"Access denied or bulkhead sealed.\")\n            return\n        self.player_room = target.id\n        self._sync_npcs_in_room()\n        self.look()\n        self.spend(2)\n\n    def _sync_npcs_in_room(self):\n        # ensure npc lists reflect current positions\n        for rid in self.rooms:\n            self.rooms[rid].npcs = [nid for nid,n in self.npcs.items() if n.room==rid and not n.arrested]\n\n    def take(self, *args):\n        if not args: say(\"Take what?\"); return\n        name = \" \".join(args).lower()\n        r = self.current_room()\n        # find item by name\n        iid = None\n        for i in r.items:\n            if self.items[i].name.lower()==name or i==name: iid = i; break\n        if not iid: say(\"Not here.\"); return\n        it = self.items[iid]\n        if not it.portable:\n            say(\"It’s fixed in place.\")\n            return\n        r.items.remove(iid)\n        self.inv.append(iid)\n        say(f\"You take the {it.name}.\")\n        self.spend(1)\n\n    def drop(self, *args):\n        if not args: say(\"Drop what?\"); return\n        name = \" \".join(args).lower()\n        iid = None\n        for i in self.inv:\n            if self.items[i].name.lower()==name or i==name: iid = i; break\n        if not iid: say(\"You don’t have that.\"); return\n        self.inv.remove(iid)\n        self.current_room().items.append(iid)\n        say(f\"You drop the {self.items[iid].name}.\")\n        self.spend(1)\n\n    def inspect(self, *args):\n        if not args: say(\"Inspect what?\"); return\n        name = \" \".join(args).lower()\n        # search inv then room\n        pool = list(self.inv)+list(self.current_room().items)\n        # also allow inspecting visible NPC by id/name\n        for i in pool:\n            it = self.items[i]\n            if it.name.lower()==name or i==name:\n                detail = it.desc\n                # Flavor: if an evidence item belongs to killer, hint slightly stronger\n                if i in self.killer_evidence[self.killer_id]:\n                    detail += \" (Something about this ties uncomfortably close to the killer.)\"\n                say(detail)\n                self.spend(1); return\n        # inspect room / person\n        for nid in self.current_room().npcs:\n            n = self.npcs[nid]\n            if n.name.lower()==name or nid==name:\n                say(f\"{n.name}, {n.title}. {'Calm' if n.cooperative else 'Guarded'}.\")\n                self.spend(1); return\n        say(\"You find nothing notable.\")\n\n    def talk(self, *args):\n        if not args: say(\"Talk to whom?\"); return\n        who = \" \".join(args).lower()\n        target_id = None\n        for nid in self.current_room().npcs:\n            n = self.npcs[nid]\n            if n.name.lower()==who or nid==who: target_id = nid; break\n        if not target_id: say(\"They aren’t here.\"); return\n        n = self.npcs[target_id]\n        guilty = (target_id == self.killer_id)\n        line = n.lie_when_guilty if guilty else n.truth_when_innocent\n        say(f\"{n.name}: \\\"{line}\\\"\")\n        # small chance talk toggles cooperation for non-killer\n        if not guilty and self.rng.random()\u003c0.25:\n            n.cooperative = True\n        self.spend(2)\n\n    def accuse(self, *args):\n        if not args: say(\"Accuse whom?\"); return\n        who = \" \".join(args).lower()\n        if who not in [nid for nid in self.npcs]:\n            # try match by name\n            matches = [nid for nid,n in self.npcs.items() if n.name.lower()==who]\n            if not matches: say(\"Not a listed guest.\"); return\n            who = matches[0]\n        guilty = (who == self.killer_id)\n        tips = self.killer_evidence[self.killer_id]\n        say(f\"You lay out your case against {self.npcs[who].name}.\")\n        if guilty:\n            say(\"They blanch. A vein ticks. The room chills.\")\n            say(f\"Key tells: {', '.join(self.items[e].name for e in tips)}.\")\n        else:\n            say(\"They sneer. Those 'clues' don’t hold up. Doubt creeps in.\")\n        self.spend(3)\n\n    def arrest(self, *args):\n        if not args: say(\"Arrest whom?\"); return\n        who = \" \".join(args).lower()\n        # need cuffs\n        if \"cuffs\" not in self.inv:\n            say(\"You need Restraint Cuffs to arrest.\")\n            return\n        # must be here\n        target_id = None\n        for nid in self.current_room().npcs:\n            n = self.npcs[nid]\n            if n.name.lower()==who or nid==who: target_id = nid; break\n        if not target_id: say(\"They aren’t here.\"); return\n\n        n = self.npcs[target_id]\n        if n.arrested:\n            say(\"Already restrained.\")\n            return\n        n.arrested = True\n        # Move to brig automatically\n        n.room = self.brigrm\n        self._sync_npcs_in_room()\n        # If correct killer, they carry non-portable codes_token now revealed in Brig\n        if target_id == self.killer_id:\n            if \"codes_token\" not in self.rooms[self.brigrm].items:\n                self.rooms[self.brigrm].items.append(\"codes_token\")\n        say(f\"You restrain {n.name}. Security drones escort them to the Brig.\")\n        self.spend(3)\n\n    def use_console(self):\n        if self.player_room != self.cmdrm:\n            say(\"You must be at the Master Console on the Command Deck.\")\n            return\n        # Need killer arrested AND codes present in brig\n        killer = self.killer_id\n        kname = self.npcs[killer].name\n        codes_here = \"codes_token\" in self.rooms[self.brigrm].items\n        if codes_here:\n            say(\"You splice in the Master Codes Token from the Brig. The lockout shudders…\")\n            say(\"Trajectory control restored. Starhaven veers away from the sun.\")\n            say(f\"The killer was {kname}. Justice will follow.\")\n            say(\"\\nYOU WIN.\")\n            raise SystemExit\n        else:\n            say(\"Console flashes: 'DECRYPTION SEED REQUIRED — (ARREST PERPETRATOR)'.\")\n            if any(n.arrested for n in self.npcs.values()):\n                say(\"Someone is in the Brig… but the console rejects their credentials.\")\n                say(\"If you grabbed the wrong person, time is running out.\")\n            self.spend(1)\n\n    # ----- Persistence -----\n    def save(self, fn=\"starhaven_save.json\"):\n        data = dict(\n            time=self.time,\n            player_room=self.player_room,\n            inv=self.inv,\n            rooms={rid:dict(items=r.items, npcs=r.npcs) for rid,r in self.rooms.items()},\n            npcs={nid:dict(room=n.room, arrested=n.arrested, coop=n.cooperative) for nid,n in self.npcs.items()},\n            killer=self.killer_id,\n            killer_evidence=self.killer_evidence,\n        )\n        with open(fn,\"w\") as f: json.dump(data,f)\n        say(\"Saved.\")\n\n    def load(self, fn=\"starhaven_save.json\"):\n        if not os.path.exists(fn):\n            say(\"No save found.\"); return\n        with open(fn) as f: data=json.load(f)\n        self.time = data[\"time\"]; self.player_room=data[\"player_room\"]; self.inv=data[\"inv\"]\n        for rid,stuff in data[\"rooms\"].items():\n            self.rooms[rid].items = stuff[\"items\"]; self.rooms[rid].npcs = stuff[\"npcs\"]\n        for nid,stuff in data[\"npcs\"].items():\n            self.npcs[nid].room = stuff[\"room\"]; self.npcs[nid].arrested=stuff[\"arrested\"]; self.npcs[nid].cooperative=stuff[\"coop\"]\n        self.killer_id=data[\"killer\"]; self.killer_evidence=data[\"killer_evidence\"]\n        say(\"Loaded.\")\n\n    # ----- Parser -----\n    def run(self):\n        say(\"Welcome to STARHAVEN. Type 'help' for commands.\")\n        self.look()\n        while True:\n            try:\n                cmdline = input(\"> \").strip()\n            except (EOFError, KeyboardInterrupt):\n                say(\"\\nGoodbye.\"); break\n            if not cmdline: continue\n            parts = cmdline.split()\n            cmd, args = parts[0].lower(), parts[1:]\n\n            if cmd in (\"quit\",\"exit\"): say(\"Goodbye.\"); break\n            elif cmd == \"help\":\n                say(\"Commands: help, look, map, go n/e/s/w, take [item], drop [item], inv, inspect [thing],\")\n                say(\"          talk [name], accuse [name], arrest [name], use console, time, save, load, quit\")\n            elif cmd == \"look\": self.look()\n            elif cmd == \"map\": self.show_map()\n            elif cmd == \"time\": self.show_time()\n            elif cmd in (\"go\",\"move\"):\n                if not args: say(\"Go where? n/e/s/w\"); continue\n                self.move(args[0])\n            elif cmd == \"take\": self.take(*args)\n            elif cmd == \"drop\": self.drop(*args)\n            elif cmd in (\"inv\",\"inventory\"): self.inv_show()\n            elif cmd == \"inspect\": self.inspect(*args)\n            elif cmd == \"talk\": self.talk(*args)\n            elif cmd == \"accuse\": self.accuse(*args)\n            elif cmd == \"arrest\": self.arrest(*args)\n            elif cmd == \"use\" and args and args[0].lower()==\"console\": self.use_console()\n            elif cmd == \"save\": self.save()\n            elif cmd == \"load\": self.load()\n            else:\n                say(\"Unrecognized. Try 'help'.\")\n            # Soft reminders\n            if self.time \u003c= 15 and self.time>0:\n                say(f\"(Alarms intensify: {self.time} minutes left.)\")\n\n# ----- Run -----\nif __name__ == \"__main__\":\n    # Set a seed for reproducible killer/evidence by uncommenting:\n    # game = Game(seed=42)\n    game = Game()\n    game.run()"},"data":{}};
+  // input() cannot block in a browser, so each command replays the game from the start
+  // with the same random seed and every earlier answer. That also makes saving free.
+  const KEY = 'town-python:' + GAME.title;
+  let save; try { save = JSON.parse(localStorage.getItem(KEY)); } catch { save = null; }
+  if (!save || !Array.isArray(save.inputs)) save = { seed: Math.floor(Math.random() * 1e9), inputs: [] };
+  const store = () => { try { localStorage.setItem(KEY, JSON.stringify(save)); } catch {} };
+  document.getElementById('title').textContent = GAME.title;
+  document.title = GAME.title;
+  const screen = document.getElementById('screen');
+  let buffer = [];
+  window.townEmit = (s, cls) => buffer.push([String(s), cls || '']);
+  window.townState = (s) => { window.townEnded = s; };
+  function render() {
+    screen.textContent = '';
+    for (const [t, c] of buffer) { if (c) { const span = document.createElement('span'); span.className = c; span.textContent = t; screen.append(span); } else screen.append(t); }
+    screen.scrollTop = screen.scrollHeight;
+  }
+  function play() {
+    buffer = []; window.townEnded = null;
+    window.townInputs = JSON.stringify(save.inputs); window.townSeed = save.seed;
+    const t0 = performance.now();
+    try { window.run_game(); } catch (e) { buffer.push(['\n[' + (e.message || e) + ']\n', 'err']); }
+    render();
+    const ended = window.townEnded === 'ended';
+    document.getElementById('status').textContent = ended ? 'Game over — press New game' : `${save.inputs.length} moves · saved`;
+    document.getElementById('cmd').disabled = ended;
+    if (!ended) document.getElementById('cmd').focus({ preventScroll: true });
+    console.debug('replay', Math.round(performance.now() - t0), 'ms');
+  }
+  document.getElementById('form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const box = document.getElementById('cmd');
+    save.inputs.push(box.value); box.value = ''; store(); play();
+  });
+  document.getElementById('restart').onclick = () => { save = { seed: Math.floor(Math.random() * 1e9), inputs: [] }; store(); play(); };
+  window.townReady = () => { play(); };
+</script>
+<script src="../_python/brython.min.js"></script>
+<script src="../_python/brython_stdlib.js"></script>
+<script type="text/python">
+import sys, builtins, json, random, time, types
+from browser import window
+
+GAME = json.loads(window.JSON.stringify(window.GAME))
+SOURCES = dict(GAME['sources'])
+DATA = dict(GAME.get('data') or {})
+import io
+
+def data_key(path):
+    p = str(path).replace('\\', '/')
+    while p.startswith('./'):
+        p = p[2:]
+    if p in DATA:
+        return p
+    for k in DATA:
+        if k.endswith('/' + p) or p.endswith('/' + k):
+            return k
+    return None
+
+class SavedFile(io.StringIO):
+    def __init__(self, key, text=''):
+        super().__init__(text)
+        self.key = key
+    def close(self):
+        DATA[self.key] = self.getvalue()
+        super().close()
+    def __exit__(self, *a):
+        self.close()
+
+_real_open = builtins.open
+def town_open(path, mode='r', *a, **k):
+    # Game data files are packed into the page; writes (saves) live for this session.
+    key = data_key(path)
+    if 'w' in mode or 'a' in mode:
+        return SavedFile(key or str(path), DATA.get(key, '') if 'a' in mode else '')
+    if key is None:
+        raise FileNotFoundError(2, 'No such file', str(path))
+    return io.StringIO(DATA[key])
+
+class Out:
+    def __init__(self, cls=''):
+        self.cls = cls
+    def write(self, s):
+        window.townEmit(s, self.cls)
+        return len(s)
+    def flush(self):
+        pass
+
+class NeedInput(BaseException):
+    pass
+
+def module_name(path):
+    p = path[:-3] if path.endswith('.py') else path
+    for root in GAME['path']:
+        if p.startswith(root + '/'):
+            p = p[len(root) + 1:]
+    p = p.replace('/', '.')
+    return p[:-9] if p.endswith('.__init__') else p
+
+OVERRIDES = {}
+
+class TownPath:
+    # Small pathlib stand-in: game files live in the page, not on a disk.
+    def __init__(self, *parts):
+        p = '/'.join(str(x) for x in parts if str(x) != '')
+        bits = []
+        for b in p.split('/'):
+            if b in ('', '.'):
+                continue
+            if b == '..' and bits:
+                bits.pop()
+            else:
+                bits.append(b)
+        self.p = '/'.join(bits) or '.'
+    def __truediv__(self, other):
+        return TownPath(self.p, other)
+    def __str__(self):
+        return self.p
+    __fspath__ = __str__
+    def __repr__(self):
+        return 'Path(%r)' % self.p
+    def __eq__(self, other):
+        return str(self) == str(other)
+    def __hash__(self):
+        return hash(self.p)
+    def resolve(self, *a, **k):
+        return self
+    absolute = expanduser = resolve
+    @property
+    def parent(self):
+        return TownPath(self.p.rpartition('/')[0] if '/' in self.p else '.')
+    @property
+    def parents(self):
+        out, cur = [], self
+        while str(cur) != '.':
+            cur = cur.parent
+            out.append(cur)
+        return out
+    @property
+    def name(self):
+        return self.p.rpartition('/')[2]
+    @property
+    def suffix(self):
+        n = self.name
+        return n[n.rfind('.'):] if '.' in n else ''
+    @property
+    def stem(self):
+        n = self.name
+        return n[:n.rfind('.')] if '.' in n else n
+    def exists(self):
+        return data_key(self.p) is not None or any(k.startswith(self.p + '/') for k in DATA)
+    is_file = exists
+    def is_dir(self):
+        return any(k.startswith(self.p + '/') for k in DATA)
+    def mkdir(self, *a, **k):
+        pass
+    def unlink(self, *a, **k):
+        DATA.pop(data_key(self.p) or '', None)
+    def open(self, mode='r', *a, **k):
+        return town_open(self.p, mode)
+    def read_text(self, *a, **k):
+        f = town_open(self.p)
+        return f.read()
+    def write_text(self, text, *a, **k):
+        DATA[data_key(self.p) or self.p] = text
+        return len(text)
+    def glob(self, pattern):
+        suffix = pattern.replace('*', '')
+        return [TownPath(k) for k in DATA if k.startswith(self.p + '/') and k.endswith(suffix)]
+    def iterdir(self):
+        return [TownPath(self.p, k[len(self.p) + 1:].split('/')[0]) for k in DATA if k.startswith(self.p + '/')]
+
+_pathlib = types.ModuleType('pathlib')
+_pathlib.Path = _pathlib.PurePath = _pathlib.PosixPath = _pathlib.WindowsPath = TownPath
+sys.modules['pathlib'] = _pathlib
+
+def load_modules():
+    # Executes the game's own modules into sys.modules; a module whose import fails
+    # because a sibling has not loaded yet is retried after the others.
+    pending = [f for f in SOURCES if f != GAME['main']]
+    for f in pending:
+        name = module_name(f)
+        for part in range(1, name.count('.') + 1):
+            pkg = '.'.join(name.split('.')[:part])
+            if pkg not in sys.modules:
+                m = types.ModuleType(pkg); m.__path__ = []; m.__package__ = pkg; sys.modules[pkg] = m
+    for _ in range(len(pending) + 1):
+        if not pending:
+            return
+        left = []
+        for f in pending:
+            name = module_name(f)
+            is_pkg = f.endswith('__init__.py')
+            m = types.ModuleType(name)
+            m.__file__ = f
+            m.__package__ = name if is_pkg else name.rpartition('.')[0]
+            if is_pkg:
+                m.__path__ = []
+            sys.modules[name] = m
+            m.__dict__.update(OVERRIDES)
+            try:
+                exec(compile(SOURCES[f], f, 'exec'), m.__dict__)
+                parent, _, child = name.rpartition('.')
+                if parent in sys.modules:
+                    setattr(sys.modules[parent], child, m)
+            except (ImportError, NameError, AttributeError):
+                del sys.modules[name]
+                left.append(f)
+        if len(left) == len(pending):
+            return
+        pending = left
+
+def run_game():
+    inputs = json.loads(window.townInputs)
+    random.seed(int(window.townSeed))
+    out = Out()
+    sys.stdout = out
+    sys.stderr = Out('err')
+    queue = list(inputs)
+    def fake_input(prompt=''):
+        if prompt:
+            out.write(str(prompt))
+        if not queue:
+            raise NeedInput()
+        v = queue.pop(0)
+        window.townEmit(v + '\n', 'you')
+        return v
+    # Brython resolves builtins internally, so the game's globals get the replacements.
+    builtins.input = fake_input
+    builtins.open = town_open
+    OVERRIDES.update({'input': fake_input, 'open': town_open})
+    time.sleep = lambda s=0: None
+    try:
+        import os, os.path
+        os.system = lambda *a, **k: 0
+        os.path.exists = lambda p: data_key(p) is not None
+        os.path.isfile = os.path.exists
+        os.makedirs = lambda *a, **k: None
+        os.remove = lambda p: DATA.pop(data_key(p) or '', None)
+    except Exception:
+        pass
+    for name in list(sys.modules):
+        if name in [module_name(f) for f in SOURCES]:
+            del sys.modules[name]
+    try:
+        load_modules()
+        g = {'__name__': '__main__', '__file__': GAME['main'], **OVERRIDES}
+        exec(compile(SOURCES[GAME['main']], GAME['main'], 'exec'), g)
+        window.townState('ended')
+    except NeedInput:
+        window.townState('input')
+    except SystemExit:
+        window.townState('ended')
+    except Exception as e:
+        import traceback
+        sys.stderr.write('\n' + traceback.format_exc())
+        window.townState('ended')
+
+window.run_game = run_game
+window.townReady()
+</script>
+<script>brython({ debug: 1 });</script>
+</body>
+</html>
