@@ -1,6 +1,6 @@
 // Synthetic equipment locations; no hidden real-world infrastructure is asserted.
 export function addPubPlant(k,site){
- const {box,cyl,solid,text,add}=k,steel=0xb8c5ca;
+ const {box,cyl,solid,text,add,blocker}=k,steel=0xb8c5ca;
  // Separate hand washing, food preparation, dirty returns and clean storage.
  solid(.62,.88,1.1,-4.4,.44,-8.7,steel);box(.5,.04,.4,-4.4,.91,-8.7,0x536e75);
  text('Food preparation sink',-4.4,1.55,-8.7);
@@ -8,7 +8,7 @@ export function addPubPlant(k,site){
  solid(.7,1.4,.45,-1.65,.7,-8.5,0x547c78);text('Cleaner sink · locked chemicals',-1.65,2,-7.8);
  box(1.4,.45,.5,-5.6,2,-10.7,steel);text('Clean utensils · covered food storage',-5.5,2.35,-10.6);
  // Accessible lowered counter section in front of the retained bar.
- solid(1.0,.78,.55,2.6,.39,-4.75,0x6d4a30);text('Accessible service point',2.6,1.1,-4.7);
+ box(1,.07,1.1,2.6,.815,-5.6,0x6d4a30).name='pub:lowered-counter';blocker(1,1.1,2.6,-5.6);text('Accessible service point',2.6,1.1,-4.7);
  // Grab rails and reachable emergency-call representation.
  box(.05,.05,1.05,6.7,.85,-10.9,steel);
  box(.22,.3,.05,6.65,1.05,-9.8,0xc64e3c).name='pub:wc-assistance';
@@ -20,7 +20,8 @@ export function addPubPlant(k,site){
  // Detection/manual alarm representations share the persistent operational fault state.
  for(const [x,z] of [[0,1],[-5.5,-8]]){const m=cyl(.15,.15,.04,x,3.64,z,0xe8e5dc);m.name='pub:detector:'+x;}
  box(.18,.22,.06,-1.5,1.1,5.75,0xc53529).name='pub:manual-alarm';
- box(1.75,.06,.08,0,1,-11.9,steel).name='pub:panic-hardware';
+
+ for(const z of [-10.2,-11.1]){const keg=cyl(.24,.24,.55,-1.6,.3,z,steel);keg.name='pub:beer-keg';}
  // Readable operating/safety displays, no invented real permit numbers.
  text('No smoking · free drinking water · RSA',2.1,2.7,-5.7);
  add('operations','Safety, food handling and approvals','pub-standards','Inspect operating systems and simulated inspection history.',2.4,-3.5);

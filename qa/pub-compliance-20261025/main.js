@@ -1,3 +1,5 @@
+import {pubPoolPanel} from './ui/pub-pool-panel.js';
+import {pubKenoPanel} from './ui/pub-venue-panel.js';
 import {pubStandardsPanel} from './ui/pub-standards-panel.js';
 import {pubRearExitPose} from './world/pub-physical-plan-2026.js';
 import { pubUtilitiesPanel } from './ui/pub-utilities-panel.js';
@@ -396,6 +398,7 @@ async function start() {
     built.workplay=installWorkplay(built,site,makeLabel,life,{openPanel,closePanel,status,sound:kind=>ambience.work(kind),getVisitors:()=>inside?.visitors?.entries});
     if(site.id==='bakery')built.bakeryImmersion=installBakeryImmersion(built,life,camera,makeLabel);
     const staff=populateShopStaff(site,life,built,makeLabel);
+    built.attachPubStaff?.(staff);
     const brief={coordinate:site.col+'8',name:site.name,kind:site.kind,
       street:'High Street',summary:'Explore the shop interior and speak to staff.'};
     const ex=built.exitZone;
@@ -737,6 +740,8 @@ async function start() {
       const thing = nearThing, request = ++interactionRequest, house = inside;
       const restricted=restrictedServiceAction(life,inside?.place,thing);
       if(restricted){status(restricted);return;}
+      if(thing.act?.do==='pub-pool'){openPanel(pubPoolPanel(life),thing);return;}
+      if(thing.act?.do==='pub-keno'){openPanel(pubKenoPanel(life),thing);return;}
       if(thing.act?.do==='pub-standards'){openPanel(pubStandardsPanel(life),thing);return;}
       if(thing.act?.do==='pub-rear-exit'){leave(true,false,'rear');return;}
       if(thing.act?.do==='pub-utilities'){
@@ -1183,7 +1188,7 @@ async function start() {
         animate(inside.dynamics, t, active);
         inside.visitors?.update(dt,t,player);
         inside.workplay?.update(dt,player);
-        inside.utilityVisuals?.(life);
+        inside.utilityVisuals?.(life,dt,t);
         if(inside?.house?.coordinate){
           const p=pilotReport(life)?.siteById?.['H:'+inside.house.coordinate];
           if(p)inside.group.userData.updateLighting?.(p.mains);
@@ -1192,6 +1197,7 @@ async function start() {
         // Shop patrons are synchronised with the authoritative town economy
         // above; they have their own movement and seated animation.
         for (const p of inside.people || []) if(!p.key?.startsWith('visitor:'))p.update(dt,t,player,p.plan);
+        inside.afterPeople?.(life,dt,t);
         if (cardTimer > 0 && (cardTimer -= dt) <= 0) $('card').hidden = true;
         // A single short label may identify the object directly ahead;
         // all room, employee, shelf and distant station labels stay quiet.

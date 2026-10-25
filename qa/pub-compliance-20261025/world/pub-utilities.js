@@ -1,3 +1,4 @@
+import {pubVenue,pubVenueTick,pubServiceEvent} from './pub-venue.js';
 import {pubConnected,pubFoodGate,pubStandards,pubStandardsAction,tickPubStandards} from './pub-standards.js';
 import {pubScenarioAdmission,PUB_PHYSICAL_PLAN_2026} from './pub-physical-plan-2026.js';
 // Fictional Merged Branch pilot. SI-derived units, not an as-built installation.
@@ -22,23 +23,25 @@ export function validPubUtilities(s){
  if(s.secondCisternL>6)return false;
  if(s.emergencyMinutes>90)return false;
  if(s.scenarioPatrons!==undefined&&(!Number.isInteger(s.scenarioPatrons)||s.scenarioPatrons<0||s.scenarioPatrons>PUB_PHYSICAL_PLAN_2026.occupancy.gameplayPatronScenario))return false;
- return s.cisternL<=6&&s.upsKWh<=.12&&s.hotC<=100&&s.coldC<=100&&['off','electricity','water','sewer','gas','internet','waste','stormwater'].includes(s.overlay)&&Array.isArray(s.log)&&s.log.length<=20&&s.log.every(x=>typeof x==='string'&&x.length<1000);
+ return s.cisternL<=6&&s.upsKWh<=.12&&s.hotC<=100&&s.coldC<=100&&['off','electricity','water','sewer','gas','internet','waste','stormwater','telephone','mobile','radio','television','fuel'].includes(s.overlay)&&Array.isArray(s.log)&&s.log.length<=20&&s.log.every(x=>typeof x==='string'&&x.length<1000);
 }
 export function pubStatus(life) {
-  const s=pubUtilities(life), pilot=pilotReport(life)?.siteById['B:pub'];
+  const s=pubUtilities(life),v=pubVenue(life), pilot=pilotReport(life)?.siteById['B:pub'];
   // A backup inverter only serves essentials; it cannot run full bistro cooking.
   const power=s.breaker && (pilot?pilot.mains:life.gridPowered('industry'));
   const backup=s.breaker && !!pilot?.backup;
   const water=s.waterValve && life.civic.supply.waterOk!==false && pubConnected(life,'water','town-water','water-isolator');
-  return {power,backup,water,internet:s.upstreamInternet&&pubConnected(life,'internet','carrier','eftpos')&&(((power||backup)&&pubConnected(life,'electricity','switchboard','network'))||s.upsKWh>1e-8),sewer:s.sewerOpen&&pubConnected(life,'sanitary','sanitary-lateral','town-sewer'),hot:s.hotC>=45,cold:s.coldC<=5,gas:s.lpgValve&&s.lpgKg>0};
+  const networkPower=((power||backup)&&pubConnected(life,'electricity','switchboard','network'))||s.upsKWh>1e-8;
+  const internet=s.upstreamInternet&&pubConnected(life,'internet','carrier','eftpos')&&networkPower;
+  return {power,backup,water,internet,telephone:internet&&pubConnected(life,'telephone','network','desk-phone'),mobile:v.mobileUp&&v.handsetWh>0&&pubConnected(life,'mobile','mobile-carrier','handset'),radio:v.radioUp&&(power||v.radioWh>0)&&pubConnected(life,'radio','radio-transmitter','radio'),television:v.tvUp&&power&&pubConnected(life,'electricity','switchboard','television')&&pubConnected(life,'television','tv-transmitter','television'),sewer:s.sewerOpen&&pubConnected(life,'sanitary','sanitary-lateral','town-sewer'),hot:s.hotC>=45,cold:s.coldC<=5,gas:s.lpgValve&&(v.gasSource==='natural'?v.naturalAvailable:s.lpgKg>0)};
 }
 export function pubKitchenReady(life){
  const s=pubUtilities(life),p=pubStatus(life);
- return pubFoodGate(life)&&p.power&&p.water&&p.hot&&p.sewer&&p.cold&&!s.foodQuarantined&&s.extractionOn&&p.gas&&s.lpgKg>=18/6/12.8&&s.greaseKg<20&&s.binsKg<80;
+ return pubVenue(life).bar.cleanPlates>0&&pubVenue(life).services.length<128&&pubFoodGate(life)&&p.power&&p.water&&p.hot&&p.sewer&&p.cold&&!s.foodQuarantined&&s.extractionOn&&p.gas&&(life.civic.pubVenue?.gasSource==='natural'||s.lpgKg>=18/6/12.8)&&s.greaseKg<20&&s.binsKg<80;
 }
 export function tickPubUtilities(life,minutes) {
   if(!Number.isFinite(minutes)||minutes<=0)return;
-  const s=pubUtilities(life), d=PUB_DESIGN;tickPubStandards(life,minutes);
+  const s=pubUtilities(life), d=PUB_DESIGN;tickPubStandards(life,minutes);pubVenueTick(life,minutes,pubStatus(life).power,pubConnected(life,'water','town-water','dishwasher')&&pubConnected(life,'trade','dishwasher','town-sewer')&&pubConnected(life,'electricity','switchboard','dishwasher'));
   // Bounded substeps keep heating/UPS transitions stable during time acceleration.
   for(let m=0;m<minutes;m+=.5){const dt=Math.min(.5,minutes-m),h=dt/60,p=pubStatus(life);
     if(p.water&&pubConnected(life,'water','town-water','wc')){const refill=Math.min(d.cisternL-s.cisternL,d.refillLmin*dt);s.cisternL+=refill;s.waterL+=refill;}
@@ -96,14 +99,14 @@ export function pubAction(life,action){
   if(action==='meal'){
     const kg=d.burnerKW*(10/60)/d.lpgKWhKg;
     if(!pubKitchenReady(life))return record(s,'Kitchen unavailable: check power/extraction, water, hot water, cold room, LPG, drains, grease and waste capacity.');
-    s.lpgKg-=kg;s.gasKg+=kg;s.waterL+=8;s.tradeWasteL+=8;s.greaseKg+=.08;s.binsKg+=.3;s.recyclingKg+=.05;s.oilL+=.03;s.meals++;s.hotC=18+(s.hotC-18)*152/160;
-    return record(s,'One demonstration meal prepared: LPG consumed, extraction powered, wash-up routed through grease arrestor. Not a stock purchase or food-safety certification.');
+    if(pubVenue(life).gasSource==='natural')pubVenue(life).gasM3+=d.burnerKW*(10/60)/10.83;else{s.lpgKg-=kg;s.gasKg+=kg;}s.waterL+=8;s.tradeWasteL+=8;s.greaseKg+=.08;s.binsKg+=.3;s.recyclingKg+=.05;s.oilL+=.03;s.meals++;const bar=pubVenue(life).bar;bar.cleanPlates--;bar.inUsePlates++;pubServiceEvent(life,'meal');s.hotC=18+(s.hotC-18)*152/160;
+    return record(s,'One demonstration meal prepared: selected fuel consumed, extraction powered, wash-up routed through grease arrestor. Not a stock purchase or food-safety certification.');
   }
   if(action==='glass'){
     if(!p.power||!p.water||!p.sewer||!p.hot||!pubConnected(life,'water','town-water','dishwasher')||!pubConnected(life,'trade','dishwasher','town-sewer'))return record(s,'Glasswasher unavailable: power, hot water and drainage required.');
     s.waterL+=3;s.tradeWasteL+=3;s.electricityKWh+=.1;s.hotC=18+(s.hotC-18)*157/160;return record(s,'Glasswasher cycle: 3 L, 0.1 kWh; trade wastewater to pre-treatment.');
   }
-  if(action==='network')return record(s,p.internet?'Router and NBN endpoint powered; upstream link available. EFTPOS simulation online.':'Internet/VoIP/EFTPOS offline. Local backup cannot repair an upstream outage.');
+  if(action==='network')return record(s,'Internet '+(p.internet?'upstream link available':'offline')+'; VoIP '+(p.telephone?'available':'offline')+'; mobile '+(p.mobile?'available':'offline')+'; radio '+(p.radio?'receiving':'off')+'; TV '+(p.television?'receiving':'off')+'. Independent carrier/broadcast and local power dependencies apply.');
   const toggles={water:'waterValve',power:'breaker',sewer:'sewerOpen',gas:'lpgValve',internet:'upstreamInternet'};
   if(toggles[action]){s[toggles[action]]=!s[toggles[action]];return record(s,action+' service '+(s[toggles[action]]?'available':'isolated')+' (simulation test).');}
   if(action==='collect')return record(s,pubStandardsAction(life,'collect'));

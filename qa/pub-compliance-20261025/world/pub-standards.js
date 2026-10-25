@@ -1,3 +1,4 @@
+import {pubStaffRefusal} from './pub-venue.js';
 // Synthetic venue operations and independently isolated building services.
 // Game checks are not NCC certification, licences or competent-person inspection.
 export const PUB_SERVICE_EDGES = Object.freeze([
@@ -6,9 +7,10 @@ export const PUB_SERVICE_EDGES = Object.freeze([
  ['sanitary','wc2','sanitary-lateral'],['sanitary','basin2','sanitary-lateral'],['sanitary','wc','sanitary-lateral'],['sanitary','basin','sanitary-lateral'],['sanitary','sanitary-lateral','town-sewer'],
  ['trade','prep','grease-arrestor'],['trade','dishwasher','grease-arrestor'],['trade','grease-arrestor','trade-lateral'],['trade','trade-lateral','town-sewer'],
  ['stormwater','roof','gutters'],['stormwater','gutters','downpipes'],['stormwater','downpipes','storm-outlet'],
- ['gas','lpg-store','regulator'],['gas','regulator','gas-isolator'],['gas','gas-isolator','cooker'],
- ...['cooker','heater','cold-room','lights','network'].map(id=>['electricity','switchboard',id]),
+ ['gas','town-gas','gas-meter'],['gas','gas-meter','regulator'],['gas','lpg-store','regulator'],['gas','regulator','gas-isolator'],['gas','gas-isolator','cooker'],
+ ...['cooker','heater','cold-room','lights','network','television','radio','dishwasher'].map(id=>['electricity','switchboard',id]),
  ['internet','carrier','network'],['internet','network','eftpos'],
+ ['telephone','network','ata'],['telephone','ata','desk-phone'],['mobile','mobile-carrier','handset'],['radio','radio-transmitter','radio-antenna'],['radio','radio-antenna','radio'],['television','tv-transmitter','tv-aerial'],['television','tv-aerial','television'],['fuel','lpg-depot','delivery-truck'],['fuel','delivery-truck','lpg-store'],
  ['waste','kitchen-waste','general-bin'],['waste','bar-recycling','recycling-bin'],['waste','general-bin','collector'],['waste','recycling-bin','collector']
 ].map(([utility,from,to])=>Object.freeze({id:'pub:'+utility+':'+from+':'+to,utility,from,to})));
 export function pubStandards(life){
@@ -31,8 +33,8 @@ export function pubConnected(life,utility,from,to){
 }
 export function pubActualPatrons(life){return (life.villagers||[]).filter(v=>v.inside&&v.step?.at==='pub'&&v.step.kind!=='work').length;}
 export function pubAdmission(life){if(!life.civic)return {allowed:true};const s=pubStandards(life);if(s.alarm||s.gasLeak)return {allowed:false,reason:'evacuation',message:'Pub closed for an active emergency. Both exits remain available to leave.'};if(pubActualPatrons(life)>=24)return {allowed:false,reason:'capacity',message:'The pub is at its 24-patron gameplay limit; wait for a patron to leave.'};return {allowed:true};}
-export function pubFoodGate(life){const s=pubStandards(life);return !s.alarm&&!s.gasLeak&&!s.rcdTrip&&!s.exhaustFault&&s.clean&&s.soap&&s.towels&&!s.pests&&s.foodSupervisor&&s.foodTraining&&pubConnected(life,'gas','lpg-store','cooker')&&pubConnected(life,'electricity','switchboard','cooker')&&pubConnected(life,'trade','prep','town-sewer')&&pubConnected(life,'trade','dishwasher','town-sewer')&&pubConnected(life,'water','town-water','prep')&&pubConnected(life,'water','town-water','dishwasher');}
-export function pubAlcoholRefusal(life){const s=pubStandards(life),u=life.civic.pubUtilities;if(s.alarm||s.gasLeak)return 'Alcohol service stopped during emergency.';if(!s.licenceScenario)return 'Alcohol service stopped: fictional licence scenario disabled.';if(!s.verifiedAdult)return 'Alcohol refused: confirm adult ID in the pub service controls.';if(s.intoxicated)return 'Alcohol refused: patron is flagged intoxicated; offer water and assistance.';if(!u?.waterValve||life.civic.supply.waterOk===false||!pubConnected(life,'water','town-water','bar-water'))return 'Alcohol service stopped: free potable drinking water is unavailable.';return null;}
+export function pubFoodGate(life){const s=pubStandards(life);return !s.alarm&&!s.gasLeak&&!s.rcdTrip&&!s.exhaustFault&&s.clean&&s.soap&&s.towels&&!s.pests&&s.foodSupervisor&&s.foodTraining&&pubConnected(life,'gas',life.civic.pubVenue?.gasSource==='natural'?'town-gas':'lpg-store','cooker')&&pubConnected(life,'electricity','switchboard','cooker')&&pubConnected(life,'trade','prep','town-sewer')&&pubConnected(life,'trade','dishwasher','town-sewer')&&pubConnected(life,'water','town-water','prep')&&pubConnected(life,'water','town-water','dishwasher');}
+export function pubAlcoholRefusal(life){const s=pubStandards(life),u=life.civic.pubUtilities;if(s.alarm||s.gasLeak)return 'Alcohol service stopped during emergency.';if(!s.licenceScenario)return 'Alcohol service stopped: fictional licence scenario disabled.';const staff=pubStaffRefusal(life);if(staff)return staff;if(!s.verifiedAdult)return 'Alcohol refused: confirm adult ID in the pub service controls.';if(s.intoxicated)return 'Alcohol refused: patron is flagged intoxicated; offer water and assistance.';if(!u?.waterValve||life.civic.supply.waterOk===false||!pubConnected(life,'water','town-water','bar-water'))return 'Alcohol service stopped: free potable drinking water is unavailable.';return null;}
 function log(s,text){s.events.unshift(text);s.events=s.events.slice(0,30);return text;}
 export function pubStandardsAction(life,action){const s=pubStandards(life),u=life.civic.pubUtilities;
  const toggle={adult:'verifiedAdult',intoxicated:'intoxicated',licence:'licenceScenario',supervisor:'foodSupervisor',training:'foodTraining',allergens:'allergenConfirmed',clean:'clean',soap:'soap',towels:'towels',pests:'pests',privacy:'wcPrivacy',detector:'detectorFault',exhaust:'exhaustFault'};

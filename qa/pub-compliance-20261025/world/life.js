@@ -1,3 +1,5 @@
+import {validPubVenue,drinkPubBeer,pubDrinkAvailable,reservePubDrink} from './pub-venue.js';
+import {validPool} from './pub-pool.js';
 import {pubAlcoholRefusal,pubAdmission,validPubStandards} from './pub-standards.js';
 import {ORIGINAL_WORKERS,EXPANSION_WORKERS,MARRIED_COUPLES,EXPANSION_IDENTITIES,createMarriages,reconcileSpouseHouseholds,householdMembers as familyMembers} from './resident-families.js';
 import { EXPANSION_SITES } from './town-expansion.js';
@@ -829,6 +831,7 @@ export class TownLife {
   // ── The visitor (the player): wallet, bank, bag and civic actions. Each returns a message. ──
   shelves(p) { return p.id === 'bakery' ? p.out : p.stock; }
   buyItem(shopId, good) {
+    if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good))return this.buyMenuItem(shopId,good);
     const p = this.place(shopId), me = this.civic.player, price = GOODS[good].price;
     if (!this.open(p)) return `The ${p.name} is closed — it opens at ${fmt(p.opens)}.`;
     const service = shopService(this, p);
@@ -841,6 +844,7 @@ export class TownLife {
     return `You buy ${amount(good, 1)} for $${price}. It's in your bag.`;
   }
   menuAvailability(shopId, good) {
+    if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good))return pubDrinkAvailable(this,good);
     const recipe = VENUE_MENU[shopId]?.[good];
     if (!recipe) return false;
     const stock = this.shelves(this.place(shopId));
@@ -862,7 +866,8 @@ export class TownLife {
     }
     if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good)){const refusal=pubAlcoholRefusal(this);if(refusal)return refusal;}
     const stock = this.shelves(p);
-    if ((stock[good] || 0) > 0) stock[good]--;
+    if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good))reservePubDrink(this,good);
+    else if ((stock[good] || 0) > 0) stock[good]--;
     else for (const [ingredient, n] of Object.entries(recipe)) stock[ingredient] -= n;
     me.wallet -= price; this.sale(p, price);
     receipt(this, 'purchase', `${GOODS[good].name} at ${p.name}`, -price);
@@ -873,6 +878,7 @@ export class TownLife {
     return `You order ${GOODS[good].name} for $${price}. Ticket ${t.ticket}: ready in about ${t.minutes} minutes, at ${fmt(t.ready % 1440)}.`;
   }
   sellItem(shopId, good) {
+    if(['pub_beer','pub_bottled_beer'].includes(good))return 'Alcohol cannot be sold back through the general goods counter.';
     const p = this.place(shopId), me = this.civic.player, pay = Math.max(1, Math.floor(GOODS[good].price * 0.6));
     const service = shopService(this, p);
     if (!service.available) return service.message;
@@ -881,7 +887,7 @@ export class TownLife {
     me.bag[good]--; this.shelves(p)[good] = (this.shelves(p)[good] || 0) + 1; p.till -= pay; me.wallet += pay; recordEarning(this, pay); receipt(this, 'sale', `Sold ${GOODS[good].name} to ${p.name}`, pay);
     return `The ${p.name} buys it back for $${pay}.`;
   }
-  eatItem(good) { return eatPlayer(this,good); }
+  eatItem(good) { if(['pub_beer','pub_bottled_beer'].includes(good))return drinkPubBeer(this,good);return eatPlayer(this,good); }
   soyAction(site,action){return soyAction(this,site,action);}
   soyReport(){return soyReport(this);}
   orderCafe(itemId) { return orderCafe(this,itemId); }
@@ -1880,6 +1886,8 @@ export class TownLife {
     if (s.saveVersion !== undefined && (!Number.isInteger(s.saveVersion) || s.saveVersion < 1 || s.saveVersion > 3)) return false;
     if (!Number.isFinite(s.day) || s.day < 1 || !Number.isFinite(s.minute) || s.minute < 0 || s.minute >= 1440) return false;
     if (s.civic !== undefined && (s.civic === null || typeof s.civic !== 'object' || Array.isArray(s.civic))) return false;
+    if(s.civic?.pubVenue!==undefined&&!validPubVenue(s.civic.pubVenue))return false;
+    if(s.civic?.pubPool!==undefined&&!validPool(s.civic.pubPool))return false;
     if(s.civic?.pubStandards!==undefined&&!validPubStandards(s.civic.pubStandards))return false;
     if(s.civic?.pubUtilities!==undefined && !validPubUtilities(s.civic.pubUtilities))return false;
     if(s.civic?.electricalPilot!==undefined && !validElectricalPilotState(s.civic.electricalPilot))return false;
