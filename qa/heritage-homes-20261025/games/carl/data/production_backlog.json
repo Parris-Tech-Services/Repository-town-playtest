@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "roadmap": "AAA-indie solo demo",
+  "target_demo_window_weeks": "12-14",
+  "pillars": [
+    "engine_port",
+    "game_feel",
+    "visual_art",
+    "content_depth",
+    "ux_polish",
+    "release"
+  ],
+  "milestones": [
+    {
+      "id": "weeks_1_2_engine_port",
+      "weeks": "1-2",
+      "title": "Engine Port",
+      "goal": "Tutorial Guild playable in Phaser with placeholder art.",
+      "tasks": [
+        "Create phaser-client Vite project",
+        "Install Phaser",
+        "Copy JSON data into Phaser client",
+        "Port GameState",
+        "Port World",
+        "Port movement",
+        "Port quests",
+        "Port inventory",
+        "Port crafting",
+        "Port combat",
+        "Port announcements",
+        "Load Tutorial Guild map",
+        "Render placeholder tilemap",
+        "Implement keyboard controls",
+        "Implement basic HUD"
+      ],
+      "acceptance_criteria": [
+        "Tutorial Guild is playable in browser through Phaser",
+        "Player can complete all seven tutorial quests",
+        "Placeholder art is acceptable",
+        "No Python runtime is required for the Phaser build"
+      ]
+    },
+    {
+      "id": "weeks_3_4_juice_pass",
+      "weeks": "3-4",
+      "title": "Juice Pass",
+      "goal": "Movement, combat, quests, announcements, and audio feel good before new content.",
+      "tasks": [
+        "Smooth tile movement tweens",
+        "Delayed Donut follow tween",
+        "Blocked movement bump",
+        "Hit flash",
+        "Floating damage numbers",
+        "Enemy death animation",
+        "Camera shake",
+        "Quest complete banner",
+        "System typewriter effect",
+        "Chest open animation",
+        "Explosion particle effect",
+        "Footstep sounds",
+        "Swing and hit sounds",
+        "Explosion sound",
+        "Ambient loop"
+      ],
+      "acceptance_criteria": [
+        "Movement no longer feels like a terminal port",
+        "Combat hits are readable without checking logs",
+        "Quest completion is satisfying",
+        "A new player describes the game as responsive"
+      ]
+    },
+    {
+      "id": "weeks_5_7_art_pass",
+      "weeks": "5-7",
+      "title": "Art Pass",
+      "goal": "Screenshots look like a real game.",
+      "tasks": [
+        "Carl sprite",
+        "Donut sprite",
+        "Mordecai sprite",
+        "Training goblin sprite",
+        "Shopkeeper sprite",
+        "Chest sprite",
+        "Hazard tiles",
+        "Desk tile",
+        "Wall and floor tiles",
+        "UI frame art",
+        "Item icons",
+        "Attack animations",
+        "Idle animations",
+        "Walk cycles"
+      ],
+      "acceptance_criteria": [
+        "Carl jacket/no-pants state is readable",
+        "Donut is instantly identifiable",
+        "UI has dark amber identity",
+        "A still screenshot communicates the genre and tone"
+      ]
+    },
+    {
+      "id": "weeks_8_10_floor_one_content",
+      "weeks": "8-10",
+      "title": "Floor 1 Content",
+      "goal": "Complete play loop beyond the Tutorial Guild.",
+      "tasks": [
+        "Build Floor 1 map with 4x3 rooms",
+        "Add corridors",
+        "Add open saferoom",
+        "Add locked saferoom",
+        "Add three enemy types",
+        "Add patrol behavior",
+        "Add sleeping enemy trigger",
+        "Add mini-boss",
+        "Add pre-fight System announcement",
+        "Add 200-turn collapse timer",
+        "Add three crafting recipes",
+        "Add crafting UI",
+        "Add explosion radius preview",
+        "Add floor transition screen",
+        "Add victory and death conditions"
+      ],
+      "acceptance_criteria": [
+        "Player can go tutorial to Floor 1 to death or completion",
+        "Floor timer matters",
+        "Crafting feels like Carl's identity",
+        "Mini-boss requires more than basic attacking"
+      ]
+    },
+    {
+      "id": "weeks_11_12_polish_screens",
+      "weeks": "11-12",
+      "title": "Polish and Screens",
+      "goal": "Demo release candidate.",
+      "tasks": [
+        "Title screen",
+        "Main menu",
+        "Continue",
+        "Options",
+        "Pause",
+        "Game over",
+        "Victory summary",
+        "Floor transition polish",
+        "Auto-save on saferoom entry",
+        "Contextual controls bar",
+        "Inventory screen",
+        "Dialogue portraits",
+        "Colorblind mode",
+        "Reduced motion",
+        "Volume settings",
+        "Browser focus pause",
+        "Credits and legal screen"
+      ],
+      "acceptance_criteria": [
+        "Demo can be given to another person without explanation",
+        "No debug-only UI is required to play",
+        "Restart and continue work",
+        "Accessibility basics exist"
+      ]
+    },
+    {
+      "id": "weeks_13_14_buffer_release",
+      "weeks": "13-14",
+      "title": "Buffer and Release",
+      "goal": "Stabilize and prepare public playtest.",
+      "tasks": [
+        "Bug fixes",
+        "Balancing",
+        "Audio polish",
+        "Map readability pass",
+        "UI clarity pass",
+        "Performance pass",
+        "Credits and attribution",
+        "Itch page assets",
+        "Trailer or GIF capture",
+        "First public playtest"
+      ],
+      "acceptance_criteria": [
+        "Demo can survive external playtesting",
+        "Known issues are documented",
+        "Feedback collection is ready"
+      ]
+    }
+  ]
+}

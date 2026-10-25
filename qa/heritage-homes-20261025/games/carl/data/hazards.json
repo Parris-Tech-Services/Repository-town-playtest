@@ -1,0 +1,29 @@
+{
+  "guild_grime_patch": {
+    "id": "guild_grime_patch",
+    "name": "Suspicious Grime Patch",
+    "symbol": "~",
+    "position": { "x": 4, "y": 8 },
+    "effect": "donut_complaint",
+    "severity": 0,
+    "tags": ["tutorial", "nonlethal", "filth"]
+  },
+  "training_trap": {
+    "id": "training_trap",
+    "name": "Training Trap",
+    "symbol": "!",
+    "position": { "x": 6, "y": 8 },
+    "effect": "trap",
+    "severity": 3,
+    "tags": ["tutorial", "damage"]
+  },
+  "rough_tile": {
+    "id": "rough_tile",
+    "name": "Rough Tile",
+    "symbol": "^",
+    "position": { "x": 5, "y": 8 },
+    "effect": "rough",
+    "severity": 1,
+    "tags": ["tutorial", "terrain"]
+  }
+}

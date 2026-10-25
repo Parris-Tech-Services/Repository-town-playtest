@@ -1,0 +1,4 @@
+Visitor heritage homes build QA, not a general-release or exact reconstruction certificate.
+Source: joshualparris/JoshMemory
+Commit: e9fc9e4b30ec5bfd6351ac96cb4152705d722c5c
+Full-town economy test is separately red on baseline main.
