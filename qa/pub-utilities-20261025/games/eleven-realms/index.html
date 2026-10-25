@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+  <head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        xhr.dispatchEvent(new Event('readystatechange'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+</script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Eleven Realms</title>
+    <script type="module">// assets/index-aueV03Oc.js
+(function() {
+  let e2 = document.createElement(`link`).relList;
+  if (e2 && e2.supports && e2.supports(`modulepreload`)) return;
+  for (let e3 of document.querySelectorAll(`link[rel="modulepreload"]`)) n2(e3);
+  new MutationObserver((e3) => {
+    for (let t3 of e3) if (t3.type === `childList`) for (let e4 of t3.addedNodes) e4.tagName === `LINK` && e4.rel === `modulepreload` && n2(e4);
+  }).observe(document, { childList: true, subtree: true });
+  function t2(e3) {
+    let t3 = {};
+    return e3.integrity && (t3.integrity = e3.integrity), e3.referrerPolicy && (t3.referrerPolicy = e3.referrerPolicy), t3.credentials = e3.crossOrigin === `use-credentials` ? `include` : e3.crossOrigin === `anonymous` ? `omit` : `same-origin`, t3;
+  }
+  function n2(e3) {
+    if (e3.ep) return;
+    e3.ep = true;
+    let n3 = t2(e3);
+    fetch(e3.href, n3);
+  }
+})();
+var e = class {
+  state;
+  constructor(e2 = 1) {
+    this.state = e2 >>> 0;
+  }
+  next() {
+    return this.state = 1664525 * this.state + 1013904223 >>> 0, this.state / 4294967295;
+  }
+  int(e2, t2) {
+    return Math.floor(this.next() * (t2 - e2 + 1)) + e2;
+  }
+};
+function t(t2 = 1, n2 = 0, r2 = [], a2 = 3, o2 = 0) {
+  let s2 = new e(t2), c2 = [], l2 = [];
+  for (let e2 = 0; e2 < 12; e2++) {
+    c2[e2] = [], l2[e2] = [];
+    for (let t3 = 0; t3 < 16; t3++) {
+      let n3 = Math.abs(t3 - 2) <= 1 && Math.abs(e2 - 2) <= 1, r3 = Math.abs(t3 - 14) <= 1 && Math.abs(e2 - 10) <= 1;
+      c2[e2][t3] = !n3 && !r3 && s2.int(0, 100) < 25, l2[e2][t3] = false;
+    }
+  }
+  let u2 = [{ id: `gate-1`, type: `gate`, x: 14, y: 10, collected: false }, { id: `key-1`, type: `key`, x: s2.int(4, 13), y: s2.int(4, 9), collected: false }, { id: `enemy-1`, type: `enemy`, x: s2.int(8, 15), y: s2.int(0, 5), collected: false }, { id: `enemy-2`, type: `enemy`, x: s2.int(0, 8), y: s2.int(6, 11), collected: false }, { id: `relic-1`, type: `relic`, x: s2.int(1, 14), y: s2.int(1, 10), collected: false }];
+  for (let e2 = 0; e2 < 6; e2++) {
+    let t3 = s2.int(0, 15), n3 = s2.int(0, 11);
+    c2[n3][t3] || u2.push({ id: `coin-${e2}`, type: `coin`, x: t3, y: n3, collected: false });
+  }
+  let d2 = { seed: t2, tick: 0, width: 640, height: 480, gridWidth: 16, gridHeight: 12, player: { x: 2, y: 2 }, entities: u2, walls: c2, discovered: l2, inventory: r2, score: n2, health: a2, maxHealth: 3, relicsFound: o2, questCompleted: o2 >= 2, gameOver: false, log: [`Realm ${t2} entrance opens.`] };
+  return i(d2), d2;
+}
+function n(e2, n2) {
+  if (e2.questCompleted || e2.gameOver) return e2;
+  let r2 = { north: { x: 0, y: -1 }, south: { x: 0, y: 1 }, east: { x: 1, y: 0 }, west: { x: -1, y: 0 } }[n2], a2 = Math.max(0, Math.min(e2.gridWidth - 1, e2.player.x + r2.x)), o2 = Math.max(0, Math.min(e2.gridHeight - 1, e2.player.y + r2.y));
+  if (e2.walls[o2][a2] && (a2 = e2.player.x, o2 = e2.player.y), e2.entities.find((e3) => e3.type === `gate` && e3.x === a2 && e3.y === o2) && !e2.inventory.includes(`key`)) return a2 = e2.player.x, o2 = e2.player.y, e2.log = [`The gate is locked! Find a key.`].concat(e2.log).slice(0, 4), e2;
+  e2.player.x = a2, e2.player.y = o2, e2.tick += 1;
+  let s2 = [`Realm signal: ${n2} tick ${e2.tick}`];
+  for (let n3 of e2.entities) if (!n3.collected && n3.x === a2 && n3.y === o2) {
+    if (n3.type === `coin`) n3.collected = true, e2.score += 10, s2.unshift(`You found a coin!`);
+    else if (n3.type === `key`) n3.collected = true, e2.inventory.push(`key`), s2.unshift(`You found a Key! The gate is unlocked.`);
+    else if (n3.type === `relic`) n3.collected = true, e2.relicsFound += 1, e2.score += 50, s2.unshift(`You recovered a Relic!`), e2.relicsFound >= 2 && (e2.questCompleted = true);
+    else if (n3.type === `gate`) return s2.unshift(`You passed through the gate!`), t(e2.seed + 1, e2.score, [], e2.health, e2.relicsFound);
+  }
+  for (let t2 of e2.entities) if (t2.type === `enemy` && !t2.collected) {
+    let n3 = t2.x, r3 = t2.y;
+    Math.abs(e2.player.x - n3) > Math.abs(e2.player.y - r3) ? n3 += e2.player.x > n3 ? 1 : -1 : r3 += e2.player.y > r3 ? 1 : -1, e2.walls[r3][n3] || (t2.x = n3, t2.y = r3), t2.x === e2.player.x && t2.y === e2.player.y && (e2.health = Math.max(0, e2.health - 1), s2.unshift(`An enemy struck you! Health ${e2.health}/${e2.maxHealth}.`), e2.health === 0 && (e2.gameOver = true, s2.unshift(`The realm claimed you. Restart to try again.`)));
+  }
+  return e2.log = s2.concat(e2.log).slice(0, 4), i(e2), e2;
+}
+function r(e2, t2) {
+  return n(e2, t2);
+}
+function i(e2) {
+  for (let t2 = 0; t2 < e2.gridHeight; t2++) for (let n2 = 0; n2 < e2.gridWidth; n2++) {
+    let r2 = n2 - e2.player.x, i2 = t2 - e2.player.y;
+    Math.sqrt(r2 * r2 + i2 * i2) <= 4.5 && (e2.discovered[t2][n2] = true);
+  }
+}
+var a = class {
+  canvas;
+  constructor(e2) {
+    this.canvas = e2;
+  }
+  draw(e2) {
+    let t2 = this.canvas.getContext(`2d`);
+    if (!t2) return;
+    t2.clearRect(0, 0, e2.width, e2.height), t2.fillStyle = `#000000`, t2.fillRect(0, 0, e2.width, e2.height);
+    let n2 = e2.width / e2.gridWidth, r2 = e2.height / e2.gridHeight, i2 = (t3, n3) => {
+      let r3 = t3 - e2.player.x, i3 = n3 - e2.player.y;
+      return Math.sqrt(r3 * r3 + i3 * i3) <= 4.5;
+    };
+    for (let a2 = 0; a2 < e2.gridHeight; a2 += 1) for (let o2 = 0; o2 < e2.gridWidth; o2 += 1) {
+      if (!e2.discovered[a2][o2]) continue;
+      let s2 = i2(o2, a2);
+      e2.walls[a2][o2] ? (t2.fillStyle = s2 ? `#05111c` : `#02060a`, t2.fillRect(o2 * n2, a2 * r2, n2, r2), t2.strokeStyle = s2 ? `#02070c` : `#010305`, t2.strokeRect(o2 * n2, a2 * r2, n2, r2)) : (t2.fillStyle = (o2 + a2) % 2 == 0 ? s2 ? `#102a2b` : `#061314` : s2 ? `#0b202a` : `#040d12`, t2.fillRect(o2 * n2, a2 * r2, n2, r2), t2.strokeStyle = s2 ? `rgba(132, 217, 183, 0.08)` : `rgba(132, 217, 183, 0.03)`, t2.strokeRect(o2 * n2, a2 * r2, n2, r2));
+    }
+    t2.shadowColor = `#78f6bc`, t2.shadowBlur = 18, t2.fillStyle = `#9affb8`, t2.beginPath(), t2.arc(e2.player.x * n2 + n2 / 2, e2.player.y * r2 + r2 / 2, Math.min(n2, r2) / 3, 0, Math.PI * 2), t2.fill(), t2.shadowBlur = 0;
+    for (let a2 of e2.entities) if (!a2.collected && i2(a2.x, a2.y)) {
+      if (a2.type === `coin`) t2.fillStyle = `#ffcc00`, t2.beginPath(), t2.arc(a2.x * n2 + n2 / 2, a2.y * r2 + r2 / 2, Math.min(n2, r2) / 4, 0, Math.PI * 2), t2.fill();
+      else if (a2.type === `relic`) t2.fillStyle = `#b78cff`, t2.strokeStyle = `#f0d8ff`, t2.lineWidth = 2, t2.beginPath(), t2.moveTo(a2.x * n2 + n2 / 2, a2.y * r2 + 5), t2.lineTo(a2.x * n2 + n2 - 6, a2.y * r2 + r2 / 2), t2.lineTo(a2.x * n2 + n2 / 2, a2.y * r2 + r2 - 5), t2.lineTo(a2.x * n2 + 6, a2.y * r2 + r2 / 2), t2.closePath(), t2.fill(), t2.stroke();
+      else if (a2.type === `key`) t2.fillStyle = `#00ffff`, t2.beginPath(), t2.arc(a2.x * n2 + n2 / 2, a2.y * r2 + r2 / 2, Math.min(n2, r2) / 5, 0, Math.PI * 2), t2.fill();
+      else if (a2.type === `gate`) {
+        let i3 = !e2.inventory.includes(`key`);
+        t2.fillStyle = i3 ? `#ff3333` : `#ff6d9d`, t2.strokeStyle = i3 ? `#ff9999` : `#ffd1df`, t2.lineWidth = 2, t2.strokeRect(a2.x * n2 + 6, a2.y * r2 + 4, n2 - 12, r2 - 8), t2.fillRect(a2.x * n2 + n2 / 2 - 3, a2.y * r2 + 10, 6, r2 - 20);
+      } else a2.type === `enemy` ? (t2.fillStyle = `#ff4400`, t2.beginPath(), t2.moveTo(a2.x * n2 + n2 / 2, a2.y * r2 + 4), t2.lineTo(a2.x * n2 + n2 - 4, a2.y * r2 + r2 - 4), t2.lineTo(a2.x * n2 + 4, a2.y * r2 + r2 - 4), t2.closePath(), t2.fill()) : a2.type === `hazard` && (t2.fillStyle = `#ff765f`, t2.beginPath(), t2.moveTo(a2.x * n2 + n2 / 2, a2.y * r2 + 5), t2.lineTo(a2.x * n2 + n2 - 6, a2.y * r2 + r2 - 6), t2.lineTo(a2.x * n2 + 6, a2.y * r2 + r2 - 6), t2.closePath(), t2.fill());
+    }
+    t2.strokeStyle = `#d6ffe9`, t2.strokeRect(0, 0, e2.width, e2.height);
+  }
+};
+var o = t(1);
+var s = document.querySelector(`#game-canvas`);
+var c = document.querySelector(`#event-log`);
+var l = document.querySelector(`#tick-readout`);
+var u = document.querySelector(`#seed-readout`);
+var d = document.querySelector(`#score-readout`);
+var f = document.querySelector(`#quest-text`);
+var p = document.querySelector(`#health-readout`);
+var m = document.querySelector(`#relic-readout`);
+var h = document.querySelector(`#relic-progress`);
+var g = document.querySelector(`#state-readout`);
+var _ = document.querySelector(`#position-readout`);
+var v = document.querySelector(`#restart-button`);
+if (!s) throw Error(`Canvas element #game-canvas is required.`);
+var y = new a(s);
+function b() {
+  if (y.draw(o), u && (u.textContent = `seed: ${o.seed}`), l && (l.textContent = `tick: ${o.tick}`), d && (d.textContent = `score: ${o.score}`), _ && (_.textContent = `X ${String(o.player.x + 1).padStart(2, `0`)} / Y ${String(o.player.y + 1).padStart(2, `0`)}`), f && (f.textContent = o.inventory.includes(`key`) ? `Key found! Escape through the gate.` : `Find a key to unlock the gate.`, f.classList.toggle(`complete`, o.inventory.includes(`key`))), p && (p.textContent = `${`\u25CF `.repeat(o.health)}${`\u25CB `.repeat(o.maxHealth - o.health)}`.trim()), m && (m.textContent = `${o.relicsFound} / 2`), h && (h.style.width = `${o.relicsFound / 2 * 100}%`), g && (g.textContent = o.questCompleted ? `VICTORY` : o.gameOver ? `LOST` : `EXPLORING`, g.dataset.state = o.questCompleted ? `complete` : o.gameOver ? `danger` : `active`), c) {
+    c.innerHTML = ``;
+    for (let e2 of o.log) {
+      let t2 = document.createElement(`li`);
+      t2.textContent = e2, c.appendChild(t2);
+    }
+  }
+}
+function x(e2) {
+  o = r(o, e2), b();
+}
+function S() {
+  o = t(o.seed + 1), b();
+}
+b(), window.addEventListener(`keydown`, (e2) => {
+  let t2 = { ArrowUp: `north`, ArrowDown: `south`, ArrowLeft: `west`, ArrowRight: `east`, w: `north`, W: `north`, s: `south`, S: `south`, a: `west`, A: `west`, d: `east`, D: `east` }[e2.key];
+  t2 && (e2.preventDefault(), x(t2));
+}), document.querySelectorAll(`[data-direction]`).forEach((e2) => {
+  e2.addEventListener(`click`, () => {
+    x(e2.dataset.direction);
+  });
+}), v?.addEventListener(`click`, S);
+</script>
+    <link rel="stylesheet" href="./assets/index-x_jgerL2.css">
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div>
+          <div class="eyebrow">FIELD LOG // REALM 01</div>
+          <div class="brand">Eleven Realms</div>
+        </div>
+        <div class="hud">
+          <span id="seed-readout">seed: 1</span>
+          <span id="score-readout">score: 0</span>
+          <span id="tick-readout">tick: 0</span>
+        </div>
+      </header>
+      <main class="layout">
+        <section class="game-shell">
+          <canvas id="game-canvas" width="640" height="480"></canvas>
+          <div class="game-footer">
+            <span>WASD / ARROWS TO MOVE</span>
+            <span id="position-readout">X 02 / Y 02</span>
+          </div>
+        </section>
+        <aside class="sidebar">
+          <section class="panel">
+            <div class="panel-kicker">ACTIVE OBJECTIVE</div>
+            <h1>Find the first gate.</h1>
+            <p id="quest-text">Find the first gate.</p>
+            <div class="progress-track"><span id="relic-progress"></span></div>
+            <div class="progress-label"><span>Relics recovered</span><strong id="relic-readout">0 / 2</strong></div>
+          </section>
+          <section class="panel">
+            <div class="panel-kicker">VITALS</div>
+            <div class="vitals-row"><span>Health</span><strong id="health-readout">● ● ●</strong></div>
+            <div class="vitals-row"><span>Realm condition</span><strong id="state-readout">EXPLORING</strong></div>
+          </section>
+          <section class="panel controls-panel">
+            <div class="panel-kicker">NAVIGATION</div>
+            <div class="direction-pad" aria-label="Movement controls">
+              <button class="move-button up" data-direction="north" aria-label="Move north">↑</button>
+              <button class="move-button left" data-direction="west" aria-label="Move west">←</button>
+              <button class="move-button down" data-direction="south" aria-label="Move south">↓</button>
+              <button class="move-button right" data-direction="east" aria-label="Move east">→</button>
+            </div>
+            <button id="restart-button" class="restart-button" type="button">↻ Restart realm</button>
+          </section>
+          <section class="panel log-panel">
+            <div class="panel-kicker">FIELD LOG</div>
+            <ul id="event-log">
+              <li>Entrance opens.</li>
+            </ul>
+          </section>
+        </aside>
+      </main>
+    </div>
+    
+      
+    <script>PortalAdapter.init("eleven-realms");</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Repository Town — physical N/S plot map</title>
+<style>
+:root{font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#e9eff8;background:#102532}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 20% 0%,#244c5e,transparent 52%),#102532;color:#e9eff8}
+header,main{width:min(1500px,calc(100% - 24px));margin:0 auto}header{padding:24px 0 8px}h1{font-size:clamp(1.5rem,5vw,2.7rem);margin:4px 0}p{line-height:1.5;color:#c7d8df}a{color:#b6e6f2}.sub{margin-top:4px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.chip{border:1px solid #426475;border-radius:14px;padding:9px 12px;background:#163440;font-size:.9rem}.chip strong{color:#fff}.legend{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}.legend button{color:#fff;cursor:pointer;background:#173540;border:1px solid #466576;padding:8px 9px;border-radius:9px;font-size:.8rem}.legend button[aria-pressed=true]{outline:2px solid #fff}.swatch{display:inline-block;vertical-align:middle;width:11px;height:11px;border-radius:3px;margin-right:5px}.mapwrap{border:1px solid #516f7b;border-radius:16px;overflow:auto;background:#17363a;box-shadow:0 14px 30px #0004;max-height:65vh;overscroll-behavior:contain}
+#map{min-width:1500px;display:grid;grid-template-columns:167px repeat(26,minmax(44px,1fr));gap:2px;padding:8px}
+#map .corner,#map .head,#map .side{height:32px;display:flex;align-items:center;justify-content:center;position:sticky;background:#224650;z-index:2;color:#e2f6f8;font-size:12px;border-radius:4px}
+#map .corner{left:8px;z-index:4}#map .side{left:8px;justify-content:flex-start;z-index:3;padding:3px 7px;font-size:11px;white-space:nowrap}
+#map button.plot{height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:44px;border:1px solid #416572;border-radius:5px;font-size:10px;font-weight:750;color:#fff;cursor:pointer;overflow:hidden}
+.plot small{font-weight:500;font-size:8px;overflow:hidden;white-space:nowrap;max-width:100%}
+.plot:focus-visible{outline:3px solid white;outline-offset:0}.plot.selected{outline:3px solid #fff;z-index:1}
+.house{background:#327eae}.site{background:#3b897c}.railway{background:#82639b}.farm-field{background:#558448}.not-surveyed,.boundary-not-surveyed{background:repeating-linear-gradient(45deg,#967243,#967243 5px,#a4814c 5px,#a4814c 10px)}.unbuilt-not-surveyed{background:repeating-linear-gradient(45deg,#886638,#886638 5px,#bd9354 5px,#bd9354 10px)}.unassigned{background:#935852}.planning-only{background:#364b58;color:#b7c6d2!important}
+.road{grid-column:1/-1;background:#37404b;border:1px solid #61747e;border-radius:4px;color:#eef1ef;padding:4px 14px;font-size:11px;letter-spacing:.02em}
+.road.future{border-style:dashed;background:repeating-linear-gradient(90deg,#44604d 0 12px,#35503d 12px 24px)}
+.road.edge{background:#283f45;border-style:dotted}
+.panel{padding:16px 20px;border:1px solid #446879;background:#193541;border-radius:14px;margin:16px 0 32px;min-height:125px}.panel h2{margin:0 0 8px;font-size:1.1rem}.panel p{margin:7px 0}.foot{font-size:.82rem;color:#a8c2c9;margin-bottom:30px}
+@media(min-width:950px){.mapwrap{max-height:69vh}}
+</style></head>
+<body><header><a href="index.html">← Return to playable Repo Town</a><h1>Repo Town · physical plot atlas</h1>
+<p class="sub">Actual building addresses, railway, agricultural fields and unverified land — from the game's world data. Columns A–Z; each plot has a north (N) and south (S) frontage. Scroll sideways on a phone.</p></header>
+<main><div id="summary" class="chips" role="status">Reading town inventory…</div>
+<div class="legend" id="legend" aria-label="Filter map by land use"></div>
+<section class="mapwrap" aria-label="Scrollable map of 26 columns and 11 planning rows"><div id="map"></div></section>
+<article class="panel" id="detail" aria-live="polite"><h2>Select any grid reference</h2><p>Tap or click a plot to see its actual use and whether it has been surveyed.</p></article>
+<p class="foot">A numbered road is immediately below the S frontage and immediately above the next row's N frontage. The row-9 road is not built: its alignment has trees. Rows 10 and 11 are planning/perimeter bands, not surveyed or constructed streets. Missing buildings do not automatically make a safe, available block. Legacy house codes (e.g. Z7) remain valid.</p>
+</main><script type="module" src="ui/address-map.js"></script></body></html>

@@ -1,0 +1,2180 @@
+import { ambitions, destinies, festivals, qbnStories, qbnCards } from "./qbn-expansion.js?v=20261016-gloomwing2";
+export { ambitions, destinies, festivals };
+import { expansionLocations, expansionStories } from "./expansion.js?v=20261016-gloomwing2";
+import { gloomwingLocations, gloomwingItems, gloomwingStories, gloomwingEncounterItems, gloomwingEncounterStories, gloomwingEncounterPlacements } from "./gloomwing-content.js?v=20261016-gloomwing2";
+import { cmsPublishedStories, cmsPublishedLocations } from "./cms-published.js?v=20261016-gloomwing2";
+import { approvedStories, approvedCards, approvedPlacements } from "./approved-storylets.js?v=20261016-gloomwing2";
+
+
+
+export const circles = {
+  lamplighters: { name: "The Lamplighters", description: "They keep the dark at bay, for a price." },
+  archivists: { name: "The Archivists", description: "Hoarders of forgotten paper and dangerous ink." },
+  ferrymen: { name: "The Ferrymen", description: "They row where no one else will." },
+  velvet_houses: { name: "The Velvet Houses", description: "Aristocrats, patrons, and monsters." },
+  brass_union: { name: "The Brass Union", description: "Lawyers, brokers, and devils." },
+  roof_surveyors: { name: "The Roof Surveyors", description: "They look down on everyone else." }
+};
+
+
+export const trades = {
+  "ink-smuggler": { name: "Ink Smuggler", description: "You move unwritten words across the city.", tier: 1, payment: [{ type: "obols", amount: 15 }, { type: "item", id: "glimmering-shard", amount: 10 }] },
+  "lamp-trimmer": { name: "Lamp Trimmer", description: "You maintain the boundaries of the dark.", tier: 1, payment: [{ type: "obols", amount: 10 }, { type: "item", id: "radiant-crystal", amount: 2 }] },
+  "roof-spotter": { name: "Roof Spotter", description: "You watch the cavern roof for falling things.", tier: 1, payment: [{ type: "obols", amount: 20 }] }
+};
+
+export const itemCategories = {
+  curiosity: "Curiosities",
+  resource: "Resources",
+  tool: "Tools",
+  clothing: "Clothing",
+  hat: "Hats",
+  boots: "Boots",
+  gloves: "Gloves",
+  weapon: "Weapons",
+  companion: "Companions",
+  lesson: "Recalled Lessons"
+};
+
+export const equipmentSlots = ["boon","hat","clothing","adornment","gloves","weapon","boots","luggage","companion","treasure","destiny","tools-of-the-trade","affiliation","transport","home-comfort","ship","crew","airship","spouse","club"];
+
+export const items = {
+  "brass-key": { name: "Brass Key", description: "Heavy and cold.", category: "tool" },
+  "black-sand": { name: "Black Sand", description: "It whispers.", category: "curiosity" },
+  "silver-thimble": { name: "Silver Thimble", description: "A tarnished thimble.", category: "tool" },
+  "archive-key": { name: "Archive Key", description: "Opens doors in the Hollow Archive.", category: "tool" },
+  "red-thread-end": { name: "Loose End of Red Thread", description: "It leads somewhere.", category: "curiosity" },
+  "bright-memory": { name: "Bright Memory", description: "A recollection of the surface.", category: "curiosity" },
+  "unfinished-page": { name: "Unfinished Page", description: "Waiting for an ending.", category: "curiosity" },
+  "tide-cup": { name: "Tide Cup", description: "Tastes of the deep.", category: "curiosity" },
+  "ink-of-absence": { name: "Ink of Absence", description: "Darker than dark.", category: "curiosity" },
+  "sun-seed": { name: "Sun Seed", description: "Warm to the touch.", category: "curiosity" },
+  "small-sun": { name: "Small Sun", description: "A piece of daylight.", category: "curiosity" },
+  "salted-map": { name: "Salted Map", description: "The routes shift when you blink.", category: "tool" },
+  "lesson-nerve": { name: "Recalled Lesson: Nerve", description: "A reminder of courage.", category: "lesson" },
+  "lesson-insight": { name: "Recalled Lesson: Insight", description: "A reminder of perception.", category: "lesson" },
+  "lesson-poise": { name: "Recalled Lesson: Poise", description: "A reminder of grace.", category: "lesson" },
+  "lesson-shadow": { name: "Recalled Lesson: Shadow", description: "A reminder of subtlety.", category: "lesson" },
+
+  // Equipment
+  "workmans-boots": { name: "Workman's Boots", description: "Sturdy and quiet.", category: "clothing", slot: "boots", stats: { shadow: 1, nerve: 1 } },
+  "velvet-cloak": { name: "Velvet Cloak", description: "Blends into the gloom.", category: "clothing", slot: "clothing", stats: { shadow: 2 } },
+  "brass-knuckles": { name: "Brass Knuckles", description: "Effective in a narrow alley.", category: "weapon", slot: "weapon", stats: { nerve: 2 } },
+  "spectacles": { name: "Smoked Spectacles", description: "Protects against glare and helps you notice details.", category: "clothing", slot: "hat", stats: { insight: 2 } },
+  "silk-gloves": { name: "Silk Gloves", description: "For handling delicate situations.", category: "clothing", slot: "gloves", stats: { poise: 2 } },
+  "rat-companion": { name: "Talking Rat", description: "Knows too much, complains constantly.", category: "companion", slot: "companion", stats: { insight: 1, shadow: 1 } },
+
+  // Tiered resources
+  "glimmering-shard": { name: "Glimmering Shard", description: "A tiny fragment of light.", category: "resource", tier: 1 },
+  "radiant-crystal": { name: "Radiant Crystal", description: "A substantial source of illumination.", category: "resource", tier: 2 },
+  "blinding-gem": { name: "Blinding Gem", description: "Painful to look at.", category: "resource", tier: 3 }
+};
+
+export const locations = {
+  "the-lair": {
+    name: "The Lair",
+    subtitle: "A sealed municipal undercroft.",
+    region: "Unknown",
+    atmosphere: "Dust, damp, and the smell of old stone.",
+    stories: ["lair-escape", "lair-inspect-door", "lair-listen"]
+  },
+  "lantern-quay": {
+    name: "Lantern Quay",
+    region: "The Lower City",
+    subtitle: "Where the tide carries messages in sealed bottles.",
+    atmosphere: "Wet brass, coal smoke, and a bell that rings beneath the water.",
+    stories: ["bell-under-water", "cartographer-at-dusk", "tea-for-the-tide", "salt-on-the-map", "return-the-darkness", "the-cartographer-returns", "the-submerged-door", "lie-low-on-the-barges", "guild-hall", "smuggling-operations"]
+  },
+  "velvet-market": {
+    name: "The Velvet Market",
+    region: "The Lower City",
+    subtitle: "A bazaar for memories, rumours, and perfectly ordinary knives.",
+    atmosphere: "Every stall has a curtain. Every curtain has a shadow behind it.",
+    stories: ["borrowed-face", "red-thread", "a-name-sold", "market-gossip", "market-exchange", "circle-diplomacy", "the-sand-reader", "unwritten-ink", "the-debt-collector", "the-loose-end", "a-fresher-scandal"]
+  },
+  "hollow-archive": {
+    name: "The Hollow Archive",
+    region: "The Lower City",
+    subtitle: "A library where the books remember who borrowed them.",
+    atmosphere: "Dust hangs in the air like a second, slower snowfall.",
+    stories: ["index-of-lost-things", "the-quiet-librarian", "catalogue-the-dark", "archive-paper-trail", "the-locked-stacks", "finish-the-page", "an-entry-in-the-index", "the-margin-note", "the-quiet-carrel"]
+  },
+  "clockwork-gardens": {
+    name: "The Clockwork Gardens",
+    region: "The High Galleries",
+    subtitle: "A greenhouse where the flowers keep appointments.",
+    atmosphere: "Brass leaves click together in the warm, artificial wind.",
+    stories: ["garden-appointment", "borrowed-sunlight", "plant-the-sun-seed", "the-seedling-dawn", "the-memory-graft", "the-gardeners-thanks", "the-gardeners-salve"]
+  },
+  "glass-observatory": {
+    name: "The Glass Observatory",
+    region: "The High Galleries",
+    subtitle: "Where patient astronomers study a sky made of stone.",
+    atmosphere: "Lenses the size of ponds, chalk star-charts, and the slow drip of the ceiling overhead.",
+    stories: ["survey-the-stone-sky", "the-lamp-that-fell-upward", "the-far-crack"]
+  },
+  "the-holding-vaults": {
+    name: "The Holding Vaults",
+    region: "Beneath the Lower City",
+    subtitle: "Where the city keeps people it has questions for.",
+    atmosphere: "Numbered doors, a patient clerk, and the drip of somebody else's patience running out.",
+    consequenceOf: "suspicion",
+    stories: ["vaults-release", "the-clerks-file", "a-fellow-detainee"]
+  },
+  "the-pale-rooms": {
+    name: "The Pale Rooms",
+    region: "Beneath the Lower City",
+    subtitle: "Quiet wards for those who have seen too much of the dark.",
+    atmosphere: "White sheets, low lamps, and a nurse who hums the same four notes.",
+    consequenceOf: "dread",
+    stories: ["pale-rooms-recovery", "the-dreaming-patient", "the-night-nurse"]
+  },
+  "the-stitchery": {
+    name: "The Stitchery",
+    region: "Beneath the Lower City",
+    subtitle: "Where the badly hurt are sewn back into shape.",
+    atmosphere: "Thread, carbolic, and a surgeon who counts every stitch aloud.",
+    consequenceOf: "wounds",
+    stories: ["stitchery-mending", "the-surgeons-apprentice", "the-back-stair"]
+  },
+  "the-whisper-court": {
+    name: "The Whisper Court",
+    region: "Beneath the Lower City",
+    subtitle: "Where reputations are tried in absentia and sentenced to silence.",
+    atmosphere: "A gallery of fans, a judge nobody has seen, and gossip passed like evidence.",
+    consequenceOf: "scandal",
+    stories: ["whisper-court-appeal", "the-fan-maker", "a-rivals-brief"]
+  }
+};
+
+// Reaching 8 in a menace takes the player to its consequence area; each area's
+// storylets are the only way out (see engine.js travelBlockedReason).
+export const menaceAreas = {
+  suspicion: "the-holding-vaults",
+  dread: "the-pale-rooms",
+  wounds: "the-stitchery",
+  scandal: "the-whisper-court"
+};
+
+export const stories = {
+  "smuggling-operations": {
+    title: "Smuggling Operations",
+    kicker: "A repeatable activity",
+    text: "The docks are busy. If you know the right people, you can move goods without the city noticing. Build your Preparation to 5 to cash out.",
+    tags: ["always-available"],
+    choices: [
+      {
+        id: "bribe-a-dockworker",
+        label: "Bribe a dockworker",
+        requirements: [{ type: "obols", op: ">=", value: 5 }],
+        success: "A few coins buy silence and a safe route.",
+        successEffects: [{ type: "obols", amount: -5 }, { type: "quality", id: "preparation", amount: 1 }]
+      },
+      {
+        id: "sneak-past-patrols",
+        label: "Sneak past the patrols",
+        challenge: { quality: "shadow", difficulty: 4 },
+        success: "You find a gap in their rounds.",
+        failure: "They spot you. You have to run.",
+        successEffects: [{ type: "quality", id: "preparation", amount: 2 }],
+        failureEffects: [{ type: "menace", id: "suspicion", amount: 1 }]
+      },
+      {
+        id: "conclude-smuggling",
+        label: "Execute the operation",
+        requirements: [{ type: "quality", id: "preparation", op: ">=", value: 5 }],
+        success: "The goods are moved. The client pays.",
+        successEffects: [{ type: "set-quality", id: "preparation", value: 0 }, { type: "obols", amount: 25 }, { type: "item", id: "radiant-crystal", amount: 2 }]
+      }
+    ]
+  },
+
+  "guild-hall": {
+    title: "The Guilds of the Neath",
+    kicker: "Trades and Labour",
+    text: "Here, time is measured in sweat and ink. Adopt a trade, or claim your weekly recompense if you already have one.",
+    tags: ["always-available"],
+    choices: [
+      {
+        id: "claim-stipend",
+        label: "Claim your weekly stipend",
+        requirements: [{ type: "quality", id: "trade-tier", op: ">=", value: 1 }, { type: "time-since-flag", id: "last-stipend-claim", op: ">=", value: 604800000 }],
+        success: "You collect your pay. It will have to last the week.",
+        successEffects: [{ type: "set-time-flag", id: "last-stipend-claim" }, { type: "obols", amount: 15 }, { type: "item", id: "glimmering-shard", amount: 5 }]
+      },
+      {
+        id: "adopt-ink-smuggler",
+        label: "Become an Ink Smuggler",
+        requirements: [{ type: "quality", id: "standing-archivists", op: ">=", value: 1 }],
+        success: "The Archivists provide the ink; you provide the discretion.",
+        successEffects: [{ type: "set-quality", id: "trade-ink-smuggler", value: 1 }, { type: "set-quality", id: "trade-tier", value: 1 }, { type: "set-time-flag", id: "last-stipend-claim" }]
+      }
+    ]
+  },
+
+  "circle-diplomacy": {
+    title: "A Meeting of Circles",
+    kicker: "Standing and Obligations",
+    text: "Representatives of the various Circles gather at neutral tables to exchange favours, collect debts, and measure standing.",
+    tags: ["always-available"],
+    choices: [
+      {
+        id: "call-in-archivists",
+        label: "Call in an Obligation from the Archivists",
+        requirements: [{ type: "quality", id: "obligations-archivists", op: ">=", value: 1 }],
+        success: "They owe you a favour. They pay it in heavy, dangerous books.",
+        successEffects: [{ type: "quality", id: "obligations-archivists", amount: -1 }, { type: "item", id: "unfinished-page", amount: 5 }]
+      },
+      {
+        id: "raise-standing-lamplighters",
+        label: "Increase your Standing with the Lamplighters",
+        requirements: [{ type: "quality", id: "obligations-lamplighters", op: ">=", value: 3 }, { type: "item", id: "glimmering-shard", op: ">=", value: 20 }],
+        success: "You offer them light and call in old debts. They will remember your name.",
+        successEffects: [{ type: "quality", id: "obligations-lamplighters", amount: -3 }, { type: "item", id: "glimmering-shard", amount: -20 }, { type: "quality", id: "standing-lamplighters", amount: 1 }]
+      }
+    ]
+  },
+
+  "market-exchange": {
+    title: "The Silent Exchange",
+    kicker: "Currencies of the Neath",
+    text: "At a secluded stall, an individual with a velvet mask deals in light, shadows, and heavier things. They offer no greetings, only a pair of scales.",
+    tags: ["always-available"],
+    choices: [
+      {
+        id: "upconvert-shards",
+        label: "Fuse Glimmering Shards into a Radiant Crystal",
+        requirements: [{ type: "item", id: "glimmering-shard", op: ">=", value: 50 }],
+        success: "The shards sing as they melt together, forming a cold, solid gem.",
+        successEffects: [{ type: "item", id: "glimmering-shard", amount: -50 }, { type: "item", id: "radiant-crystal", amount: 1 }]
+      },
+      {
+        id: "downconvert-crystal",
+        label: "Shatter a Radiant Crystal",
+        requirements: [{ type: "item", id: "radiant-crystal", op: ">=", value: 1 }],
+        success: "A sharp blow, and the crystal splinters into a dozen smaller lights.",
+        successEffects: [{ type: "item", id: "radiant-crystal", amount: -1 }, { type: "item", id: "glimmering-shard", amount: 50 }]
+      },
+      {
+        id: "upconvert-crystals",
+        label: "Refine Radiant Crystals into a Blinding Gem",
+        requirements: [{ type: "item", id: "radiant-crystal", op: ">=", value: 10 }],
+        success: "The pressure builds until the light is almost unbearable to look at.",
+        successEffects: [{ type: "item", id: "radiant-crystal", amount: -10 }, { type: "item", id: "blinding-gem", amount: 1 }]
+      },
+      {
+        id: "sell-blinding-gem",
+        label: "Sell a Blinding Gem for Obols",
+        requirements: [{ type: "item", id: "blinding-gem", op: ">=", value: 1 }],
+        success: "The merchant weighs the gem carefully, then hands you a heavy purse of Obols.",
+        successEffects: [{ type: "item", id: "blinding-gem", amount: -1 }, { type: "obols", amount: 12 }]
+      },
+      {
+        id: "buy-velvet-cloak",
+        label: "Purchase a Velvet Cloak",
+        requirements: [{ type: "obols", op: ">=", value: 20 }],
+        success: "It is heavy, soft, and smells faintly of smoke. It will serve you well in the dark.",
+        successEffects: [{ type: "obols", amount: -20 }, { type: "item", id: "velvet-cloak", amount: 1 }]
+      },
+      {
+        id: "buy-spectacles",
+        label: "Purchase Smoked Spectacles",
+        requirements: [{ type: "obols", op: ">=", value: 15 }],
+        success: "They adjust your vision to the gloom.",
+        successEffects: [{ type: "obols", amount: -15 }, { type: "item", id: "spectacles", amount: 1 }]
+      }
+    ]
+  },
+
+  "lair-escape": {
+    id: "lair-escape",
+    title: "A Way Out",
+    text: "You wake on a stone bench beneath a city you cannot remember entering. The registry on the sealed iron door lists somebody else as its occupant, although you know your own name. A bell has been stamped into the lock. Escape, find out who changed the record, and discover why.",
+    once: true,
+    choices: [
+      {
+        id: "force",
+        label: "Force the lock",
+        challenge: { quality: "nerve", difficulty: 1 },
+        success: "The lock breaks. Inside it is a brass key stamped with the same bell as the door. A departing clerk mutters that the last person registered under your name vanished at Lantern Quay. You take the key and head for the docks.",
+        successEffects: [
+          { type: "location", id: "lantern-quay" },
+          { type: "unlock-location", id: "lantern-quay" },
+          { type: "flag", id: "tutorial.story", value: true },
+          { type: "flag", id: "tutorial.myself", value: true },
+          { type: "flag", id: "tutorial.possessions", value: true },
+          { type: "flag", id: "tutorial.travel", value: true }, { type: "flag", id: "tutorial.cards", value: true },
+          { type: "item", id: "brass-key", amount: 1 }
+        ],
+        failure: "The lock is stubborn, but you're learning its weaknesses.",
+        failureEffects: [
+        ]
+      },
+      {
+        id: "pick",
+        label: "Pick the lock",
+        challenge: { quality: "insight", difficulty: 1 },
+        success: "You read the lock's mechanism and lift the last tumbler. A brass key marked with a bell drops from the plate. A nearby intake ledger directs the bearer of that symbol to Lantern Quay. You take the key and follow the lead.",
+        successEffects: [
+          { type: "location", id: "lantern-quay" },
+          { type: "unlock-location", id: "lantern-quay" },
+          { type: "flag", id: "tutorial.story", value: true },
+          { type: "flag", id: "tutorial.myself", value: true },
+          { type: "flag", id: "tutorial.possessions", value: true },
+          { type: "flag", id: "tutorial.travel", value: true }, { type: "flag", id: "tutorial.cards", value: true },
+          { type: "item", id: "brass-key", amount: 1 }
+        ],
+        failure: "You can't quite get the angle right, but it's close.",
+        failureEffects: [
+        ]
+      }
+
+      ,{
+        id: "bargain",
+        label: "Persuade the night clerk to open the lock (Poise)",
+        challenge: { quality: "poise", difficulty: 1 },
+        success: "The hooded clerk flinches at the bell stamped into your door. You promise to carry the marked key away, and the clerk lets you leave without ringing it. A forwarding slip directs you to Lantern Quay; the clerk presses a pair of silk gloves into your hand as a peculiar farewell.",
+        successEffects: [
+          { type: "location", id: "lantern-quay" },
+          { type: "unlock-location", id: "lantern-quay" },
+          { type: "flag", id: "origin:poise", value: true },
+          { type: "flag", id: "tutorial.story", value: true },
+          { type: "flag", id: "tutorial.myself", value: true },
+          { type: "flag", id: "tutorial.possessions", value: true },
+          { type: "flag", id: "tutorial.travel", value: true },
+          { type: "flag", id: "tutorial.cards", value: true },
+          { type: "item", id: "brass-key", amount: 1 },
+          { type: "item", id: "silk-gloves", amount: 1 }
+        ],
+        failure: "The clerk refuses to help, but a trembling hand lingers on the latch. The next appeal may work.",
+        failureEffects: []
+      },
+      {
+        id: "slip",
+        label: "Slip out during the changing of the watch (Shadow)",
+        challenge: { quality: "shadow", difficulty: 1 },
+        success: "You count the guards' footsteps and step through a gap that exists for scarcely a heartbeat. On an unattended desk lies a bell-marked brass key and a docket forwarding missing prisoners to Lantern Quay. You leave wrapped in an abandoned velvet cloak, unseen by all except the dark.",
+        successEffects: [
+          { type: "location", id: "lantern-quay" },
+          { type: "unlock-location", id: "lantern-quay" },
+          { type: "flag", id: "origin:shadow", value: true },
+          { type: "flag", id: "tutorial.story", value: true },
+          { type: "flag", id: "tutorial.myself", value: true },
+          { type: "flag", id: "tutorial.possessions", value: true },
+          { type: "flag", id: "tutorial.travel", value: true },
+          { type: "flag", id: "tutorial.cards", value: true },
+          { type: "item", id: "brass-key", amount: 1 },
+          { type: "item", id: "velvet-cloak", amount: 1 }
+        ],
+        failure: "One guard turns back unexpectedly. You hold your breath against the wall and prepare for the next exchange.",
+        failureEffects: []
+      }
+    ]
+  },
+  "lair-inspect-door": {
+    id: "lair-inspect-door",
+    title: "Inspect the Door",
+    text: "It is thick iron, damp and rusted.",
+    choices: [
+      {
+        id: "examine",
+        label: "Look closely",
+        challenge: { quality: "poise", difficulty: 1 },
+        success: "You remain calm and notice a loose hinge.",
+        successEffects: [
+        ],
+        failure: "The rust obscures everything.",
+        failureEffects: [
+        ]
+      }
+    ]
+  },
+  "lair-listen": {
+    id: "lair-listen",
+    title: "Listen to the Dark",
+    text: "Is there anything out there?",
+    choices: [
+      {
+        id: "listen",
+        label: "Stay perfectly still",
+        challenge: { quality: "shadow", difficulty: 1 },
+        success: "You hear the sound of water dripping and distant gears.",
+        successEffects: [
+        ],
+        failure: "Your own breathing is too loud.",
+        failureEffects: [
+        ]
+      }
+    ]
+  },
+  "bell-under-water": {
+    once: true,
+    title: "The Bell Under Water",
+    kicker: "A sound from below",
+    text: "At Lantern Quay, a bell rings under the black water. Its symbol matches the key you found in the Lair. A ferryman explains that the bell once guided clerks to a submerged records passage leading to the Hollow Archive. If somebody altered your registration, the Archive may hold the original.",
+    requirements: [],
+    choices: [
+      {
+        id: "descend",
+        label: "Descend toward the bell",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 5 },
+        success: "The brass key opens a flooded records passage. You follow the clerks' old stair out of the water and into the Hollow Archive. In a margin, someone has crossed out the name under which you were detained.",
+        failure: "The flooded door will not open, but a keeper hears your knocking and leads you up a service stair into the Hollow Archive. You have black sand in your pocket, and an archive register lists your detention under another name.",
+        successEffects: [
+          { type: "obols", amount: 8 },
+          { type: "item", id: "black-sand", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [
+          { type: "item", id: "black-sand", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ]
+      },
+      {
+        id: "listen",
+        label: "Listen for the pattern",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 5 },
+        success: "The bell tolls in the pattern of an old archives code. A dockworker recognises the signal and shows you the public entrance to the Hollow Archive, where your registration may have been copied.",
+        failure: "You cannot decipher the signal, but a ferryman explains that the bell belongs to the city's record keepers. He takes you to the Hollow Archive so you can ask them directly.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [{ type: "location", id: "hollow-archive" }]
+      }
+    ]
+  },
+  "cartographer-at-dusk": {
+    once: true,
+    title: "The Cartographer at Dusk",
+    kicker: "A map with an appetite",
+    text: "A one-eyed cartographer offers a salt-stiffened map of the Lower City. She knows a route to the Velvet Market, where names can be exchanged like goods. The price is your name: not ownership of it, she says, only permission to repeat it to her clients. Is reaching the Market worth being recognised there?",
+    requirements: [],
+    choices: [
+      {
+        id: "trade",
+        label: "Let her tell the Market your name",
+        requirements: [],
+        success: "She writes your name into her client book and hands over a salt-stiffened map. You can now follow the red route to the Velvet Market, but strangers may recognise you before you recognise them.",
+        successEffects: [
+          { type: "obols", amount: 4 },
+          { type: "item", id: "salted-map", amount: 1 },
+          { type: "flag", id: "cartographer:gave-name", value: true },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "decline",
+        label: "Keep your name",
+        requirements: [],
+        success: "The cartographer keeps her book closed. She draws you a route to the market but does not tell her clients your name. You earn a measure of her respect, although the road will be less certain.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "flag", id: "cartographer:kept-name", value: true },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "borrowed-face": {
+    once: true,
+    title: "A Borrowed Face",
+    kicker: "The tailor's invitation",
+    text: "A tailor has stitched a face from moonlit silk. It resembles you, but happier. Wearing it would open every door in the market—and close one behind you.",
+    requirements: [],
+    choices: [
+      {
+        id: "wear",
+        label: "Wear the borrowed face",
+        requirements: [],
+        challenge: { quality: "poise", difficulty: 4 },
+        success: "The market parts like grass. You leave with a silver thimble and a new rumour about yourself.",
+        failure: "The face slips. The tailor charges you for the embarrassment.",
+        successEffects: [
+          { type: "item", id: "silver-thimble", amount: 1 },
+          { type: "obols", amount: 6 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: [{ type: "location", id: "velvet-market" }]
+      },
+      {
+        id: "study",
+        label: "Study the stitching",
+        requirements: [],
+        success: "You learn how appearances are fastened here.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "red-thread": {
+    once: true,
+    title: "The Red Thread",
+    kicker: "A bargain in three knots",
+    text: "A child in a red coat asks you to follow a thread through the market. She promises it leads to whatever you have misplaced.",
+    requirements: [],
+    choices: [
+      {
+        id: "follow",
+        label: "Follow the thread",
+        requirements: [],
+        success: "It leads to a locked archive door and a useful key.",
+        successEffects: [
+          { type: "item", id: "archive-key", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "cut",
+        label: "Cut the thread",
+        requirements: [],
+        success: "The market exhales. You keep the loose end; it may be useful.",
+        successEffects: [
+          { type: "item", id: "red-thread-end", amount: 1 },
+          { type: "obols", amount: 4 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "index-of-lost-things": {
+    once: true,
+    title: "The Index of Lost Things",
+    kicker: "A volume that knows you",
+    text: "The archivist shows you the Index of Lost Things: a catalogue of missing identities, altered civic records and people the city officially refuses to remember. An entry in handwriting like yours gives the date you were admitted to the Lair. Someone has cut out the last line. This is the first evidence that your erased record was deliberate.",
+    requirements: [],
+    choices: [
+      {
+        id: "read",
+        label: "Read the full entry",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 6 },
+        success: "The archive gives you a memory, sharpened into a tool.",
+        failure: "The words rearrange into a recipe for regret.",
+        successEffects: [
+          { type: "item", id: "bright-memory", amount: 1 },
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [{ type: "location", id: "hollow-archive" }]
+      },
+      {
+        id: "close",
+        label: "Close the book gently",
+        requirements: [],
+        success: "The librarian smiles. Some doors are safer when left named.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "archive-paper-trail": {
+    title: "The Page They Overlooked",
+    kicker: "Main story: The Missing Name",
+    text: "The Index confirmed that someone altered your detention record, but the last line is still missing. An archivist offers to show you the misfiled slips left behind when an entry is removed. One bears your handwriting. Take it to the reading desk and try to finish the sentence.",
+    requirements: [
+      { type: "flag", id: "story-complete:index-of-lost-things", op: "==", value: true },
+      { type: "flag", id: "read-own-entry", op: "!=", value: true },
+      { type: "item", id: "unfinished-page", op: "<", value: 1 }
+    ],
+    choices: [
+      { id: "request-page", label: "Ask for the missing page", success: "The archivist retrieves a torn page: 'If I come back down here, I must remember to...' You recognise the handwriting. You can now investigate it in Finish the Page.", successEffects: [{ type: "item", id: "unfinished-page", amount: 1 }] },
+      { id: "help-search", label: "Help search the misfiled records", success: "After sorting a stack of duplicates, you find a page in your own handwriting. It is the missing half of your official entry. You can now investigate it in Finish the Page.", successEffects: [{ type: "item", id: "unfinished-page", amount: 1 }, { type: "quality", id: "insight", amount: 1 }] }
+    ]
+  },
+  "a-name-sold": {
+    title: "Someone Knows Your Name",
+    kicker: "A bargain comes due",
+    text: "In the Velvet Market, a masked broker greets you by name before you introduce yourself. The cartographer has been sharing her client book. The broker offers information about the city's altered registers, but only if you agree to be recognised again.",
+    requirements: [
+      { type: "flag", id: "cartographer:gave-name", op: "==", value: true },
+      { type: "flag", id: "cartographer:debt-resolved", op: "!=", value: true }
+    ],
+    choices: [
+      { id: "question-broker", label: "Demand to know who copied your name", success: "The broker shows you an Archive invoice bearing your name, and warns that somebody paid to see your file changed. You gain a lead, though the questioning attracts unwanted attention.", successEffects: [{ type: "quality", id: "insight", amount: 1 }, { type: "menace", id: "suspicion", amount: 1 }, { type: "flag", id: "cartographer:debt-resolved", value: true }] },
+      { id: "accept-introduction", label: "Accept the introduction and hear the rumour", success: "The broker admits that the Archive has been correcting inconvenient identities. Being known earns you an invitation and a few coins, but the cartographer's clients will remember you.", successEffects: [{ type: "quality", id: "poise", amount: 1 }, { type: "obols", amount: 4 }, { type: "flag", id: "cartographer:debt-resolved", value: true }] }
+    ]
+  },
+  "the-quiet-librarian": {
+    once: true,
+    title: "The Quiet Librarian",
+    kicker: "A question without a mouth",
+    text: "The quiet librarian says the Archive keeps three shelves for every lost person: the past as recorded, the present as witnessed, and the future as predicted. Your past has a page torn from it. She points to a dusty shelf where the missing page may have been filed.",
+    requirements: [],
+    choices: [
+      {
+        id: "dusty",
+        label: "Choose the dusty shelf",
+        requirements: [],
+        success: "Beneath the dust is a torn page from the altered registry, written in your own hand. The librarian offers it to you and points out the route back to the quay.",
+        successEffects: [
+          { type: "obols", amount: 12 },
+          { type: "item", id: "unfinished-page", amount: 1 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "future",
+        label: "Choose the expected shelf",
+        requirements: [],
+        success: "The future shelf contains an appointment card addressed to you at the Velvet Market. The librarian warns that someone expects you there. You leave with a new lead and a title you did not request.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "obols", amount: 3 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "tea-for-the-tide": {
+    title: "Tea for the Tide",
+    kicker: "A courtesy to the current",
+    text: "The tide has come in carrying a porcelain cup. A dockworker asks whether you will pour it back into the sea, or drink what the sea has prepared.",
+    tags: ["opportunity"],
+    choices: [
+      { id: "pour", label: "Pour the tea into the tide", requirements: [], success: "The water settles. The dockworker gives you a name to use at the market.", successEffects: [{ type: "flag", id: "acquaintance-dockworker", value: true }, { type: "quality", id: "poise", amount: 1 }, { type: "location", id: "lantern-quay" }], failureEffects: [] },
+      { id: "drink", label: "Drink the impossible tea", requirements: [], success: "You remember a shore that has never existed.", failure: "The cup tastes of every promise you have broken.", challenge: { quality: "nerve", difficulty: 5 }, successEffects: [{ type: "item", id: "tide-cup", amount: 1 }, { type: "menace", id: "dread", amount: 1 }, { type: "location", id: "hollow-archive" }], failureEffects: [{ type: "menace", id: "dread", amount: 1 }, { type: "location", id: "hollow-archive" }] }
+    ]
+  },
+  "market-gossip": {
+    title: "Market Gossip",
+    kicker: "A rumour with clean shoes",
+    text: "Three merchants are whispering about a door that only opens for people who have been seen in the wrong place. They notice you listening.",
+    tags: ["opportunity", "repeatable"],
+    choices: [
+      {
+        id: "trade-rumour",
+        label: "Trade a rumour of your own",
+        success: "The merchants accept the exchange and point you toward the Gardens.",
+        successEffects: [
+          { type: "obols", amount: 4 },
+          { type: "unlock-location", id: "clockwork-gardens" },
+          { type: "menace", id: "suspicion", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "leave",
+        label: "Leave before they learn your name",
+        success: "You leave with your name intact and your pockets lighter by one secret.",
+        successEffects: [
+          { type: "quality", id: "shadow", amount: 1 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "catalogue-the-dark": {
+    title: "Catalogue the Dark",
+    kicker: "An unpaid scholarly errand",
+    text: "A shelf has been filled with darkness instead of books. The archive will pay you in obols if you assign each patch a proper title.",
+    challenge: { quality: "insight", difficulty: 7 },
+    choices: [
+      {
+        id: "catalogue",
+        label: "Give the darkness its titles",
+        success: "The shelf becomes legible. The archive records your name with a respectful error.",
+        failure: "The darkness gives you a title instead.",
+        successEffects: [
+          { type: "obols", amount: 15 },
+          { type: "item", id: "ink-of-absence", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [
+          { type: "menace", id: "dread", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ]
+      },
+      {
+        id: "close-shelf",
+        label: "Close the shelf",
+        challenge: false,
+        success: "Some knowledge is safer when it remains unindexed.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -1 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "garden-appointment": {
+    once: true,
+    title: "The Garden Appointment",
+    kicker: "A flower expects you",
+    text: "A clockwork flower has scheduled a meeting for you at the far end of the glasshouse. It has sent three reminders and one threat.",
+    requirements: [{ type: "item", id: "tide-cup", op: ">=", value: 1 }],
+    challenge: { quality: "poise", difficulty: 6 },
+    choices: [
+      {
+        id: "attend",
+        label: "Attend the appointment",
+        success: "The flower offers a seed that remembers the sun.",
+        failure: "You arrive late. The flower makes a note of it.",
+        successEffects: [
+          { type: "item", id: "sun-seed", amount: 1 },
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: [
+          { type: "menace", id: "scandal", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ]
+      },
+      {
+        id: "apologise",
+        label: "Send an apology by moth",
+        challenge: false,
+        success: "The flower accepts. For now.",
+        successEffects: [
+          { type: "menace", id: "scandal", amount: -1 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "borrowed-sunlight": {
+    once: true,
+    title: "Borrowed Sunlight",
+    kicker: "A dangerous luxury",
+    text: "A glass jar contains a thumb-sized sun. The gardener offers it to you for one night, provided you promise to return the darkness it displaces.",
+    tags: ["opportunity"],
+    choices: [
+      {
+        id: "borrow",
+        label: "Borrow the small sun",
+        success: "The city looks almost kind in its light.",
+        successEffects: [
+          { type: "item", id: "small-sun", amount: 1 },
+          { type: "obols", amount: 9 },
+          { type: "menace", id: "dread", amount: 1 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "refuse-sun",
+        label: "Refuse the bargain",
+        success: "The gardener approves of your caution.",
+        successEffects: [
+          { type: "quality", id: "nerve", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "salt-on-the-map": {
+    title: "Salt on the Map",
+    kicker: "The first thing you owned",
+    text: "The cartographer's salt-stiffened map shows a coastline that does not match Lantern Quay. If you wash away the salt, you may expose a stairway up to the Clockwork Gardens. The route will become visible, but the cartographer will notice her map has changed.",
+    requirements: [
+      { type: "item", id: "salted-map", op: ">=", value: 1 },
+      { type: "flag", id: "salt-on-the-map:soak", op: "!=", value: true }
+    ],
+    choices: [
+      {
+        id: "soak",
+        label: "Soak the map in the tide",
+        requirements: [],
+        success: "The salt lifts away in a pale cloud. Underneath, a route has been waiting: up through the lamp-stairs to the Clockwork Gardens. You follow it before the paper dries and forgets.",
+        successEffects: [
+          { type: "flag", id: "map-route-known", value: true },
+          { type: "unlock-location", id: "clockwork-gardens" },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "read-salt",
+        label: "Read the salt as though it were ink",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 4 },
+        success: "The crystals are a record of every tide the map has survived. Someone carried it a very long way to put it in your hand.",
+        failure: "You read a great deal of salt. It says, consistently, salt.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "obols", amount: 3 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [{ type: "location", id: "lantern-quay" }]
+      }
+    ]
+  },
+  "the-sand-reader": {
+    title: "The Sand Reader",
+    kicker: "Fortunes from under the water",
+    text: "Behind a curtain stitched with fish-scales, a woman with clouded eyes sifts sand through her fingers. She stops when you come in. \"You have been below the bell,\" she says. \"Show me what it gave you.\"",
+    requirements: [{ type: "item", id: "black-sand", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "reading",
+        label: "Pour your black sand for a reading",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 5 },
+        success: "The sand settles into the shape of a door you have not opened yet. She traces its hinges for you twice, so you will know them when you see them.",
+        failure: "The sand settles into the shape of your own hand. She says that is a common fortune, and not a cheap one.",
+        successEffects: [
+          { type: "item", id: "black-sand", amount: -1 },
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "obols", amount: 2 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: [
+          { type: "item", id: "black-sand", amount: -1 },
+          { type: "menace", id: "dread", amount: 1 },
+          { type: "location", id: "velvet-market" }
+        ]
+      },
+      {
+        id: "sell-sand",
+        label: "Sell her the sand by the pinch",
+        requirements: [],
+        success: "She weighs it on a scale with no pans and pays in warm coins. \"Come back when the bell has more to say.\"",
+        successEffects: [
+          { type: "item", id: "black-sand", amount: -1 },
+          { type: "obols", amount: 6 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-locked-stacks": {
+    title: "The Locked Stacks",
+    kicker: "A key finds its door",
+    text: "The key from the red thread has begun to tug toward the back of the archive, where a gate of black iron guards shelves nobody admits to cataloguing. The lock is shaped like a question mark.",
+    requirements: [{ type: "item", id: "archive-key", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "unlock",
+        label: "Unlock the gate and go in",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 6 },
+        success: "The key turns once and stays in the lock, content. Inside, every book is a ledger of debts owed to the city. Yours is thinner than you feared. You copy out the useful parts and leave the rest unread.",
+        failure: "The gate opens onto a corridor that is slightly longer each time you look down it. You retreat with the key still in your hand and the distinct feeling of having been measured.",
+        successEffects: [
+          { type: "item", id: "archive-key", amount: -1 },
+          { type: "obols", amount: 14 },
+          { type: "quality", id: "shadow", amount: 1 },
+          { type: "flag", id: "read-the-debt-ledgers", value: true },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [
+          { type: "menace", id: "suspicion", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ]
+      },
+      {
+        id: "return-key",
+        label: "Return the key to the child in red",
+        requirements: [],
+        success: "You find her in the market, winding the red thread back onto its spool. She takes the key, bows as if you have done something much larger, and tells you which stalls not to trust.",
+        successEffects: [
+          { type: "item", id: "archive-key", amount: -1 },
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "obols", amount: 4 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "finish-the-page": {
+    title: "Finish the Page",
+    kicker: "Your own handwriting, interrupted",
+    text: "The page from the dusty shelf is written in your hand and stops mid-sentence: \"If I come back down here, I must remember to\". The ink of the last word never dried.",
+    requirements: [{ type: "item", id: "unfinished-page", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "write-ending",
+        label: "Write the ending yourself",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 6 },
+        success: "You finish the line in your own words: 'the record was changed, not lost'. A hidden shelf-mark appears, pointing to a skyward annex. You keep this discovery out of the Archive's official index.",
+        failure: "Every ending you write slides off the paper and pools at the bottom of the page. The sentence stays unfinished, and a little smug.",
+        successEffects: [
+          { type: "item", id: "unfinished-page", amount: -1 },
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "flag", id: "read-own-entry", value: true },
+          { type: "flag", id: "main-quest:kept-record-private", value: true },
+          { type: "obols", amount: 10 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [{ type: "location", id: "hollow-archive" }]
+      },
+      {
+        id: "stitch-page",
+        label: "Stitch the page into the index with the silver thimble",
+        requirements: [{ type: "item", id: "silver-thimble", op: ">=", value: 1 }],
+        success: "The thimble guides the needle for you. Once the page is bound into the Index of Lost Things, the archive treats you as one of its own entries: welcome, if slightly overdue.",
+        successEffects: [
+          { type: "item", id: "unfinished-page", amount: -1 },
+          { type: "item", id: "silver-thimble", amount: -1 },
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "obols", amount: 18 },
+          { type: "flag", id: "bound-into-the-index", value: true },
+          { type: "flag", id: "read-own-entry", value: true },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "return-the-darkness": {
+    title: "Return the Darkness",
+    kicker: "A promise comes due",
+    text: "Wherever the small sun goes, a patch of darkness trails a few steps behind it, like a dog waiting to be called home. The gardener made you promise to give it back.",
+    requirements: [{ type: "item", id: "small-sun", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "gather",
+        label: "Gather the darkness into your coat and carry it home",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 6 },
+        success: "The darkness is heavier than it looks and quieter than you expect. The gardener takes back the sun, pours the dark into an empty jar, and seals it with wax the colour of your pulse.",
+        failure: "Some of the darkness slips away down the lamp-stairs. The gardener takes back the sun and says nothing, which is worse.",
+        successEffects: [
+          { type: "item", id: "small-sun", amount: -1 },
+          { type: "quality", id: "shadow", amount: 1 },
+          { type: "obols", amount: 12 },
+          { type: "flag", id: "kept-the-sun-promise", value: true },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: [
+          { type: "item", id: "small-sun", amount: -1 },
+          { type: "location", id: "clockwork-gardens" }
+        ]
+      },
+      {
+        id: "keep-sun",
+        label: "Keep the sun a little longer",
+        requirements: [],
+        success: "You buy candles to keep the patient dark at a polite distance. It sits outside your door each night and does not complain.",
+        successEffects: [
+          { type: "obols", amount: -3 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "plant-the-sun-seed": {
+    title: "The Seed that Remembers the Sun",
+    kicker: "A gift from a punctual flower",
+    text: "The seed in your pocket is warm and faintly impatient. There is an empty bed of brass filings in the middle of the glasshouse, just its size.",
+    requirements: [{ type: "item", id: "sun-seed", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "plant",
+        label: "Plant it in the brass bed",
+        requirements: [{ type: "flag", id: "plant-the-sun-seed:plant", op: "!=", value: true }],
+        success: "It takes root with a sound like a watch being wound. By the time you have washed your hands, it has put up a green shoot and something that is almost a sunrise.",
+        successEffects: [
+          { type: "item", id: "sun-seed", amount: -1 },
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "swallow",
+        label: "Swallow it and see what grows",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 7 },
+        success: "For an hour you are warm all the way through, and you understand the city's clocks as if they were speaking to you.",
+        failure: "It is like swallowing a lit match that is also disappointed in you. You spend the afternoon lying very still on a garden bench.",
+        successEffects: [
+          { type: "item", id: "sun-seed", amount: -1 },
+          { type: "quality", id: "insight", amount: 2 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: [
+          { type: "item", id: "sun-seed", amount: -1 },
+          { type: "menace", id: "wounds", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ]
+      }
+    ]
+  },
+  "the-seedling-dawn": {
+    title: "The Seedling Dawn",
+    kicker: "Something you planted",
+    text: "The seed you planted has become a sapling of copper and glass. Every few hours it blossoms into a very small morning, and the brass leaves around it turn to face it.",
+    requirements: [{ type: "flag", id: "plant-the-sun-seed:plant", op: "==", value: true }],
+    choices: [
+      {
+        id: "harvest",
+        label: "Harvest one of its mornings",
+        requirements: [],
+        success: "You catch the morning in your cupped hands. It fits in your pocket, just about, and casts a shadow that will want returning.",
+        successEffects: [
+          { type: "item", id: "small-sun", amount: 1 },
+          { type: "obols", amount: 4 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "tend",
+        label: "Sit with it until it blooms",
+        requirements: [],
+        success: "It is a small, entirely private dawn. The gardener pretends not to watch you enjoy it.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-memory-graft": {
+    title: "The Memory Graft",
+    kicker: "A rose that wants to remember",
+    text: "One of the brass roses has no scent at all. The gardener explains that it was never given a memory to grow from, and looks pointedly at the bright thing in your pocket.",
+    requirements: [{ type: "item", id: "bright-memory", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "graft",
+        label: "Graft your bright memory onto the rose",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 5 },
+        success: "The rose opens and smells of the day you are trying to remember. You still have the memory, somehow; it simply has company now.",
+        failure: "The graft does not take. The memory comes back to you slightly bruised, and the rose goes on smelling of nothing.",
+        successEffects: [
+          { type: "item", id: "bright-memory", amount: -1 },
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "obols", amount: 15 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: [{ type: "location", id: "clockwork-gardens" }]
+      },
+      {
+        id: "gift-to-flower",
+        label: "Offer it to the flower you kept waiting",
+        requirements: [{ type: "flag", id: "garden-appointment:attend", op: "==", value: true }],
+        success: "The clockwork flower accepts the memory, files it somewhere inside its petals, and cancels all your outstanding appointments. It is the nearest thing to forgiveness the gardens offer.",
+        successEffects: [
+          { type: "item", id: "bright-memory", amount: -1 },
+          { type: "quality", id: "poise", amount: 2 },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "unwritten-ink": {
+    title: "Unwritten Ink",
+    kicker: "What the dark gave you",
+    text: "The ink the archive gave you writes nothing at all, but whatever it touches becomes a little harder to remember. The market has several uses for that.",
+    requirements: [{ type: "item", id: "ink-of-absence", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "blot-rumour",
+        label: "Blot out a rumour about yourself",
+        requirements: [],
+        success: "You find the rumour chalked on the back of a stall and draw one careful line through it. By evening, nobody can say quite who it was about.",
+        successEffects: [
+          { type: "item", id: "ink-of-absence", amount: -1 },
+          { type: "quality", id: "shadow", amount: 1 },
+          { type: "obols", amount: 3 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "sell-ink",
+        label: "Sell the ink to the tailor",
+        requirements: [],
+        success: "The tailor pays generously and does not say what it is for. Later you notice one of the borrowed faces on display has no name tag.",
+        successEffects: [
+          { type: "item", id: "ink-of-absence", amount: -1 },
+          { type: "obols", amount: 11 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-cartographer-returns": {
+    title: "The Cartographer Returns",
+    kicker: "She noticed what you did to the map",
+    text: "The one-eyed cartographer is waiting at the top of the quay steps. \"You washed the salt off,\" she says, not quite accusing. \"Nobody washes the salt off. May I see what was underneath?\"",
+    requirements: [
+      { type: "flag", id: "map-route-known", op: "==", value: true },
+      { type: "flag", id: "cartographer-reckoned", op: "!=", value: true }
+    ],
+    choices: [
+      {
+        id: "give-map",
+        label: "Give her the salted map",
+        requirements: [{ type: "item", id: "salted-map", op: ">=", value: 1 }],
+        success: "She holds it up to a lamp for a long time. Then she pays you more than it is worth and less than it means, and folds it away somewhere near her heart.",
+        successEffects: [
+          { type: "item", id: "salted-map", amount: -1 },
+          { type: "obols", amount: 10 },
+          { type: "flag", id: "cartographer-reckoned", value: true },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "describe-route",
+        label: "Describe the route, but keep the map",
+        requirements: [],
+        challenge: { quality: "poise", difficulty: 5 },
+        success: "You tell it well enough that she draws it from your description without a single correction. She nods at you the way one professional nods at another.",
+        failure: "Your description wanders. She draws a very beautiful map of somewhere that does not exist and thanks you for it anyway.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "flag", id: "cartographer-reckoned", value: true },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [
+          { type: "flag", id: "cartographer-reckoned", value: true },
+          { type: "location", id: "lantern-quay" }
+        ]
+      }
+    ]
+  },
+  "the-debt-collector": {
+    title: "The Debt Collector",
+    kicker: "Someone else read the ledgers too",
+    text: "A collector in a coat of stitched receipts falls into step beside you. \"You've been in the locked stacks,\" he murmurs. \"Then you know who owes what. Knowledge like that is a debt of its own.\"",
+    requirements: [
+      { type: "flag", id: "read-the-debt-ledgers", op: "==", value: true },
+      { type: "flag", id: "collector-answered", op: "!=", value: true }
+    ],
+    choices: [
+      {
+        id: "settle-stranger",
+        label: "Quietly settle a stranger's small debt",
+        requirements: [{ type: "obols", op: ">=", value: 5 }],
+        success: "You pick a name you will never meet and pay what it owes. The collector crosses it out with visible reluctance and leaves you alone for good.",
+        successEffects: [
+          { type: "obols", amount: -5 },
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "flag", id: "collector-answered", value: true },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "sell-secrets",
+        label: "Sell him what you read",
+        requirements: [],
+        challenge: { quality: "shadow", difficulty: 4 },
+        success: "You name three debts he did not know about. He pays you from a pocket full of other people's money and pretends you never met.",
+        failure: "He already knew all three, and now he knows you tried to sell them. He smiles, writes something down and moves on.",
+        successEffects: [
+          { type: "obols", amount: 16 },
+          { type: "quality", id: "shadow", amount: 1 },
+          { type: "flag", id: "collector-answered", value: true },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: [
+          { type: "menace", id: "suspicion", amount: 2 },
+          { type: "flag", id: "collector-answered", value: true },
+          { type: "location", id: "velvet-market" }
+        ]
+      }
+    ]
+  },
+  "an-entry-in-the-index": {
+    title: "An Entry in the Index",
+    kicker: "You are catalogued now",
+    text: "Since your page was bound into the Index of Lost Things, readers have started requesting you. A slip on the librarian's desk bears your name, a shelf mark and a waiting list.",
+    requirements: [{ type: "flag", id: "bound-into-the-index", op: "==", value: true }],
+    choices: [
+      {
+        id: "be-borrowed",
+        label: "Let a reader borrow you for an afternoon",
+        requirements: [],
+        success: "An old man asks you what it was like to forget everything. You tell him honestly. He weeps a little, thanks you, and leaves a donation for the archive in your name.",
+        successEffects: [
+          { type: "obols", amount: 8 },
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "look-yourself-up",
+        label: "Look yourself up",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 7 },
+        success: "Your entry lists a date of arrival, a place of origin that has been carefully rubbed out, and a note in the margin: \"Returned early. Handle kindly.\"",
+        failure: "Your entry is currently on loan. The librarian cannot say to whom.",
+        successEffects: [
+          { type: "flag", id: "read-own-entry", value: true },
+          { type: "obols", amount: 6 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [{ type: "location", id: "hollow-archive" }]
+      }
+    ]
+  },
+  "the-gardeners-thanks": {
+    title: "The Gardener's Thanks",
+    kicker: "A promise kept is remembered",
+    text: "The gardener has put the jar of returned darkness on a high shelf, between a jar of rain and a jar of silence. \"People always borrow the light,\" she says. \"Hardly anyone brings back the dark. Ask me for something.\"",
+    requirements: [
+      { type: "flag", id: "kept-the-sun-promise", op: "==", value: true },
+      { type: "flag", id: "gardener-thanked", op: "!=", value: true }
+    ],
+    choices: [
+      {
+        id: "ask-purpose",
+        label: "Ask what the darkness is for",
+        requirements: [],
+        success: "\"For sleeping,\" she says. \"Somebody has to. The city lends its dark to whoever needs it most, and forgets to ask for it back.\" You leave understanding the lamps a little better.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "obols", amount: 6 },
+          { type: "flag", id: "gardener-thanked", value: true },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "ask-work",
+        label: "Ask to help tend the gardens",
+        requirements: [],
+        success: "She hands you a pair of brass shears and shows you which leaves are telling the time wrongly. It is careful, quiet work, and she pays you for it fairly.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "obols", amount: 10 },
+          { type: "flag", id: "gardener-thanked", value: true },
+          { type: "location", id: "clockwork-gardens" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-margin-note": {
+    title: "The Margin Note",
+    kicker: "Returned early. Handle kindly.",
+    text: "Your recovered record contains a reference number that belongs to no shelf in the Archive. The librarian identifies it as a bearing to the Glass Observatory in the High Galleries. Someone there was studying the same mysterious light when your name disappeared. Following the lead could bring you closer to whoever changed your file.",
+    requirements: [{ type: "flag", id: "read-own-entry", op: "==", value: true }],
+    choices: [
+      {
+        id: "follow-upward",
+        label: "Follow the shelf mark up into the High Galleries",
+        requirements: [],
+        success: "A spiral stair behind the reference desk climbs past the last lamp and keeps going. At the top, under a dome of fogged glass, someone has been expecting you for years and has only just put the kettle on.",
+        successEffects: [
+          { type: "unlock-location", id: "glass-observatory" },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "copy-note",
+        label: "Copy the note into your own hand before you go anywhere",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 5 },
+        success: "Written out a second time, the shelf mark resolves into a bearing and an elevation. Whoever wrote it was describing a place in the sky, not on a shelf.",
+        failure: "Your copy smudges. The original, meanwhile, has become slightly clearer, as though it prefers being read to being reproduced.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "location", id: "hollow-archive" }
+        ],
+        failureEffects: [{ type: "location", id: "hollow-archive" }]
+      }
+    ]
+  },
+  "survey-the-stone-sky": {
+    title: "Survey the Stone Sky",
+    kicker: "Every crack is catalogued",
+    text: "The astronomers here do not look at stars. They look up at the vast stone ceiling over the city and chart its cracks, seepages and slow shifts with the devotion other people save for constellations.",
+    requirements: [],
+    choices: [
+      {
+        id: "take-the-lens",
+        label: "Take a turn at the great lens",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 6 },
+        success: "Through the lens the ceiling is enormous and close enough to touch. Near the eastern rim you find a crack no chart has recorded, and a thread of pale light inside it that is not lamplight.",
+        failure: "You spend an hour mapping what turns out to be a smear on the lens. The astronomers are very kind about it.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "obols", amount: 9 },
+          { type: "flag", id: "found-the-far-crack", value: true },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: [{ type: "location", id: "glass-observatory" }]
+      },
+      {
+        id: "carry-plates",
+        label: "Carry photographic plates for the astronomers",
+        requirements: [],
+        success: "The plates are heavy, cold and irreplaceable. You drop none of them. The chief astronomer pays you in obols and in the rare compliment of being asked back.",
+        successEffects: [
+          { type: "obols", amount: 6 },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-lamp-that-fell-upward": {
+    title: "The Lamp that Fell Upward",
+    kicker: "A small catastrophe in reverse",
+    text: "One of the city's street lamps has come loose and fallen the wrong way. It is wedged high in the observatory rafters, still burning, and the astronomers cannot read their charts for the glare.",
+    requirements: [],
+    choices: [
+      {
+        id: "climb-for-it",
+        label: "Climb the rafters and set it loose",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 7 },
+        success: "You work it free with your coat wrapped round your hands. Released, it drifts gently back down through the dome and toward the street it came from, as if nothing had happened.",
+        failure: "The rafters are further apart than they looked from the floor. You come down the slow way, without the lamp and with a new respect for gravity.",
+        successEffects: [
+          { type: "quality", id: "nerve", amount: 1 },
+          { type: "obols", amount: 12 },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: [
+          { type: "menace", id: "wounds", amount: 2 },
+          { type: "location", id: "glass-observatory" }
+        ]
+      },
+      {
+        id: "leave-lamp",
+        label: "Suggest they leave it; it seems happy up there",
+        requirements: [],
+        success: "The astronomers confer and decide that a lamp which wants to be a star should be allowed to try. They mark it on the chart with a very small, very formal asterisk.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-far-crack": {
+    title: "The Far Crack",
+    kicker: "Light that is not lamplight",
+    text: "You return to the uncharted crack at the eastern rim. The thread of pale light is still there, thin as a hair and utterly steady. The chief astronomer stands beside you and, for once, says nothing.",
+    requirements: [
+      { type: "flag", id: "found-the-far-crack", op: "==", value: true },
+      { type: "flag", id: "far-crack-answered", op: "!=", value: true }
+    ],
+    choices: [
+      {
+        id: "signal",
+        label: "Hold your small sun up to the crack",
+        requirements: [{ type: "item", id: "small-sun", op: ">=", value: 1 }],
+        success: "For a moment the small sun and the thin light are the same colour. Then the thread of light flickers: once, twice, three times. Someone, very far above, has seen you. The small sun goes out in your hands, entirely spent.",
+        successEffects: [
+          { type: "item", id: "small-sun", amount: -1 },
+          { type: "obols", amount: 20 },
+          { type: "flag", id: "signalled-the-surface", value: true },
+          { type: "flag", id: "far-crack-answered", value: true },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "chart-it",
+        label: "Help the astronomers chart it properly",
+        requirements: [],
+        success: "It takes all night. When the chart is finished the crack has a name, a number, and a column of careful measurements. Your name is in the margin as its discoverer.",
+        successEffects: [
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "obols", amount: 8 },
+          { type: "flag", id: "far-crack-answered", value: true },
+          { type: "location", id: "glass-observatory" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-submerged-door": {
+    once: true,
+    title: "The Submerged Door",
+    kicker: "The key remembers the lock",
+    text: "Since you went down the drowned stair, the brass key you woke holding has grown heavy whenever you pass the water. It knows the door below better than you do.",
+    requirements: [
+      { type: "item", id: "brass-key", op: ">=", value: 1 },
+      { type: "flag", id: "bell-under-water:descend", op: "==", value: true }
+    ],
+    choices: [
+      {
+        id: "leave-key",
+        label: "Go back down and leave the key in its lock",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 6 },
+        success: "The door accepts the key with a sigh of old water. Behind it, a narrow hall is lined with keys exactly like yours, each labelled with a name. There is an empty hook with your name on it. You leave the key where it belongs, and feel lighter than you have since waking.",
+        failure: "The cold turns you back before the last step. The key stays in your pocket, patient as ever.",
+        successEffects: [
+          { type: "item", id: "brass-key", amount: -1 },
+          { type: "quality", id: "nerve", amount: 1 },
+          { type: "obols", amount: 10 },
+          { type: "flag", id: "returned-the-brass-key", value: true },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [
+          { type: "menace", id: "wounds", amount: 1 },
+          { type: "location", id: "lantern-quay" }
+        ]
+      },
+      {
+        id: "keep-key",
+        label: "Keep it. You are not ready to be hung on a hook.",
+        requirements: [],
+        success: "You close your hand around the key until it cools. Whatever waits below can go on waiting.",
+        successEffects: [
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-loose-end": {
+    title: "The Loose End",
+    kicker: "Something still tied to you",
+    text: "You kept the cut end of the red thread. It will not lie flat in your pocket; it keeps curling toward the market's inner curtains, as if the knot it lost is still somewhere nearby.",
+    requirements: [{ type: "item", id: "red-thread-end", op: ">=", value: 1 }],
+    choices: [
+      {
+        id: "follow-end",
+        label: "Let the loose end lead you",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 5 },
+        success: "It leads you behind a curtain to a stall selling mended things. The stallholder ties your thread back into a larger red weave, thanks you for returning a missing stitch, and pays you for your trouble.",
+        failure: "It leads you in a slow circle back to where you started. The thread seems pleased with itself.",
+        successEffects: [
+          { type: "item", id: "red-thread-end", amount: -1 },
+          { type: "obols", amount: 9 },
+          { type: "quality", id: "insight", amount: 1 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: [{ type: "location", id: "velvet-market" }]
+      },
+      {
+        id: "tie-finger",
+        label: "Tie it round your finger, so you do not forget",
+        requirements: [],
+        success: "It knots itself neatly. For the rest of the day you remember every name you hear, and forget none of them afterwards.",
+        successEffects: [
+          { type: "item", id: "red-thread-end", amount: -1 },
+          { type: "quality", id: "poise", amount: 1 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "vaults-release": {
+    title: "The Clerk's Questions",
+    kicker: "A ledger with your name in it",
+    text: "The clerk has a ledger, a pen, and all the time in the world. Every question is polite. None of them are simple.",
+    requirements: [],
+    choices: [
+      {
+        id: "wait",
+        label: "Answer every question, slowly and truthfully",
+        requirements: [],
+        success: "It takes days. The clerk underlines nothing, thanks you, and a door you had not noticed opens onto the quay.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -3 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "bold",
+        label: "Slip out during the change of lamps",
+        requirements: [],
+        challenge: { quality: "shadow", difficulty: 6 },
+        success: "Between one lamp going out and the next being lit, you are simply elsewhere. The clerk will note it in the ledger, later.",
+        failure: "A lamp is lit early. The clerk adds a line to your page and says nothing at all.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -5 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [{ type: "menace", id: "suspicion", amount: -1 }]
+      },
+      {
+        id: "pay",
+        label: "Settle the matter of your 'fees'",
+        requirements: [{ type: "obols", op: ">=", value: 15 }],
+        success: "Coins change hands. The ledger closes. Nobody says the word bribe, which is how you know it was one.",
+        successEffects: [
+          { type: "obols", amount: -15 },
+          { type: "menace", id: "suspicion", amount: -6 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "pale-rooms-recovery": {
+    title: "The Four Notes",
+    kicker: "Rest, of a kind",
+    text: "The nurse hums the same four notes over and over. At first they are unbearable. Then they are the only thing holding the dark at arm's length.",
+    requirements: [],
+    choices: [
+      {
+        id: "wait",
+        label: "Rest, and let the four notes do their work",
+        requirements: [],
+        success: "Sleep comes back to you piece by piece. When you leave, you find you can hum the notes too.",
+        successEffects: [
+          { type: "menace", id: "dread", amount: -3 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "bold",
+        label: "Work out what the notes are keeping away",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 6 },
+        success: "You follow the melody to its end and find a door there, and beyond it the ordinary noise of the quay. The dark was only ever as large as you let it be.",
+        failure: "The melody has no end. You lie awake counting it, and in the morning it is a little easier.",
+        successEffects: [
+          { type: "menace", id: "dread", amount: -5 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [{ type: "menace", id: "dread", amount: -1 }]
+      },
+      {
+        id: "pay",
+        label: "Pay for the private room with the window",
+        requirements: [{ type: "obols", op: ">=", value: 15 }],
+        success: "Light from the quay, a real bed, and the nurse's full attention. You are discharged within the week.",
+        successEffects: [
+          { type: "obols", amount: -15 },
+          { type: "menace", id: "dread", amount: -6 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "stitchery-mending": {
+    title: "Counted Stitches",
+    kicker: "The surgeon keeps count",
+    text: "The surgeon counts every stitch aloud. You try not to listen to the numbers, and fail, and they get higher.",
+    requirements: [],
+    choices: [
+      {
+        id: "wait",
+        label: "Lie still and let the count reach its end",
+        requirements: [],
+        success: "The count finishes on a number you will not forget. You walk out stiff, patched, and alive.",
+        successEffects: [
+          { type: "menace", id: "wounds", amount: -3 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "bold",
+        label: "Get up before you are strictly ready",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 6 },
+        success: "You make it to the door, and the door to the street, and the street to the quay. The stitches hold. Mostly.",
+        failure: "Your legs disagree with your plan. The surgeon sighs and starts a fresh count.",
+        successEffects: [
+          { type: "menace", id: "wounds", amount: -5 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [{ type: "menace", id: "wounds", amount: -1 }]
+      },
+      {
+        id: "pay",
+        label: "Pay for the good thread",
+        requirements: [{ type: "obols", op: ">=", value: 15 }],
+        success: "Silk instead of twine, and a surgeon in a better mood. You heal quickly and cleanly.",
+        successEffects: [
+          { type: "obols", amount: -15 },
+          { type: "menace", id: "wounds", amount: -6 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "whisper-court-appeal": {
+    title: "Sentenced to Silence",
+    kicker: "The court never sits, and never adjourns",
+    text: "Nobody here speaks to you. They speak about you, behind fans, in a court that never quite convenes. Your reputation is on trial and you are not invited.",
+    requirements: [],
+    choices: [
+      {
+        id: "wait",
+        label: "Say nothing, and let them tire of you",
+        requirements: [],
+        success: "Gossip needs a reaction to live on. You give it none, and eventually the fans turn towards someone else.",
+        successEffects: [
+          { type: "menace", id: "scandal", amount: -3 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "bold",
+        label: "Hold an impromptu defence in the gallery",
+        requirements: [],
+        challenge: { quality: "poise", difficulty: 6 },
+        success: "You speak for exactly as long as it takes to be the most interesting person in the room. The verdict is overturned by acclamation.",
+        failure: "The gallery is amused, which is not the same as persuaded.",
+        successEffects: [
+          { type: "menace", id: "scandal", amount: -5 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [{ type: "menace", id: "scandal", amount: -1 }]
+      },
+      {
+        id: "pay",
+        label: "Buy a better story to replace the old one",
+        requirements: [{ type: "obols", op: ">=", value: 15 }],
+        success: "A generous dinner, a rumour placed in the right ear, and the court has a new scandal to try.",
+        successEffects: [
+          { type: "obols", amount: -15 },
+          { type: "menace", id: "scandal", amount: -6 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-clerks-file": {
+    title: "Your File",
+    kicker: "The clerk is not unkind",
+    text: "The clerk of the Holding Vaults slides a folder across the desk. It is thicker than you expected, and most of it is wrong. \"You may read it,\" he says. \"Nobody ever reads it.\"",
+    requirements: [],
+    choices: [
+      {
+        id: "correct-file",
+        label: "Correct the errors in your own file",
+        requirements: [],
+        challenge: { quality: "shadow", difficulty: 5 },
+        success: "You amend dates, strike out a sighting and replace an alias with a duller one. The clerk initials each change without reading it. Your file is now slimmer and considerably less interesting.",
+        failure: "The clerk notices you are correcting the file and adds a note to the file about that.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -2 },
+          { type: "quality", id: "shadow", amount: 1 }
+        ],
+        failureEffects: [{ type: "menace", id: "suspicion", amount: 1 }]
+      },
+      {
+        id: "read-file",
+        label: "Simply read it, to know what they think they know",
+        requirements: [],
+        success: "Somebody has been following you for weeks and is very bad at spelling. You learn the name of the watcher, and resolve to be more boring in their presence.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -1 },
+          { type: "quality", id: "insight", amount: 1 }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "a-fellow-detainee": {
+    title: "A Fellow Detainee",
+    kicker: "The cell next door is occupied",
+    text: "Through the grating between cells, a woman called Wren Halloway introduces herself as a locksmith of no fixed loyalties. She has been here a long time. She would like some of your bread.",
+    requirements: [],
+    choices: [
+      {
+        id: "share-bread",
+        label: "Share your bread",
+        requirements: [],
+        success: "She eats like a professional and thanks you like a friend. \"I'll remember that,\" she says, and taps the lock of her door thoughtfully.",
+        successEffects: [
+          { type: "acquaintance", id: "wren-halloway" },
+          { type: "quality", id: "poise", amount: 1 }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "escape-together",
+        label: "Take Wren up on her offer of a quiet way out",
+        requirements: [{ type: "flag", id: "a-fellow-detainee:share-bread", op: "==", value: true }],
+        challenge: { quality: "nerve", difficulty: 7 },
+        success: "At the change of shift, both doors open at once. You follow Wren through a drainage culvert that smells of the whole city, and come up on the quay at dawn. When you turn to thank her, she has already gone.",
+        failure: "The culvert floods at the wrong moment. You are fished out, dripping, and returned to your cell with a fresh note in your file.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -4 },
+          { type: "location", id: "lantern-quay" }
+        ],
+        failureEffects: [{ type: "menace", id: "suspicion", amount: 1 }]
+      }
+    ]
+  },
+  "the-dreaming-patient": {
+    title: "The Dreaming Patient",
+    kicker: "She talks in her sleep",
+    text: "The woman in the next bed has not woken in a month. She talks in her sleep, though, and what she describes is a sky that is blue and very far away.",
+    requirements: [],
+    choices: [
+      {
+        id: "listen-to-dreams",
+        label: "Listen to her dreams",
+        requirements: [],
+        success: "You fall asleep to her descriptions of weather. For the first time in weeks, your own dreams are only dreams.",
+        successEffects: [
+          { type: "menace", id: "dread", amount: -1 },
+          { type: "quality", id: "insight", amount: 1 }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "wake-her",
+        label: "Try, gently, to wake her",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 5 },
+        success: "Her eyes open. She looks at the stone ceiling, then at you, and laughs with relief. Helping someone else back makes your own way back seem shorter.",
+        failure: "She wakes screaming about the ceiling. It takes the nurse half the night to settle her, and you do not sleep at all.",
+        successEffects: [
+          { type: "menace", id: "dread", amount: -2 },
+          { type: "obols", amount: 5 }
+        ],
+        failureEffects: [{ type: "menace", id: "dread", amount: 1 }]
+      }
+    ]
+  },
+  "the-night-nurse": {
+    title: "The Night Nurse",
+    kicker: "There is a fifth note",
+    text: "The night nurse hums the same four notes as the day nurse, but at the end she pauses, as though a fifth note belongs there and she has decided not to sing it.",
+    requirements: [],
+    choices: [
+      {
+        id: "ask-fifth-note",
+        label: "Ask her what the fifth note is",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 7 },
+        success: "She sings it once, very quietly. It is not a sound so much as the end of a sound. The dark that has followed you for weeks lies down and goes to sleep.",
+        failure: "She pretends not to hear the question, and hums the four notes a little louder.",
+        successEffects: [
+          { type: "menace", id: "dread", amount: -4 },
+          { type: "flag", id: "heard-the-fifth-note", value: true }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "keep-her-company",
+        label: "Keep her company on her rounds",
+        requirements: [],
+        success: "You carry the lamp while she checks on the sleepers. It is quiet, useful work, and you are too busy to be afraid.",
+        successEffects: [{ type: "menace", id: "dread", amount: -1 }],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-surgeons-apprentice": {
+    title: "The Surgeon's Apprentice",
+    kicker: "He needs the practice",
+    text: "The surgeon's apprentice is nervous, young, and counts under his breath in imitation of his master. He asks, very politely, whether he may practise on you.",
+    requirements: [],
+    choices: [
+      {
+        id: "let-him-practise",
+        label: "Let him practise on you",
+        requirements: [],
+        success: "His stitches are uneven but sincere. He is so grateful that he slips you a few coins from the surgeon's jar.",
+        successEffects: [
+          { type: "menace", id: "wounds", amount: -2 },
+          { type: "obols", amount: 4 }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "teach-him",
+        label: "Teach him to count silently",
+        requirements: [],
+        challenge: { quality: "poise", difficulty: 5 },
+        success: "Without the counting, his hands steady. He finishes your stitches in half the time, and the surgeon, watching, says nothing, which from her is praise.",
+        failure: "He tries counting silently and loses his place. You both agree he should go back to counting aloud.",
+        successEffects: [
+          { type: "menace", id: "wounds", amount: -3 },
+          { type: "quality", id: "poise", amount: 1 }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-back-stair": {
+    title: "The Back Stair",
+    kicker: "Not every patient leaves by the front",
+    text: "Behind the linen press there is a narrow stair that the orderlies use to fetch clean thread from the market. It is steep, unlit, and unguarded.",
+    requirements: [],
+    choices: [
+      {
+        id: "take-the-stair",
+        label: "Discharge yourself by the back stair",
+        requirements: [],
+        challenge: { quality: "nerve", difficulty: 6 },
+        success: "Every step pulls at a stitch, but none of them give. You come out behind a thread-seller's stall in the Velvet Market, sore and free.",
+        failure: "Halfway up, a stitch gives. You go back down the way you came, rather faster than you meant to.",
+        successEffects: [
+          { type: "menace", id: "wounds", amount: -2 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: [{ type: "menace", id: "wounds", amount: 1 }]
+      },
+      {
+        id: "fetch-thread",
+        label: "Offer to fetch the thread for the orderlies",
+        requirements: [],
+        success: "They are glad of the help. You carry the thread back, and on the way you walk off some of your stiffness.",
+        successEffects: [{ type: "menace", id: "wounds", amount: -1 }],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-fan-maker": {
+    title: "The Fan-Maker",
+    kicker: "Every fan tells a story",
+    text: "In a corner of the Whisper Court a fan-maker paints tiny scenes on silk: the latest scandals, rendered in gold leaf, for ladies to hide behind. Yours is currently her bestseller.",
+    requirements: [],
+    choices: [
+      {
+        id: "commission-fan",
+        label: "Commission a fan that tells your version",
+        requirements: [{ type: "obols", op: ">=", value: 8 }],
+        success: "Your version is prettier and, crucially, duller. Within a week the gallery's fans all show it, and nobody can remember why they were so interested.",
+        successEffects: [
+          { type: "obols", amount: -8 },
+          { type: "menace", id: "scandal", amount: -3 }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "pose-for-fan",
+        label: "Offer to pose for her next design",
+        requirements: [],
+        challenge: { quality: "poise", difficulty: 6 },
+        success: "You pose so gracefully that the new fan makes you look wronged rather than wicked. She pays you a modelling fee and the gallery softens.",
+        failure: "You look shifty in gold leaf. The new fan sells even better than the old one.",
+        successEffects: [
+          { type: "menace", id: "scandal", amount: -2 },
+          { type: "obols", amount: 6 }
+        ],
+        failureEffects: [{ type: "menace", id: "scandal", amount: 1 }]
+      }
+    ]
+  },
+  "a-rivals-brief": {
+    title: "A Rival's Brief",
+    kicker: "Somebody has been busy",
+    text: "A brief against you is circulating the gallery, beautifully written and entirely anonymous. Whoever drafted it knows a great deal about you and has a fondness for semicolons.",
+    requirements: [],
+    choices: [
+      {
+        id: "read-brief",
+        label: "Read it carefully, and answer each point",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 5 },
+        success: "Point by point, you take it apart. By the end the gallery is more interested in who wrote it than in what it said.",
+        failure: "Every answer you give is quoted back out of context by the evening.",
+        successEffects: [{ type: "menace", id: "scandal", amount: -2 }],
+        failureEffects: [{ type: "menace", id: "scandal", amount: 1 }]
+      },
+      {
+        id: "swap-brief",
+        label: "Quietly swap it for a brief about someone else",
+        requirements: [],
+        challenge: { quality: "shadow", difficulty: 5 },
+        success: "Nobody notices the switch. The court moves on to a merchant with a much more interesting past, and you are free to leave by the public door.",
+        failure: "You are seen making the switch, which is itself a scandal.",
+        successEffects: [
+          { type: "menace", id: "scandal", amount: -3 },
+          { type: "quality", id: "shadow", amount: 1 },
+          { type: "location", id: "velvet-market" }
+        ],
+        failureEffects: [{ type: "menace", id: "scandal", amount: 2 }]
+      }
+    ]
+  },
+  "lie-low-on-the-barges": {
+    title: "Lie Low on the Barges",
+    kicker: "Someone has been asking about you",
+    text: "The coal barges tied up along the quay take lodgers who do not want to be found, and ask no questions as long as the rent is paid and the lodger does some shovelling.",
+    requirements: [{ type: "menace", id: "suspicion", op: ">=", value: 2 }],
+    choices: [
+      {
+        id: "shovel-coal",
+        label: "Spend a few days shovelling coal out of sight",
+        requirements: [],
+        success: "Black to the elbows and bored to tears, you are also, for a few days, of no interest to anyone.",
+        successEffects: [
+          { type: "menace", id: "suspicion", amount: -2 },
+          { type: "obols", amount: 2 }
+        ],
+        failureEffects: []
+      },
+      {
+        id: "pay-the-bargemaster",
+        label: "Pay the bargemaster to say you have been aboard for weeks",
+        requirements: [{ type: "obols", op: ">=", value: 6 }],
+        success: "He tells anyone who asks that you have been aboard since last month. Several people who were asking stop.",
+        successEffects: [
+          { type: "obols", amount: -6 },
+          { type: "menace", id: "suspicion", amount: -3 }
+        ],
+        failureEffects: []
+      }
+    ]
+  },
+  "a-fresher-scandal": {
+    title: "A Fresher Scandal",
+    kicker: "The market has a short memory",
+    text: "The Velvet Market can only gossip about one thing at a time. At the moment, unfortunately, that thing is you. It would not take much to give it something better.",
+    requirements: [{ type: "menace", id: "scandal", op: ">=", value: 2 }],
+    choices: [
+      {
+        id: "start-rumour",
+        label: "Start a fresher rumour about someone else",
+        requirements: [],
+        challenge: { quality: "shadow", difficulty: 4 },
+        success: "By nightfall the whole market is discussing a spice merchant's second family. You are yesterday's news, although somebody noticed who started it.",
+        failure: "The rumour traces straight back to you, which is a scandal of its own.",
+        successEffects: [
+          { type: "menace", id: "scandal", amount: -2 },
+          { type: "menace", id: "suspicion", amount: 1 }
+        ],
+        failureEffects: [{ type: "menace", id: "scandal", amount: 1 }]
+      },
+      {
+        id: "apologise",
+        label: "Apologise, publicly and a little too sincerely",
+        requirements: [],
+        success: "It is excruciating for everyone, and the market loses interest out of pure embarrassment.",
+        successEffects: [{ type: "menace", id: "scandal", amount: -1 }],
+        failureEffects: []
+      }
+    ]
+  },
+  "the-quiet-carrel": {
+    title: "The Quiet Carrel",
+    kicker: "Somewhere to put the dark down",
+    text: "At the far end of the reading room there is a carrel with a green lamp and a shelf of the dullest books the archive owns. The librarian keeps it for readers who have been reading the wrong things.",
+    requirements: [{ type: "menace", id: "dread", op: ">=", value: 2 }],
+    choices: [
+      {
+        id: "read-something-dull",
+        label: "Read something dull, on purpose",
+        requirements: [],
+        success: "Three hundred pages on the drainage of the Lower City. By the end your fears seem, at worst, badly drained.",
+        successEffects: [{ type: "menace", id: "dread", amount: -2 }],
+        failureEffects: []
+      },
+      {
+        id: "write-it-down",
+        label: "Write down what frightens you, and file it",
+        requirements: [],
+        challenge: { quality: "insight", difficulty: 5 },
+        success: "Catalogued and shelved, your fear is just another volume. The librarian stamps it and files it under a number you promptly forget.",
+        failure: "The act of writing it down makes it vivid. You leave the carrel faster than you meant to.",
+        successEffects: [
+          { type: "menace", id: "dread", amount: -3 },
+          { type: "quality", id: "insight", amount: 1 }
+        ],
+        failureEffects: [{ type: "menace", id: "dread", amount: 1 }]
+      }
+    ]
+  },
+  "the-gardeners-salve": {
+    title: "The Gardener's Salve",
+    kicker: "Brass leaves, crushed",
+    text: "The gardener notices you favouring one side. She crushes a handful of brass leaves into a jar of wax and says it is good for cuts, bruises, and the general wear of living underground.",
+    requirements: [{ type: "menace", id: "wounds", op: ">=", value: 2 }],
+    choices: [
+      {
+        id: "accept-salve",
+        label: "Accept the salve with thanks",
+        requirements: [],
+        success: "It smells of metal and mint, and stings exactly as much as the gardener promised. By morning you are moving freely.",
+        successEffects: [{ type: "menace", id: "wounds", amount: -2 }],
+        failureEffects: []
+      },
+      {
+        id: "work-for-salve",
+        label: "Work a shift in the glasshouse to pay for a full course",
+        requirements: [],
+        success: "Warm air, patient work, and the salve twice a day. You leave the Gardens healthier than you have been since you woke.",
+        successEffects: [
+          { type: "menace", id: "wounds", amount: -3 },
+          { type: "quality", id: "poise", amount: 1 }
+        ],
+        failureEffects: []
+      }
+    ]
+  }
+};
+
+export const cards = {
+  "card-a-stranger-approaches": {
+    id: "card-a-stranger-approaches",
+    title: "A Stranger Approaching",
+    text: "Someone steps from the mist, holding a rusted lamp.",
+    weight: 10,
+    requirements: null,
+    choices: [
+      {
+        id: "listen",
+        label: "Listen to them",
+        challenge: { quality: "insight", difficulty: 3 },
+        success: "They whisper a secret of the city.",
+        failure: "They mutter nonsense and vanish.",
+      },
+      {
+        id: "ignore",
+        label: "Walk past",
+        challenge: false,
+        success: "You ignore them and keep your peace.",
+        successEffects: [{ type: "menaces", id: "scandal", delta: -1 }]
+      }
+    ]
+  },
+  "card-lost-obols": {
+    id: "card-lost-obols",
+    title: "Glint in the Muck",
+    text: "Something catches the scant light near your boots.",
+    weight: 8,
+    requirements: null,
+    choices: [
+      {
+        id: "take",
+        label: "Take it",
+        challenge: false,
+        success: "A handful of stray Obols.",
+        successEffects: [{ type: "obols", delta: 2 }]
+      }
+    ]
+  }
+};
+
+export const decks = {
+  "whispers": {
+    id: "whispers",
+    cardIds: ["card-a-stranger-approaches", "card-lost-obols"]
+  }
+};
+
+export const refuges = {
+  "camp-on-the-docks": {
+    name: "A Camp on the Docks",
+    description: "A drafty spot near the water where no one asks questions.",
+    handSize: 2
+  },
+  "rented-attic": {
+    name: "A Rented Attic",
+    description: "Small, but dry, and with a lock on the door.",
+    handSize: 3
+  },
+  "spacious-townhouse": {
+    name: "A Spacious Townhouse",
+    description: "A respectable address for a person of consequence.",
+    handSize: 4
+  },
+  "brass-embassy-guest-room": {
+    name: "A Brass-Bound Guest Room",
+    description: "Opulent, uncomfortably warm, and strictly guarded.",
+    handSize: 5
+  }
+};
+
+// The expansion deliberately reuses the same data-driven QBN engine.
+Object.assign(locations, expansionLocations);
+Object.assign(stories, expansionStories);
+locations["lantern-quay"].stories.unshift("quay-roads");
+
+// Original QBN extension: existing storylets, maps and items remain unchanged.
+Object.assign(items, {
+ "treasure-ledger": {name:"Keeper's Ledger",description:"A permanent account of the missing.",category:"curiosity",slot:"treasure",stats:{insight:5,poise:2}},
+ "treasure-lamp": {name:"The Unfailing Lamp",description:"It burns when official lamps fail.",category:"curiosity",slot:"treasure",stats:{nerve:5}},
+ "treasure-oath": {name:"River Oath",description:"A promise that cannot be submerged.",category:"curiosity",slot:"treasure",stats:{poise:5}},
+ "treasure-clock": {name:"Unspent Hour",description:"A clock that records nobody's time.",category:"curiosity",slot:"treasure",stats:{shadow:5}}
+});
+Object.assign(stories,qbnStories);
+Object.assign(cards,qbnCards);
+decks.whispers.cardIds.push(...Object.keys(qbnCards));
+locations["lantern-quay"].stories.push("qbn-choose-ambition",
+ ...Object.keys(qbnStories).filter(id=>id.startsWith("qbn-missing-name-")||id.startsWith("qbn-last-light-")||id.startsWith("qbn-river-debt-")||id.startsWith("qbn-stolen-hour-")||id.startsWith("qbn-festival-")||id.startsWith("qbn-investigate-")));
+for(const [menace,areaId] of Object.entries(menaceAreas)){
+ if(locations[areaId])locations[areaId].stories.push("qbn-arrival-"+menace);
+}
+
+// Gloomwing storypack: its storylets are gated by ambition and exact chapter.
+Object.assign(items, gloomwingItems, gloomwingEncounterItems);
+Object.assign(stories, gloomwingStories, gloomwingEncounterStories);
+Object.assign(locations, gloomwingLocations);
+locations["lantern-quay"].stories.push("gloomwing_hunt_00");
+for(const [locationId,storyIds] of Object.entries(gloomwingEncounterPlacements)) locations[locationId].stories.push(...storyIds);
+
+// The Bureau's Evidence Registry provides a use for every physical relic
+// collected in the 30-part Gloomwing hunt. Entries can be catalogued once;
+// the record persists, while the original quest objects remain in inventory.
+const registryRelics=Object.entries(gloomwingItems)
+  .filter(([, item]) => !item.slot)
+  .map(([id]) => id);
+for(let section=0;section<Math.ceil(registryRelics.length/7);section++){
+ const id="gloomwing-registry-"+(section+1);
+ stories[id]={
+  title:"The Bureau's Evidence Registry · "+(section+1),
+  text:"The registrar leaves space beside every recovered relic. An object can testify to an injustice more reliably than an official report. You may catalogue each clue exactly once.",
+  pattern:"decoupled",
+  choices:registryRelics.slice(section*7,(section+1)*7).map(itemId=>({
+    id:"catalogue-"+itemId,
+    label:"Catalogue "+gloomwingItems[itemId].name,
+    requirements:[
+      {type:"item",id:itemId,op:">=",value:1},
+      {type:"flag",id:"evidence-catalogued:"+itemId,op:"!=",value:true}
+    ],
+    success:"You record where the relic came from and who may need the evidence preserved. A public archive keeps a duplicate of your notes.",
+    successEffects:[{type:"flag",id:"evidence-catalogued:"+itemId,value:true},{type:"obols",amount:1}]
+  }))
+ };
+ locations["lantern-quay"].stories.push(id);
+}
+
+// Storylet Foundry: compile human-approved originals only. Never overwrite existing stories.
+for(const [id,story] of Object.entries(approvedStories)){
+ if(stories[id]||cards[id])throw new Error("Storylet Foundry duplicate "+id);
+ stories[id]=story;
+}
+for(const entry of approvedPlacements){
+ if(!locations[entry.location])throw new Error("Storylet Foundry unknown location "+entry.location);
+ if(!locations[entry.location].stories.includes(entry.id))locations[entry.location].stories.push(entry.id);
+}
+for(const [id,card] of Object.entries(approvedCards)){
+ if(stories[id]||cards[id])throw new Error("Storylet Foundry duplicate card "+id);
+ cards[id]=card;
+ decks.whispers.cardIds.push(id);
+}
+
+// QBN Studio: every published JSON draft is independently reviewed and compiled.
+for(const [id,story] of Object.entries(cmsPublishedStories)){
+ if(stories[id]||cards[id])throw new Error("CMS duplicate story ID: "+id);
+ stories[id]=story;
+}
+for(const [district,ids] of Object.entries(cmsPublishedLocations)){
+ if(!locations[district])throw new Error("CMS references unknown district: "+district);
+ for(const id of ids)if(!locations[district].stories.includes(id))locations[district].stories.push(id);
+}

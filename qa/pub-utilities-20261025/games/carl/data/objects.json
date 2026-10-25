@@ -1,0 +1,38 @@
+{
+  "tutorial_chest": {
+    "id": "tutorial_chest",
+    "name": "Tutorial Chest",
+    "symbol": "?",
+    "position": { "x": 7, "y": 2 },
+    "object_type": "chest",
+    "blocks_movement": false,
+    "state": {
+      "opened": false,
+      "contains": ["unstable_powder"]
+    }
+  },
+  "pants_pickup": {
+    "id": "pants_pickup",
+    "name": "Threadbare Pants Pickup",
+    "symbol": "p",
+    "position": { "x": 2, "y": 7 },
+    "object_type": "pickup",
+    "blocks_movement": false,
+    "state": {
+      "picked_up": false,
+      "item_id": "threadbare_pants"
+    }
+  },
+  "bopca_shop": {
+    "id": "bopca_shop",
+    "name": "Overpriced Tutorial Kiosk",
+    "symbol": "$",
+    "position": { "x": 9, "y": 7 },
+    "object_type": "shop",
+    "blocks_movement": false,
+    "shop_inventory": ["stale_healing_bar"],
+    "state": {
+      "open": true
+    }
+  }
+}
