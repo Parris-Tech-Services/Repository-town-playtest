@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: 49984e3780f1ad3a70e7106df8e342b9dcc08b95
+          ref: e274e84d2349c371f261349f6f807e749c317d0a
           path: source
           persist-credentials: false
       - name: Set up Node 22
@@ -40,7 +40,7 @@ jobs:
           npm run build
           npm run check:privacy
           node tools/verify-release.mjs dist/public
-          node -e "const r=require('./dist/public/release.json'); if(r.sourceCommit!=='49984e3780f1ad3a70e7106df8e342b9dcc08b95') throw Error('Wrong game source SHA');"
+          node -e "const r=require('./dist/public/release.json'); if(r.sourceCommit!=='e274e84d2349c371f261349f6f807e749c317d0a') throw Error('Wrong game source SHA');"
           test -f dist/public/world/pub-envelope.js
           test -f dist/public/world/pub-history.js
           test -f dist/public/world/pub-utilities.js
@@ -77,7 +77,7 @@ jobs:
           mkdir -p "$target"
           rsync -a --delete source/repository-town/dist/public/ "$target/"
           actual=$(git -C source rev-parse HEAD)
-          test "$actual" = '49984e3780f1ad3a70e7106df8e342b9dcc08b95'
+          test "$actual" = 'e274e84d2349c371f261349f6f807e749c317d0a'
           printf 'Source: joshualparris/JoshMemory\nCommit: %s\nStatus: isolated geometry/browser QA, NOT production or certified NCC compliance; full town safety gate separately red\n' "$actual" > "$target/QA_BUILD.txt"
           test -f "$target/release.json"
           test "$(sha256sum site/index.html | cut -d' ' -f1)" = "$before"
