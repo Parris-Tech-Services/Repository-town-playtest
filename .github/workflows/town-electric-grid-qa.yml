@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: dee8b47971aed04e45cd9e6555236e67a00d7a14
+          ref: 679315fafe36e7884ceb791fcefabe8ab211ab4e
           path: source
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -38,7 +38,7 @@ jobs:
       - name: Assert exact built source and published UI/data
         working-directory: source/repository-town
         run: |
-          node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('dist/public/release.json'));if(o.sourceCommit!=='dee8b47971aed04e45cd9e6555236e67a00d7a14')throw Error('wrong build SHA');"
+          node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('dist/public/release.json'));if(o.sourceCommit!=='679315fafe36e7884ceb791fcefabe8ab211ab4e')throw Error('wrong build SHA');"
           test -f dist/public/world/electrical-pilot-data.js
           test -f dist/public/world/electrical-pilot-visuals.js
           test -f dist/public/ui/electrical-pilot-panel.js
@@ -76,7 +76,7 @@ jobs:
           rsync -a --delete source/repository-town/dist/public/ "$target/"
           test -f "$target/release.json"
           sha=$(git -C source rev-parse HEAD)
-          test "$sha" = "dee8b47971aed04e45cd9e6555236e67a00d7a14"
+          test "$sha" = "679315fafe36e7884ceb791fcefabe8ab211ab4e"
           printf 'Source: joshualparris/JoshMemory\nCommit: %s\nStatus: verified electrical pilot QA, not approved production\n' "$sha" > "$target/QA_BUILD.txt"
           test "$(sha256sum site/index.html | cut -d' ' -f1)" = "$orig"
           cd site
