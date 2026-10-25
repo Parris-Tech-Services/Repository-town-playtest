@@ -1,0 +1,1976 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {"GAME_IMPROVEMENTS.md":"# 5 Additional Game Improvement Suggestions\n\n## 1. Quest System\n**Implementation:**\n- Add a quest log UI panel that tracks active quests\n- Create quest types: \"Kill X enemies\", \"Collect Y items\", \"Find Z NPC\", \"Explore area\"\n- Reward players with XP, gold, and special items upon completion\n- Chain quests together to create storylines\n- Add quest markers on the map to guide players\n\n**Benefits:**\n- Provides clear goals and direction\n- Increases player engagement and sense of progression\n- Creates narrative structure beyond tutorial\n- Encourages exploration and combat\n\n---\n\n## 2. Equipment System (Weapons & Armor)\n**Implementation:**\n- Add equipment slots: Weapon, Armor, Accessories\n- Create item rarity system (Common, Rare, Epic, Legendary)\n- Equipment affects stats (attack, defense, special abilities)\n- Visual changes to player sprite based on equipped items\n- Equipment can be found in chests, bought from shops, or dropped by enemies\n\n**Benefits:**\n- Deepens character customization\n- Creates meaningful loot progression\n- Adds strategic depth to combat\n- Increases replayability\n\n---\n\n## 3. Magic/Spell System\n**Implementation:**\n- Add mana/stamina resource system\n- Create spell categories: Offensive, Defensive, Utility, Healing\n- Spells unlock as player levels up or finds spell tomes\n- Different spell effects: Fireball (damage), Shield (defense), Heal (restore HP), Teleport (movement)\n- Cooldown system to balance spell usage\n- Visual spell effects during combat\n\n**Benefits:**\n- Adds variety to combat beyond basic attack/defend\n- Makes mage class more distinct and powerful\n- Creates tactical combat decisions\n- Enhances visual appeal\n\n---\n\n## 4. Mini-Map & Exploration System\n**Implementation:**\n- Add mini-map in UI showing explored areas\n- Fog of war that clears as player explores\n- Markers for important locations (shops, NPCs, quest objectives)\n- Different biomes/areas with unique visual styles\n- Exploration rewards (XP for discovering new areas)\n\n**Benefits:**\n- Helps players navigate large worlds\n- Encourages exploration\n- Reduces frustration from getting lost\n- Creates sense of discovery\n\n---\n\n## 5. Save/Load System & Progression Persistence\n**Implementation:**\n- Save game state to localStorage\n- Save player stats, inventory, position, quest progress\n- Multiple save slots\n- Auto-save feature\n- Load game from main menu\n\n**Benefits:**\n- Allows players to continue their adventure\n- Reduces frustration from losing progress\n- Enables longer play sessions\n- Professional game feel\n\n---\n\n## Bonus Suggestions:\n- **Sound Effects & Music**: Add ambient sounds, combat sounds, background music\n- **Achievement System**: Track milestones and reward players\n- **Difficulty Settings**: Easy, Normal, Hard modes with different enemy scaling\n- **Boss Enemies**: Special powerful enemies with unique mechanics and rewards\n- **Crafting System**: Combine items to create better equipment\n- **Day/Night Cycle**: Different enemy spawns and events based on time\n- **Multiplayer**: Co-op mode where players can team up\n\n","MODULAR_REFACTOR.md":"# NewGame Modular Refactoring\n\n## Overview\n\nThe game has been refactored from a monolithic 2000+ line `game.js` file into a modular architecture with clear separation of concerns.\n\n## New Module Structure\n\n```\njs/\n├── player.js      # Player stats, leveling, attributes\n├── combat.js      # Combat system, damage calculation\n├── world.js       # Map generation, tile management\n├── enemies.js     # Enemy AI, spawning, behavior\n├── items.js       # Item definitions, inventory\n├── input.js       # Input handling, controls\n└── main.js        # Game loop, initialization (entry point)\n```\n\n## Module Descriptions\n\n### player.js\n- `createPlayer()` - Create player from character creation data\n- `gainXP()` - Add experience and check for level up\n- `levelUp()` - Handle level up logic\n- `takeDamage()` - Apply damage to player\n- `heal()` - Restore player HP\n- `isAlive()` - Check if player is alive\n\n### combat.js\n- `createEnemy()` - Create enemy with stats\n- `calculateDamage()` - Calculate damage between entities\n- `attackEnemy()` - Player attacks enemy\n- `attackPlayer()` - Enemy attacks player\n- `canAttack()` - Check if attack is in range\n\n### world.js\n- `generateTiles()` - Generate tile map\n- `isWalkable()` - Check if tile is walkable\n- `getTileAt()` - Get tile type at position\n- `createDoor()` - Create door entity\n- `createChest()` - Create chest entity\n- `createNPC()` - Create NPC entity\n\n### enemies.js\n- `spawnEnemies()` - Spawn enemies on map\n- `updateEnemyAI()` - Update single enemy AI\n- `updateAllEnemies()` - Update all enemies\n\n### items.js\n- `createItem()` - Create generic item\n- `createPotion()` - Create health potion\n- `createGold()` - Create gold item\n- `createKey()` - Create key item\n- `collectItem()` - Handle item collection\n- `useItem()` - Use item from inventory\n- `spawnItems()` - Spawn items on map\n\n### input.js\n- `InputHandler` class - Handles all keyboard input\n- `getMovement()` - Get movement direction\n- `isInteractPressed()` - Check if interact key pressed\n- `isInventoryPressed()` - Check if inventory key pressed\n\n### main.js\n- `Game` class - Main game controller\n- `init()` - Initialize game\n- `startGame()` - Start gameplay\n- `gameLoop()` - Main game loop\n- `update()` - Update game state\n- `render()` - Render game\n\n## Migration Path\n\nThe old `game.js` is still functional. To fully migrate:\n\n1. **Phase 1** (Current): Core modules created, new system available\n2. **Phase 2**: Create `render.js` module for all drawing functions\n3. **Phase 3**: Create `ui.js` module for UI/modal management\n4. **Phase 4**: Migrate character creation to separate module\n5. **Phase 5**: Remove old `game.js`, use only modules\n\n## Usage\n\n```javascript\n// Old way (still works)\n// Uses monolithic game.js\n\n// New way (modular)\nimport { Game } from './js/main.js';\nconst game = new Game();\ngame.startGame(playerData);\n```\n\n## Benefits\n\n- **Maintainability**: Each module has a single responsibility\n- **Testability**: Modules can be tested independently\n- **Extensibility**: Easy to add new features\n- **Readability**: Smaller, focused files\n- **Reusability**: Modules can be reused in other projects\n\n## Next Steps\n\n1. Create `render.js` for all drawing functions\n2. Create `ui.js` for UI management\n3. Create `characterCreation.js` for character creation\n4. Create `tutorial.js` for tutorial system\n5. Fully migrate from old system\n\n\n","NewGame/README.md":"NewGame Staging\n===============\n\nUse this space for quick prototypes and experiments before they become named projects.\n\nWhen something sticks:\n- Move it into `Games/` or a dedicated project folder at the root.\n- Add a small README (overview, stack, run commands, status).\n- Note any shared assets kept in `Assets/`.\n\nClean-up reminder: archive or delete abandoned prototypes periodically so this area stays lean.\n"};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        xhr.dispatchEvent(new Event('readystatechange'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Realms - RPG</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    
+    <div id="charCreation" class="char-creation">
+        <div class="char-creation-panel">
+            <h1>Character Creation</h1>
+            
+            <div class="char-section">
+                <h2>Name</h2>
+                <input type="text" id="charName" placeholder="Enter your name" maxlength="20">
+            </div>
+            
+            <div class="char-section">
+                <h2>Race</h2>
+                <div class="race-selector">
+                    <div class="race-option" data-race="human">
+                        <h3>Human</h3>
+                        <p>+1 to all attributes. Versatile and adaptable.</p>
+                    </div>
+                    <div class="race-option" data-race="elf">
+                        <h3>Elf</h3>
+                        <p>+2 Dexterity, +1 Wisdom. Agile and perceptive.</p>
+                    </div>
+                    <div class="race-option" data-race="dwarf">
+                        <h3>Dwarf</h3>
+                        <p>+2 Constitution, +1 Strength. Hardy and strong.</p>
+                    </div>
+                    <div class="race-option" data-race="orc">
+                        <h3>Orc</h3>
+                        <p>+2 Strength, +1 Constitution. Brutal and tough.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="char-section">
+                <h2>Class</h2>
+                <div class="class-selector">
+                    <div class="class-option" data-class="warrior">
+                        <h3>Warrior</h3>
+                        <p>High strength and constitution. Frontline fighter.</p>
+                    </div>
+                    <div class="class-option" data-class="rogue">
+                        <h3>Rogue</h3>
+                        <p>High dexterity. Deadly strikes and evasion.</p>
+                    </div>
+                    <div class="class-option" data-class="mage">
+                        <h3>Mage</h3>
+                        <p>High intelligence. Powerful spells.</p>
+                    </div>
+                    <div class="class-option" data-class="ranger">
+                        <h3>Ranger</h3>
+                        <p>Balanced stats. Survivalist and tracker.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="char-section">
+                <h2>Attributes</h2>
+                <p class="points-remaining">Points Remaining: <span id="pointsRemaining">27</span></p>
+                <button id="autoAssignBtn" class="auto-assign-btn">Auto Assign Points</button>
+                <div class="attributes">
+                    <div class="attribute">
+                        <label>Strength (STR)</label>
+                        <div class="attr-controls">
+                            <button class="attr-btn" data-attr="str" data-dir="-">-</button>
+                            <span id="strValue" class="attr-value">8</span>
+                            <button class="attr-btn" data-attr="str" data-dir="+">+</button>
+                        </div>
+                        <p class="attr-desc">Physical power and melee damage</p>
+                    </div>
+                    <div class="attribute">
+                        <label>Dexterity (DEX)</label>
+                        <div class="attr-controls">
+                            <button class="attr-btn" data-attr="dex" data-dir="-">-</button>
+                            <span id="dexValue" class="attr-value">8</span>
+                            <button class="attr-btn" data-attr="dex" data-dir="+">+</button>
+                        </div>
+                        <p class="attr-desc">Agility, accuracy, and evasion</p>
+                    </div>
+                    <div class="attribute">
+                        <label>Constitution (CON)</label>
+                        <div class="attr-controls">
+                            <button class="attr-btn" data-attr="con" data-dir="-">-</button>
+                            <span id="conValue" class="attr-value">8</span>
+                            <button class="attr-btn" data-attr="con" data-dir="+">+</button>
+                        </div>
+                        <p class="attr-desc">Health and physical resilience</p>
+                    </div>
+                    <div class="attribute">
+                        <label>Intelligence (INT)</label>
+                        <div class="attr-controls">
+                            <button class="attr-btn" data-attr="int" data-dir="-">-</button>
+                            <span id="intValue" class="attr-value">8</span>
+                            <button class="attr-btn" data-attr="int" data-dir="+">+</button>
+                        </div>
+                        <p class="attr-desc">Magical power and knowledge</p>
+                    </div>
+                    <div class="attribute">
+                        <label>Wisdom (WIS)</label>
+                        <div class="attr-controls">
+                            <button class="attr-btn" data-attr="wis" data-dir="-">-</button>
+                            <span id="wisValue" class="attr-value">8</span>
+                            <button class="attr-btn" data-attr="wis" data-dir="+">+</button>
+                        </div>
+                        <p class="attr-desc">Perception and willpower</p>
+                    </div>
+                    <div class="attribute">
+                        <label>Charisma (CHA)</label>
+                        <div class="attr-controls">
+                            <button class="attr-btn" data-attr="cha" data-dir="-">-</button>
+                            <span id="chaValue" class="attr-value">8</span>
+                            <button class="attr-btn" data-attr="cha" data-dir="+">+</button>
+                        </div>
+                        <p class="attr-desc">Social influence and leadership</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startGameBtn" class="start-btn" disabled>Begin Your Journey</button>
+        </div>
+    </div>
+    
+    
+    <div id="gameContainer" class="container hidden">
+        <div class="game-header">
+            <h1>Dark Realms</h1>
+            <div class="character-info">
+                <span id="playerName" class="player-name"></span>
+                <span id="playerRaceClass" class="race-class"></span>
+            </div>
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <span class="stat-label">Health</span>
+                    <div class="stat-bar">
+                        <div id="hpBar" class="stat-fill hp-fill"></div>
+                        <span id="hpText" class="stat-value">0/0</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Level</span>
+                    <span id="level" class="stat-value">1</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Experience</span>
+                    <div class="stat-bar">
+                        <div id="xpBar" class="stat-fill xp-fill"></div>
+                        <span id="xpText" class="stat-value">0/100</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">Gold</span>
+                    <span id="gold" class="stat-value">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="game-area">
+            <canvas id="gameCanvas"></canvas>
+            <div class="ui-panel">
+                <div class="attributes-panel">
+                    <h3>Attributes</h3>
+                    <div class="attr-display">
+                        <div class="attr-row"><span>STR:</span><span id="displayStr">0</span></div>
+                        <div class="attr-row"><span>DEX:</span><span id="displayDex">0</span></div>
+                        <div class="attr-row"><span>CON:</span><span id="displayCon">0</span></div>
+                        <div class="attr-row"><span>INT:</span><span id="displayInt">0</span></div>
+                        <div class="attr-row"><span>WIS:</span><span id="displayWis">0</span></div>
+                        <div class="attr-row"><span>CHA:</span><span id="displayCha">0</span></div>
+                    </div>
+                </div>
+                <div class="inventory">
+                    <h3>Inventory</h3>
+                    <div id="inventory" class="inventory-items"></div>
+                </div>
+                <div class="log">
+                    <h3>Combat Log</h3>
+                    <div id="log" class="log-content"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls-info">
+            <p>WASD or Arrow Keys: Move (W=North, S=South, A=West, D=East) | Space: Interact/Talk | E: Inventory</p>
+        </div>
+        
+        <div id="combatModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Combat</h2>
+                <div id="combatInfo"></div>
+                <div class="combat-actions">
+                    <button id="attackBtn">Attack</button>
+                    <button id="defendBtn">Defend</button>
+                    <button id="fleeBtn">Flee</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="shopModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Merchant</h2>
+                <div id="shopItems"></div>
+                <button id="closeShop">Close</button>
+            </div>
+        </div>
+        
+        <div id="inventoryModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>Inventory</h2>
+                <div id="inventoryModalContent"></div>
+                <button id="closeInventory">Close</button>
+            </div>
+        </div>
+        
+        <div id="dialogueModal" class="modal hidden">
+            <div class="modal-content">
+                <h2>NPC</h2>
+                <div id="dialogueText" style="color: #aaa; margin: 20px 0; line-height: 1.6;"></div>
+                <button id="closeDialogue">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+    
+    
+    <script type="module">// NewGame/js/player.js
+var Player = class {
+  constructor(name = "Hero") {
+    this.name = name;
+    this.level = 1;
+    this.xp = 0;
+    this.hp = 100;
+    this.maxHp = 100;
+    this.str = 10;
+    this.dex = 10;
+    this.int = 10;
+    this.inventory = [];
+  }
+  gainXP(amount) {
+    this.xp += amount;
+    if (this.xp >= this.xpToLevel()) {
+      this.levelUp();
+    }
+  }
+  xpToLevel() {
+    return this.level * 100;
+  }
+  levelUp() {
+    this.level++;
+    this.xp = 0;
+    this.maxHp += 10;
+    this.hp = this.maxHp;
+    this.str += 2;
+    this.dex += 2;
+    this.int += 2;
+  }
+  takeDamage(amount) {
+    this.hp -= amount;
+    if (this.hp < 0) this.hp = 0;
+  }
+  heal(amount) {
+    this.hp += amount;
+    if (this.hp > this.maxHp) this.hp = this.maxHp;
+  }
+  addItem(item) {
+    this.inventory.push(item);
+  }
+  // Add more player methods as needed
+};
+
+// game.js
+var canvas = document.getElementById("gameCanvas");
+var ctx = canvas.getContext("2d");
+var canvasWidth = 800;
+var canvasHeight = 600;
+var charCreation = {
+  name: "",
+  race: null,
+  class: null,
+  attributes: {
+    str: 8,
+    dex: 8,
+    con: 8,
+    int: 8,
+    wis: 8,
+    cha: 8
+  },
+  pointsRemaining: 27
+};
+var RACE_BONUSES = {
+  human: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 },
+  elf: { dex: 2, wis: 1 },
+  dwarf: { con: 2, str: 1 },
+  orc: { str: 2, con: 1 }
+};
+var CLASS_BONUSES = {
+  warrior: { str: 3, con: 2, dex: 1 },
+  rogue: { dex: 3, int: 2, str: 1 },
+  mage: { int: 3, wis: 2, con: 1 },
+  ranger: { dex: 2, wis: 2, con: 1, str: 1 }
+};
+var game = {
+  player: new Player(),
+  keys: {},
+  enemies: [],
+  items: [],
+  doors: [],
+  // Array of door objects
+  npcs: [],
+  // Array of NPC objects
+  tiles: [],
+  camera: { x: 0, y: 0 },
+  inCombat: false,
+  currentEnemy: null,
+  tileSize: 32,
+  moveDelay: 200,
+  // Milliseconds between moves
+  screenShake: 0,
+  // Screen shake effect
+  tutorial: {
+    active: true,
+    completed: false,
+    currentStep: 0,
+    steps: [
+      { id: "welcome", completed: false, message: "Welcome, young adventurer! I am Master Aldric, the village wizard." },
+      { id: "movement", completed: false, message: "Use WASD or Arrow Keys to move around. Try moving now!" },
+      { id: "combat", completed: false, message: "You will encounter enemies. They will chase you, so be ready to fight!" },
+      { id: "items", completed: false, message: "Collect items you find on the ground. They can heal you or give you gold." },
+      { id: "chest", completed: false, message: "Open that chest over there to find useful supplies." },
+      { id: "ready", completed: false, message: "You are ready! I will open the gate to the outside world. Good luck!" }
+    ]
+  },
+  tutorialGate: null
+  // Gate blocking exit from tutorial
+};
+var devicePixelRatio = window.devicePixelRatio || 1;
+function resizeCanvas() {
+  const gameArea = document.querySelector(".game-area");
+  const uiPanel = document.querySelector(".ui-panel");
+  devicePixelRatio = window.devicePixelRatio || 1;
+  if (gameArea && uiPanel) {
+    const availableWidth = gameArea.offsetWidth - 20;
+    const uiPanelWidth = window.innerWidth > 1200 ? 280 : Math.min(280, availableWidth * 0.3);
+    const maxCanvasWidth = availableWidth - uiPanelWidth;
+    const aspectRatio = 4 / 3;
+    const maxWidth = Math.min(800, maxCanvasWidth);
+    const maxHeight = Math.min(600, window.innerHeight - 300);
+    canvasWidth = Math.max(400, Math.min(maxWidth, maxHeight * aspectRatio));
+    canvasHeight = canvasWidth / aspectRatio;
+    canvas.style.width = canvasWidth + "px";
+    canvas.style.height = canvasHeight + "px";
+    canvas.width = Math.round(canvasWidth * devicePixelRatio);
+    canvas.height = Math.round(canvasHeight * devicePixelRatio);
+    ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    if (game && game.player && game.player.maxHp > 0) {
+      game.camera.x = game.player.x - canvasWidth / 2;
+      game.camera.y = game.player.y - canvasHeight / 2;
+    }
+  } else {
+    canvasWidth = Math.min(800, window.innerWidth - 40);
+    canvasHeight = Math.min(600, window.innerHeight - 200);
+    if (canvas) {
+      canvas.style.width = canvasWidth + "px";
+      canvas.style.height = canvasHeight + "px";
+      canvas.width = Math.round(canvasWidth * devicePixelRatio);
+      canvas.height = Math.round(canvasHeight * devicePixelRatio);
+      ctx.setTransform(devicePixelRatio, 0, 0, devicePixelRatio, 0, 0);
+    }
+  }
+}
+var TILE_TYPES = {
+  FLOOR: 0,
+  WALL: 1,
+  DOOR: 2,
+  CHEST: 3,
+  SHOP: 4,
+  WATER: 5,
+  GRASS: 6,
+  GATE: 7
+  // Tutorial gate
+};
+var ENEMY_TYPES = {
+  bandit: { name: "Bandit", color: "#654321", hpMult: 1, attackMult: 1 },
+  undead: { name: "Undead", color: "#4a4a4a", hpMult: 1.2, attackMult: 0.9 },
+  beast: { name: "Dire Wolf", color: "#2a2a2a", hpMult: 0.9, attackMult: 1.2 },
+  cultist: { name: "Cultist", color: "#5a1a1a", hpMult: 0.8, attackMult: 1.3 }
+};
+function initCharacterCreation() {
+  console.log("Initializing character creation...");
+  const charCreationPanel = document.querySelector(".char-creation-panel");
+  if (!charCreationPanel) {
+    console.error("Character creation panel not found!");
+    setTimeout(initCharacterCreation, 100);
+    return;
+  }
+  charCreationPanel.addEventListener("click", (e) => {
+    const attrBtn = e.target.closest(".attr-btn");
+    if (attrBtn && !attrBtn.disabled) {
+      e.preventDefault();
+      e.stopPropagation();
+      const attr = attrBtn.dataset.attr;
+      const dir = attrBtn.dataset.dir;
+      console.log("Attribute button clicked:", attr, dir);
+      adjustAttribute(attr, dir === "+" ? 1 : -1);
+    }
+  });
+  const raceOptions = document.querySelectorAll(".race-option");
+  console.log("Found race options:", raceOptions.length);
+  raceOptions.forEach((option) => {
+    option.style.pointerEvents = "auto";
+    option.style.cursor = "pointer";
+    option.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Race clicked (direct):", option.dataset.race);
+      document.querySelectorAll(".race-option").forEach((o) => o.classList.remove("selected"));
+      option.classList.add("selected");
+      charCreation.race = option.dataset.race;
+      console.log("Race set to:", charCreation.race);
+      checkStartButton();
+    });
+  });
+  const classOptions = document.querySelectorAll(".class-option");
+  console.log("Found class options:", classOptions.length);
+  classOptions.forEach((option) => {
+    option.style.pointerEvents = "auto";
+    option.style.cursor = "pointer";
+    option.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Class clicked (direct):", option.dataset.class);
+      document.querySelectorAll(".class-option").forEach((o) => o.classList.remove("selected"));
+      option.classList.add("selected");
+      charCreation.class = option.dataset.class;
+      console.log("Class set to:", charCreation.class);
+      checkStartButton();
+    });
+  });
+  const attrButtons = document.querySelectorAll(".attr-btn");
+  console.log("Found attribute buttons:", attrButtons.length);
+  attrButtons.forEach((btn) => {
+    btn.style.pointerEvents = "auto";
+    btn.style.cursor = "pointer";
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const attr = btn.dataset.attr;
+      const dir = btn.dataset.dir;
+      console.log("Attribute button clicked (direct):", attr, dir);
+      adjustAttribute(attr, dir === "+" ? 1 : -1);
+    });
+  });
+  const nameInput = document.getElementById("charName");
+  if (nameInput) {
+    nameInput.addEventListener("input", (e) => {
+      charCreation.name = e.target.value.trim();
+      console.log("Name set to:", charCreation.name);
+      checkStartButton();
+    });
+  }
+  const startBtn = document.getElementById("startGameBtn");
+  if (startBtn) {
+    startBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("Start button clicked");
+      startGame();
+    });
+  }
+  const autoAssignBtn = document.getElementById("autoAssignBtn");
+  if (autoAssignBtn) {
+    autoAssignBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Auto-assign button clicked");
+      autoAssignAttributes();
+    });
+  }
+  updateAttributeDisplay();
+  checkStartButton();
+  console.log("Character creation initialized");
+}
+function autoAssignAttributes() {
+  Object.keys(charCreation.attributes).forEach((attr) => {
+    charCreation.attributes[attr] = 8;
+  });
+  charCreation.pointsRemaining = 27;
+  const classPriorities = {
+    warrior: { str: 5, con: 4, dex: 2, int: 1, wis: 1, cha: 1 },
+    rogue: { dex: 5, int: 3, str: 2, con: 2, wis: 1, cha: 1 },
+    mage: { int: 5, wis: 3, con: 2, dex: 1, str: 1, cha: 1 },
+    ranger: { dex: 3, wis: 3, con: 2, str: 2, int: 1, cha: 1 }
+  };
+  if (charCreation.class && classPriorities[charCreation.class]) {
+    const priorities = classPriorities[charCreation.class];
+    const attributes = ["str", "dex", "con", "int", "wis", "cha"];
+    let pointsToDistribute = 27;
+    const distribution = {};
+    attributes.forEach((attr) => {
+      const weight = priorities[attr];
+      const points = Math.floor(weight / 18 * 27);
+      distribution[attr] = Math.min(points, 7);
+    });
+    let totalDistributed = Object.values(distribution).reduce((a, b) => a + b, 0);
+    let remaining = 27 - totalDistributed;
+    const sortedAttrs = attributes.sort((a, b) => priorities[b] - priorities[a]);
+    for (let i = 0; i < sortedAttrs.length && remaining > 0; i++) {
+      const attr = sortedAttrs[i];
+      const canAdd = Math.min(remaining, 7 - distribution[attr]);
+      distribution[attr] += canAdd;
+      remaining -= canAdd;
+    }
+    attributes.forEach((attr) => {
+      charCreation.attributes[attr] = 8 + distribution[attr];
+      charCreation.pointsRemaining -= distribution[attr];
+    });
+  } else {
+    const balanced = { str: 4, dex: 4, con: 4, int: 4, wis: 4, cha: 4 };
+    let remaining = 27;
+    Object.keys(balanced).forEach((attr) => {
+      charCreation.attributes[attr] = 8 + balanced[attr];
+      remaining -= balanced[attr];
+    });
+    const attrs = Object.keys(balanced);
+    for (let i = 0; i < remaining; i++) {
+      const attr = attrs[i % attrs.length];
+      if (charCreation.attributes[attr] < 15) {
+        charCreation.attributes[attr]++;
+        charCreation.pointsRemaining--;
+      }
+    }
+  }
+  if (charCreation.pointsRemaining > 0) {
+    const attrs = Object.keys(charCreation.attributes);
+    while (charCreation.pointsRemaining > 0) {
+      let distributed = false;
+      for (const attr of attrs) {
+        if (charCreation.attributes[attr] < 15 && charCreation.pointsRemaining > 0) {
+          charCreation.attributes[attr]++;
+          charCreation.pointsRemaining--;
+          distributed = true;
+        }
+      }
+      if (!distributed) break;
+    }
+  }
+  updateAttributeDisplay();
+  checkStartButton();
+  console.log("Attributes auto-assigned:", charCreation.attributes);
+}
+function adjustAttribute(attr, change) {
+  console.log("adjustAttribute called:", attr, change);
+  const current = charCreation.attributes[attr];
+  const newValue = current + change;
+  console.log("Current:", current, "New:", newValue, "Points remaining:", charCreation.pointsRemaining);
+  if (change > 0 && charCreation.pointsRemaining > 0 && newValue <= 15) {
+    charCreation.attributes[attr] = newValue;
+    charCreation.pointsRemaining--;
+    console.log("Increased", attr, "to", newValue, "Points remaining:", charCreation.pointsRemaining);
+  } else if (change < 0 && newValue >= 8) {
+    charCreation.attributes[attr] = newValue;
+    charCreation.pointsRemaining++;
+    console.log("Decreased", attr, "to", newValue, "Points remaining:", charCreation.pointsRemaining);
+  } else {
+    console.log("Attribute change blocked");
+  }
+  updateAttributeDisplay();
+  checkStartButton();
+}
+function updateAttributeDisplay() {
+  const strEl = document.getElementById("strValue");
+  const dexEl = document.getElementById("dexValue");
+  const conEl = document.getElementById("conValue");
+  const intEl = document.getElementById("intValue");
+  const wisEl = document.getElementById("wisValue");
+  const chaEl = document.getElementById("chaValue");
+  const pointsEl = document.getElementById("pointsRemaining");
+  if (strEl) strEl.textContent = charCreation.attributes.str;
+  if (dexEl) dexEl.textContent = charCreation.attributes.dex;
+  if (conEl) conEl.textContent = charCreation.attributes.con;
+  if (intEl) intEl.textContent = charCreation.attributes.int;
+  if (wisEl) wisEl.textContent = charCreation.attributes.wis;
+  if (chaEl) chaEl.textContent = charCreation.attributes.cha;
+  if (pointsEl) pointsEl.textContent = charCreation.pointsRemaining;
+  document.querySelectorAll(".attr-btn").forEach((btn) => {
+    const attr = btn.dataset.attr;
+    const dir = btn.dataset.dir;
+    const current = charCreation.attributes[attr];
+    if (dir === "+") {
+      btn.disabled = charCreation.pointsRemaining === 0 || current >= 15;
+    } else {
+      btn.disabled = current <= 8;
+    }
+  });
+}
+function checkStartButton() {
+  const btn = document.getElementById("startGameBtn");
+  if (!btn) {
+    console.log("Start button not found");
+    return;
+  }
+  const isValid = charCreation.name && charCreation.race && charCreation.class && charCreation.pointsRemaining === 0;
+  console.log("Checking start button:", {
+    name: charCreation.name,
+    race: charCreation.race,
+    class: charCreation.class,
+    pointsRemaining: charCreation.pointsRemaining,
+    isValid
+  });
+  btn.disabled = !isValid;
+}
+function startGame() {
+  const raceBonus = RACE_BONUSES[charCreation.race];
+  const finalAttributes = { ...charCreation.attributes };
+  Object.keys(raceBonus).forEach((attr) => {
+    finalAttributes[attr] += raceBonus[attr];
+  });
+  const classBonus = CLASS_BONUSES[charCreation.class];
+  Object.keys(classBonus).forEach((attr) => {
+    finalAttributes[attr] += classBonus[attr];
+  });
+  game.player.name = charCreation.name;
+  game.player.race = charCreation.race;
+  game.player.class = charCreation.class;
+  game.player.attributes = finalAttributes;
+  game.player.maxHp = 50 + finalAttributes.con * 5;
+  game.player.hp = game.player.maxHp;
+  game.player.attack = 5 + Math.floor(finalAttributes.str / 2) + finalAttributes.dex / 4;
+  game.player.defense = 2 + Math.floor(finalAttributes.dex / 3) + Math.floor(finalAttributes.con / 4);
+  game.player.magicPower = 3 + Math.floor(finalAttributes.int / 2);
+  game.player.speed = 2 + Math.floor(finalAttributes.dex / 5);
+  document.getElementById("playerName").textContent = game.player.name;
+  document.getElementById("playerRaceClass").textContent = `${capitalizeFirst(game.player.race)} ${capitalizeFirst(game.player.class)}`;
+  updateAttributeDisplayInGame();
+  updateUI();
+  document.getElementById("charCreation").classList.add("hidden");
+  document.getElementById("gameContainer").classList.remove("hidden");
+  resizeCanvas();
+  game.keys = {};
+  hasTransitioned = false;
+  if (game.tutorial.active && !game.tutorial.completed) {
+    initTutorialVillage();
+  } else {
+    initWorld();
+    spawnEnemies();
+    spawnItems();
+  }
+  updateCamera();
+  if (game.tutorial.active && !game.tutorial.completed) {
+    setTimeout(() => {
+      startTutorialDialogue();
+    }, 500);
+  } else {
+    addLog(`You begin your journey as ${game.player.name}, a ${game.player.race} ${game.player.class}.`);
+    addLog("The world is dark and dangerous. Survive if you can.");
+  }
+}
+function capitalizeFirst(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+function updateAttributeDisplayInGame() {
+  document.getElementById("displayStr").textContent = game.player.attributes.str;
+  document.getElementById("displayDex").textContent = game.player.attributes.dex;
+  document.getElementById("displayCon").textContent = game.player.attributes.con;
+  document.getElementById("displayInt").textContent = game.player.attributes.int;
+  document.getElementById("displayWis").textContent = game.player.attributes.wis;
+  document.getElementById("displayCha").textContent = game.player.attributes.cha;
+}
+function initTutorialVillage() {
+  game.tiles = [];
+  game.doors = [];
+  game.npcs = [];
+  game.enemies = [];
+  game.items = [];
+  const villageSize = 20;
+  for (let y = 0; y < villageSize; y++) {
+    game.tiles[y] = [];
+    for (let x = 0; x < villageSize; x++) {
+      if (x === 0 || y === 0 || x === villageSize - 1 || y === villageSize - 1) {
+        game.tiles[y][x] = TILE_TYPES.WALL;
+      } else {
+        game.tiles[y][x] = TILE_TYPES.FLOOR;
+      }
+    }
+  }
+  for (let y = 5; y < 8; y++) {
+    for (let x = 5; x < 8; x++) {
+      if (y === 6 && x === 6) continue;
+      game.tiles[y][x] = TILE_TYPES.WALL;
+    }
+  }
+  game.tiles[8][10] = TILE_TYPES.CHEST;
+  game.items.push({
+    gridX: 12,
+    gridY: 8,
+    width: 18,
+    height: 18,
+    type: { name: "Healing Salve", effect: "heal", value: 25, color: "#8b0000" }
+  });
+  game.enemies.push({
+    gridX: 15,
+    gridY: 12,
+    width: 28,
+    height: 28,
+    hp: 20,
+    maxHp: 20,
+    attack: 5,
+    defense: 1,
+    xpReward: 15,
+    goldReward: 10,
+    type: "bandit",
+    typeName: "Training Dummy",
+    color: "#654321",
+    moveCooldown: 0,
+    moveDelay: 400
+    // Slower movement for tutorial
+  });
+  game.npcs.push({
+    x: 10,
+    y: 10,
+    name: "Master Aldric",
+    dialogue: ["Welcome to the village!", "I will guide you through the basics.", "Press Space to talk to me."],
+    color: "#4a1a4a",
+    isWizard: true
+  });
+  game.tutorialGate = { x: villageSize - 1, y: 10, opened: false };
+  game.tiles[10][villageSize - 1] = TILE_TYPES.GATE;
+  game.player.gridX = 10;
+  game.player.gridY = 10;
+}
+function initWorld() {
+  game.tiles = [];
+  game.doors = [];
+  game.npcs = [];
+  const worldSize = 40;
+  for (let y = 0; y < worldSize; y++) {
+    game.tiles[y] = [];
+    for (let x = 0; x < worldSize; x++) {
+      if (x === 0 || y === 0 || x === worldSize - 1 || y === worldSize - 1) {
+        game.tiles[y][x] = TILE_TYPES.WALL;
+      } else if (x % 5 === 0 && y % 3 === 0 || x % 7 === 0 && y % 4 === 0) {
+        if (Math.random() > 0.7) {
+          game.tiles[y][x] = TILE_TYPES.WALL;
+        } else {
+          game.tiles[y][x] = TILE_TYPES.FLOOR;
+        }
+      } else {
+        game.tiles[y][x] = TILE_TYPES.FLOOR;
+      }
+    }
+  }
+  for (let i = 0; i < 8; i++) {
+    const x = Math.floor(Math.random() * (worldSize - 2)) + 1;
+    const y = Math.floor(Math.random() * (worldSize - 2)) + 1;
+    if (game.tiles[y][x] === TILE_TYPES.FLOOR) {
+      game.doors.push({
+        x,
+        y,
+        locked: Math.random() > 0.3,
+        // 70% locked
+        opened: false
+      });
+      game.tiles[y][x] = TILE_TYPES.DOOR;
+    }
+  }
+  for (let i = 0; i < 6; i++) {
+    const x = Math.floor(Math.random() * (worldSize - 2)) + 1;
+    const y = Math.floor(Math.random() * (worldSize - 2)) + 1;
+    if (game.tiles[y][x] === TILE_TYPES.FLOOR) {
+      game.tiles[y][x] = TILE_TYPES.CHEST;
+    }
+  }
+  game.tiles[5][35] = TILE_TYPES.SHOP;
+  const npcTypes = [
+    { name: "Old Guard", dialogue: ["The dungeon is dangerous.", "Watch out for locked doors.", "You'll need keys to progress."] },
+    { name: "Merchant", dialogue: ["Welcome, traveler.", "I have wares if you have coin.", "Come back anytime."] },
+    { name: "Wise Sage", dialogue: ["The path ahead is treacherous.", "Strength comes from within.", "Trust your instincts."] },
+    { name: "Wounded Warrior", dialogue: ["I barely escaped...", "The creatures here are fierce.", "Be careful out there."] }
+  ];
+  for (let i = 0; i < 4; i++) {
+    const x = Math.floor(Math.random() * (worldSize - 2)) + 1;
+    const y = Math.floor(Math.random() * (worldSize - 2)) + 1;
+    if (game.tiles[y][x] === TILE_TYPES.FLOOR) {
+      const npcType = npcTypes[i % npcTypes.length];
+      game.npcs.push({
+        x,
+        y,
+        name: npcType.name,
+        dialogue: npcType.dialogue,
+        color: ["#8b6914", "#4a4a4a", "#3a5a3a", "#5a1a1a"][i % 4]
+      });
+    }
+  }
+  game.tiles[10][10] = TILE_TYPES.FLOOR;
+}
+function updateCamera() {
+  if (game.tiles && game.tiles.length > 0 && game.player.gridX >= 0 && game.player.gridX < game.tiles[0].length && game.player.gridY >= 0 && game.player.gridY < game.tiles.length) {
+    const pixelX = game.player.gridX * game.tileSize;
+    const pixelY = game.player.gridY * game.tileSize;
+    game.camera.x = pixelX - canvasWidth / 2;
+    game.camera.y = pixelY - canvasHeight / 2;
+  }
+}
+function spawnEnemies() {
+  if (game.tutorial.active && !game.tutorial.completed) {
+    return;
+  }
+  game.enemies = [];
+  const enemyCount = 8 + game.player.level;
+  const enemyTypes = Object.keys(ENEMY_TYPES);
+  for (let i = 0; i < enemyCount; i++) {
+    const typeKey = enemyTypes[Math.floor(Math.random() * enemyTypes.length)];
+    const type = ENEMY_TYPES[typeKey];
+    const baseHp = 40 + game.player.level * 8;
+    const baseAttack = 10 + game.player.level * 2;
+    let gridX, gridY;
+    do {
+      gridX = Math.floor(Math.random() * (game.tiles[0].length - 2)) + 1;
+      gridY = Math.floor(Math.random() * (game.tiles.length - 2)) + 1;
+    } while (game.tiles[gridY][gridX] !== TILE_TYPES.FLOOR || gridX === game.player.gridX && gridY === game.player.gridY);
+    game.enemies.push({
+      gridX,
+      gridY,
+      width: 28,
+      height: 28,
+      hp: Math.floor(baseHp * type.hpMult),
+      maxHp: Math.floor(baseHp * type.hpMult),
+      attack: Math.floor(baseAttack * type.attackMult),
+      defense: 3 + game.player.level,
+      xpReward: 25 + game.player.level * 8,
+      goldReward: 15 + game.player.level * 5,
+      type: typeKey,
+      typeName: type.name,
+      color: type.color,
+      moveCooldown: 0,
+      moveDelay: 300,
+      // Movement speed for enemies
+      hitTimer: 0,
+      // For hit feedback
+      damageNumber: null,
+      // For damage popup
+      damageNumberTimer: 0
+      // Timer for damage number
+    });
+  }
+}
+function spawnItems() {
+  game.items = [];
+  const itemTypes = [
+    { name: "Healing Salve", effect: "heal", value: 25, color: "#8b0000" },
+    { name: "Gold", effect: "gold", value: 10, color: "#8b6914" },
+    { name: "Experience Crystal", effect: "xp", value: 30, color: "#4a4a00" },
+    { name: "Key", effect: "key", value: 1, color: "#ffd700" }
+  ];
+  for (let i = 0; i < 10; i++) {
+    let gridX, gridY;
+    do {
+      gridX = Math.floor(Math.random() * (game.tiles[0].length - 2)) + 1;
+      gridY = Math.floor(Math.random() * (game.tiles.length - 2)) + 1;
+    } while (game.tiles[gridY][gridX] !== TILE_TYPES.FLOOR);
+    game.items.push({
+      gridX,
+      gridY,
+      width: 18,
+      height: 18,
+      type: itemTypes[Math.floor(Math.random() * itemTypes.length)]
+    });
+  }
+}
+function drawTile(x, y, type) {
+  const screenX = x * game.tileSize - game.camera.x;
+  const screenY = y * game.tileSize - game.camera.y;
+  if (screenX < -game.tileSize || screenX > canvasWidth || screenY < -game.tileSize || screenY > canvasHeight) return;
+  const s = game.tileSize;
+  switch (type) {
+    case TILE_TYPES.FLOOR:
+      ctx.fillStyle = "#2a2a2a";
+      ctx.fillRect(screenX, screenY, s, s);
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.06)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(screenX + 0.5, screenY + 0.5, s - 1, s - 1);
+      break;
+    case TILE_TYPES.WALL:
+      ctx.fillStyle = "#0d0d0d";
+      ctx.fillRect(screenX, screenY, s, s);
+      ctx.strokeStyle = "#3a3a3a";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(screenX + 0.5, screenY + 0.5, s - 1, s - 1);
+      break;
+    case TILE_TYPES.DOOR:
+      ctx.fillStyle = "#3a2a1a";
+      ctx.fillRect(screenX, screenY, s, s);
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(screenX + 2, screenY + 2, s - 4, s - 4);
+      ctx.strokeStyle = "#8b6914";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(screenX + 2, screenY + 2, s - 4, s - 4);
+      ctx.fillStyle = "#ffd700";
+      ctx.beginPath();
+      ctx.arc(screenX + s / 2, screenY + s / 2 - 2, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(screenX + s / 2 - 3, screenY + s / 2 + 2, 6, 4);
+      break;
+    case TILE_TYPES.CHEST:
+      ctx.fillStyle = "#2a2a2a";
+      ctx.fillRect(screenX, screenY, s, s);
+      ctx.fillStyle = "#8b6914";
+      ctx.fillRect(screenX + 6, screenY + 6, s - 12, s - 12);
+      ctx.strokeStyle = "#654321";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(screenX + 6, screenY + 6, s - 12, s - 12);
+      ctx.fillStyle = "#ffd700";
+      ctx.fillRect(screenX + s / 2 - 4, screenY + 6, 8, 3);
+      break;
+    case TILE_TYPES.SHOP:
+      ctx.fillStyle = "#2a2a2a";
+      ctx.fillRect(screenX, screenY, s, s);
+      ctx.fillStyle = "#8b6914";
+      ctx.fillRect(screenX + 4, screenY + 4, s - 8, s - 8);
+      ctx.strokeStyle = "#ffd700";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(screenX + 4, screenY + 4, s - 8, s - 8);
+      ctx.fillStyle = "#ffd700";
+      ctx.beginPath();
+      ctx.arc(screenX + s / 2, screenY + s / 2, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#8b6914";
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("$", screenX + s / 2, screenY + s / 2);
+      break;
+    case TILE_TYPES.WATER:
+      ctx.fillStyle = "#1a1a3a";
+      ctx.fillRect(screenX, screenY, s, s);
+      break;
+    case TILE_TYPES.GRASS:
+      ctx.fillStyle = "#1a2a1a";
+      ctx.fillRect(screenX, screenY, s, s);
+      break;
+    case TILE_TYPES.GATE:
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(screenX + 2, screenY + 2, s - 4, s - 4);
+      ctx.strokeStyle = "#8b0000";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(screenX + 2, screenY + 2, s - 4, s - 4);
+      for (let i = 0; i < 3; i++) {
+        ctx.fillStyle = "#2a1a1a";
+        ctx.fillRect(screenX + 6 + i * 6, screenY + 4, 2, s - 8);
+      }
+      break;
+  }
+}
+function drawDoors() {
+  game.doors.forEach((door) => {
+    const screenX = door.x * game.tileSize - game.camera.x;
+    const screenY = door.y * game.tileSize - game.camera.y;
+    if (screenX < -game.tileSize || screenX > canvasWidth || screenY < -game.tileSize || screenY > canvasHeight) return;
+    if (door.opened) {
+      ctx.fillStyle = "#2a2a2a";
+      ctx.fillRect(screenX, screenY, game.tileSize, game.tileSize);
+    } else {
+      ctx.fillStyle = "#654321";
+      ctx.fillRect(screenX + 2, screenY + 2, game.tileSize - 4, game.tileSize - 4);
+      ctx.strokeStyle = door.locked ? "#8b0000" : "#8b6914";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(screenX + 2, screenY + 2, game.tileSize - 4, game.tileSize - 4);
+      if (door.locked) {
+        ctx.fillStyle = "#ffd700";
+        ctx.beginPath();
+        ctx.arc(screenX + game.tileSize / 2, screenY + game.tileSize / 2, 4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+}
+function drawNPCs() {
+  game.npcs.forEach((npc) => {
+    const screenX = npc.x * game.tileSize - game.camera.x;
+    const screenY = npc.y * game.tileSize - game.camera.y;
+    if (screenX < -game.tileSize || screenX > canvasWidth || screenY < -game.tileSize || screenY > canvasHeight) return;
+    const centerX = screenX + game.tileSize / 2;
+    const centerY = screenY + game.tileSize / 2;
+    if (npc.isWizard) {
+      ctx.fillStyle = "#4a1a4a";
+      ctx.fillRect(screenX + 6, screenY + 8, game.tileSize - 12, game.tileSize - 12);
+      ctx.fillStyle = "#2a0a2a";
+      ctx.beginPath();
+      ctx.moveTo(centerX - 8, centerY - 4);
+      ctx.lineTo(centerX, centerY - 12);
+      ctx.lineTo(centerX + 8, centerY - 4);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillStyle = "#8b6914";
+      ctx.fillRect(centerX + 10, centerY - 8, 2, 12);
+      ctx.fillStyle = "#ffd700";
+      ctx.beginPath();
+      ctx.arc(centerX + 11, centerY - 10, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = npc.color;
+      ctx.fillRect(screenX + 8, screenY + 4, game.tileSize - 16, game.tileSize - 8);
+      ctx.fillStyle = "#d4af37";
+      ctx.beginPath();
+      ctx.arc(centerX, screenY + 6, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+}
+function drawWorld() {
+  const startX = Math.floor(game.camera.x / game.tileSize);
+  const startY = Math.floor(game.camera.y / game.tileSize);
+  const endX = startX + Math.ceil(canvasWidth / game.tileSize) + 1;
+  const endY = startY + Math.ceil(canvasHeight / game.tileSize) + 1;
+  for (let y = startY; y < endY; y++) {
+    for (let x = startX; x < endX; x++) {
+      if (game.tiles[y] && game.tiles[y][x] !== void 0) {
+        drawTile(x, y, game.tiles[y][x]);
+      } else {
+        drawTile(x, y, TILE_TYPES.DIRT);
+      }
+    }
+  }
+}
+function drawPlayer() {
+  const screenX = game.player.gridX * game.tileSize - game.camera.x;
+  const screenY = game.player.gridY * game.tileSize - game.camera.y;
+  if (screenX < -game.tileSize || screenX > canvasWidth + game.tileSize || screenY < -game.tileSize || screenY > canvasHeight + game.tileSize) return;
+  const centerX = screenX + game.tileSize / 2;
+  const centerY = screenY + game.tileSize / 2;
+  if (game.player.hitTimer > 0) {
+    ctx.save();
+    ctx.globalAlpha = Math.min(1, game.player.hitTimer / 200);
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(screenX, screenY, game.tileSize, game.tileSize);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+  drawPlayerIcon(centerX, centerY, game.player.class, game.player.race);
+  const barWidth = game.tileSize;
+  const barHeight = 3;
+  ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+  ctx.fillRect(screenX, screenY - 8, barWidth, barHeight);
+  ctx.fillStyle = "#8b0000";
+  ctx.fillRect(
+    screenX,
+    screenY - 8,
+    game.player.hp / game.player.maxHp * barWidth,
+    barHeight
+  );
+}
+function drawPlayerIcon(x, y, playerClass, playerRace) {
+  const raceColors = {
+    human: "#d4af37",
+    elf: "#90ee90",
+    dwarf: "#8b4513",
+    orc: "#654321"
+  };
+  const baseColor = raceColors[playerRace] || "#d4af37";
+  if (playerClass === "warrior") {
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(x - 10, y - 8, 8, 12);
+    ctx.fillStyle = "#8b4513";
+    ctx.fillRect(x - 12, y - 6, 4, 8);
+    ctx.fillStyle = "#c0c0c0";
+    ctx.fillRect(x + 2, y - 10, 2, 8);
+  } else if (playerClass === "rogue") {
+    ctx.fillStyle = "#2a2a2a";
+    ctx.beginPath();
+    ctx.arc(x, y - 4, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = baseColor;
+    ctx.fillRect(x - 8, y, 16, 10);
+    ctx.fillStyle = "#c0c0c0";
+    ctx.fillRect(x - 12, y + 2, 3, 6);
+    ctx.fillRect(x + 9, y + 2, 3, 6);
+  } else if (playerClass === "mage") {
+    ctx.fillStyle = "#3a1a3a";
+    ctx.fillRect(x - 8, y - 6, 16, 14);
+    ctx.fillStyle = baseColor;
+    ctx.beginPath();
+    ctx.arc(x, y - 8, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffd700";
+    ctx.fillRect(x + 8, y - 10, 2, 12);
+    ctx.beginPath();
+    ctx.arc(x + 9, y - 12, 3, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (playerClass === "ranger") {
+    ctx.fillStyle = "#2a3a1a";
+    ctx.fillRect(x - 8, y - 4, 16, 12);
+    ctx.fillStyle = baseColor;
+    ctx.beginPath();
+    ctx.arc(x, y - 6, 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#8b4513";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x - 6, y + 2, 8, 0.5, 2.6);
+    ctx.stroke();
+    ctx.fillStyle = "#c0c0c0";
+    ctx.fillRect(x + 4, y, 6, 1);
+  } else {
+    ctx.fillStyle = baseColor;
+    ctx.beginPath();
+    ctx.arc(x, y, 10, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+function drawEnemies() {
+  game.enemies.forEach((enemy) => {
+    const screenX = enemy.gridX * game.tileSize - game.camera.x;
+    const screenY = enemy.gridY * game.tileSize - game.camera.y;
+    if (screenX < -game.tileSize || screenX > canvasWidth + game.tileSize || screenY < -game.tileSize || screenY > canvasHeight + game.tileSize) return;
+    const centerX = screenX + game.tileSize / 2;
+    const centerY = screenY + game.tileSize / 2;
+    if (enemy.hitTimer > 0) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, enemy.hitTimer / 200);
+      ctx.fillStyle = "#ff0000";
+      ctx.fillRect(screenX, screenY, game.tileSize, game.tileSize);
+      ctx.globalAlpha = 1;
+      ctx.restore();
+    }
+    ctx.fillStyle = enemy.color;
+    ctx.fillRect(centerX - 10, centerY - 8, 20, 16);
+    ctx.fillStyle = "#ff0000";
+    ctx.fillRect(centerX - 6, centerY - 4, 4, 4);
+    ctx.fillRect(centerX + 2, centerY - 4, 4, 4);
+    const barWidth = game.tileSize;
+    const barHeight = 2;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+    ctx.fillRect(screenX, screenY - 5, barWidth, barHeight);
+    ctx.fillStyle = "#8b0000";
+    ctx.fillRect(
+      screenX,
+      screenY - 5,
+      enemy.hp / enemy.maxHp * barWidth,
+      barHeight
+    );
+    if (enemy.damageNumber && enemy.damageNumberTimer > 0) {
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, enemy.damageNumberTimer / 1e3);
+      ctx.fillStyle = "#ff0000";
+      ctx.font = "bold 12px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const offsetY = -20 - (1e3 - enemy.damageNumberTimer) / 10;
+      ctx.fillText("-" + enemy.damageNumber, centerX, centerY + offsetY);
+      ctx.restore();
+    }
+  });
+}
+function drawItems() {
+  game.items.forEach((item) => {
+    const screenX = item.gridX * game.tileSize - game.camera.x;
+    const screenY = item.gridY * game.tileSize - game.camera.y;
+    if (screenX < -game.tileSize || screenX > canvasWidth + game.tileSize || screenY < -game.tileSize || screenY > canvasHeight + game.tileSize) return;
+    const centerX = screenX + game.tileSize / 2;
+    const centerY = screenY + game.tileSize / 2;
+    if (item.type.name === "Key") {
+      ctx.fillStyle = item.type.color;
+      ctx.fillRect(centerX - 6, centerY - 2, 8, 2);
+      ctx.beginPath();
+      ctx.arc(centerX - 2, centerY - 1, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else {
+      ctx.fillStyle = item.type.color;
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+  });
+}
+var lastFrameTime = performance.now();
+function updatePlayer(dt) {
+  if (game.inCombat || game.player.hp <= 0) return;
+  if (game.player.moveCooldown > 0) {
+    game.player.moveCooldown -= dt;
+    return;
+  }
+  const keyW = game.keys["w"] || game.keys["W"] || game.keys["ArrowUp"];
+  const keyS = game.keys["s"] || game.keys["S"] || game.keys["ArrowDown"];
+  const keyA = game.keys["a"] || game.keys["A"] || game.keys["ArrowLeft"];
+  const keyD = game.keys["d"] || game.keys["D"] || game.keys["ArrowRight"];
+  if (!keyW && !keyS && !keyA && !keyD) {
+    return;
+  }
+  let moved = false;
+  let newGridX = game.player.gridX;
+  let newGridY = game.player.gridY;
+  if (keyW) {
+    newGridY -= 1;
+    moved = true;
+  } else if (keyS) {
+    newGridY += 1;
+    moved = true;
+  } else if (keyA) {
+    newGridX -= 1;
+    moved = true;
+  } else if (keyD) {
+    newGridX += 1;
+    moved = true;
+  }
+  if (moved) {
+    if (!game.tiles || !game.tiles[0] || !game.tiles[newGridY] || newGridX < 0 || newGridX >= game.tiles[0].length || newGridY < 0 || newGridY >= game.tiles.length) {
+      game.player.moveCooldown = game.moveDelay;
+      return;
+    }
+    const tile = game.tiles[newGridY][newGridX];
+    if (tile === TILE_TYPES.WALL) {
+      addLog("You cannot pass through the wall.");
+      game.player.moveCooldown = game.moveDelay;
+      return;
+    }
+    if (tile === TILE_TYPES.GATE) {
+      if (game.tutorial && !game.tutorial.completed) {
+        addLog("The gate is locked. Complete the tutorial first.");
+        game.player.moveCooldown = game.moveDelay;
+        return;
+      }
+      if (game.tutorial && game.tutorial.completed) {
+        transitionToMainWorld();
+        return;
+      } else {
+        addLog("The gate is locked. Complete the tutorial first.");
+        game.player.moveCooldown = game.moveDelay;
+        return;
+      }
+    }
+    if (!hasTransitioned && game.tutorial && game.tutorial.completed && !game.tutorial.active) {
+      const villageSize = 20;
+      if (newGridX >= villageSize - 1 && game.player.gridX < villageSize - 1) {
+        transitionToMainWorld();
+        return;
+      }
+    }
+    if (tile === TILE_TYPES.DOOR) {
+      const door = game.doors.find((d) => d.x === newGridX && d.y === newGridY);
+      if (door && door.locked && !door.opened) {
+        if (game.player.keys > 0) {
+          game.player.keys--;
+          door.opened = true;
+          door.locked = false;
+          addLog("You unlock the door with a key.");
+          updateUI();
+        } else {
+          addLog("The door is locked. You need a key.");
+          game.player.moveCooldown = game.moveDelay;
+          return;
+        }
+      }
+    }
+    game.player.gridX = newGridX;
+    game.player.gridY = newGridY;
+    game.player.moveCooldown = game.moveDelay;
+    updateCamera();
+    checkTileInteractions(newGridX, newGridY);
+    checkTutorialProgress();
+  }
+  const spaceDown = game.keys[" "] || game.keys["Space"];
+  if (spaceDown) {
+    let npc = game.npcs.find((n) => n.x === game.player.gridX && n.y === game.player.gridY);
+    if (!npc) {
+      npc = game.npcs.find((n) => {
+        const dx = Math.abs(n.x - game.player.gridX);
+        const dy = Math.abs(n.y - game.player.gridY);
+        return dx === 1 && dy === 0 || dx === 0 && dy === 1;
+      });
+    }
+    if (npc) {
+      talkToNPC(npc);
+      game.keys[" "] = false;
+      game.keys["Space"] = false;
+    }
+  }
+}
+function updateEnemies(dt) {
+  if (game.inCombat) return;
+  game.enemies.forEach((enemy, index) => {
+    if (enemy.moveCooldown > 0) {
+      enemy.moveCooldown -= dt;
+      return;
+    }
+    const dx = game.player.gridX - enemy.gridX;
+    const dy = game.player.gridY - enemy.gridY;
+    const distance = Math.abs(dx) + Math.abs(dy);
+    if (distance > 0 && distance < 15) {
+      let newX = enemy.gridX;
+      let newY = enemy.gridY;
+      if (Math.abs(dx) > Math.abs(dy)) {
+        newX += dx > 0 ? 1 : -1;
+      } else {
+        newY += dy > 0 ? 1 : -1;
+      }
+      if (newX >= 0 && newX < game.tiles[0].length && newY >= 0 && newY < game.tiles.length) {
+        const tile = game.tiles[newY][newX];
+        if (tile === TILE_TYPES.FLOOR || tile === TILE_TYPES.DOOR && game.doors.find((d) => d.x === newX && d.y === newY && d.opened)) {
+          const enemyAtPos = game.enemies.find((e) => e !== enemy && e.gridX === newX && e.gridY === newY);
+          if (!enemyAtPos) {
+            enemy.gridX = newX;
+            enemy.gridY = newY;
+            enemy.moveCooldown = enemy.moveDelay || 300;
+            if (enemy.gridX === game.player.gridX && enemy.gridY === game.player.gridY && !game.inCombat) {
+              startCombat(enemy, index);
+            }
+          }
+        }
+      }
+    }
+  });
+}
+function checkTileInteractions(x, y) {
+  const tile = game.tiles[y][x];
+  if (tile === TILE_TYPES.CHEST) {
+    openChest(x, y);
+  } else if (tile === TILE_TYPES.SHOP) {
+    if (game.keys[" "] || game.keys["Space"]) {
+      openShop();
+    }
+  }
+  game.items.forEach((item, index) => {
+    if (item.gridX === x && item.gridY === y) {
+      collectItem(item, index);
+    }
+  });
+  game.enemies.forEach((enemy, index) => {
+    if (enemy.gridX === x && enemy.gridY === y && !game.inCombat) {
+      startCombat(enemy, index);
+    }
+  });
+}
+function talkToNPC(npc) {
+  const dialogueModal = document.getElementById("dialogueModal");
+  const dialogueText = document.getElementById("dialogueText");
+  if (npc.isWizard && game.tutorial.active && !game.tutorial.completed) {
+    handleWizardDialogue(npc);
+    return;
+  }
+  const randomDialogue = npc.dialogue[Math.floor(Math.random() * npc.dialogue.length)];
+  dialogueText.textContent = randomDialogue;
+  document.querySelector("#dialogueModal h2").textContent = npc.name;
+  dialogueModal.classList.remove("hidden");
+}
+function startTutorialDialogue() {
+  const wizard = game.npcs.find((n) => n.isWizard);
+  if (wizard) {
+    handleWizardDialogue(wizard);
+  }
+}
+function handleWizardDialogue(wizard) {
+  const dialogueModal = document.getElementById("dialogueModal");
+  const dialogueText = document.getElementById("dialogueText");
+  const currentStep = game.tutorial.steps[game.tutorial.currentStep];
+  if (!currentStep) {
+    dialogueText.textContent = "You are ready to face the world! The gate is now open.";
+    document.querySelector("#dialogueModal h2").textContent = wizard.name;
+    dialogueModal.classList.remove("hidden");
+    return;
+  }
+  dialogueText.textContent = currentStep.message;
+  document.querySelector("#dialogueModal h2").textContent = wizard.name;
+  dialogueModal.classList.remove("hidden");
+  if (currentStep.id === "welcome") {
+    setTimeout(() => {
+      advanceTutorialStep();
+    }, 3e3);
+  } else if (currentStep.id === "ready") {
+    setTimeout(() => {
+      advanceTutorialStep();
+      completeTutorial();
+    }, 2e3);
+  }
+}
+function advanceTutorialStep() {
+  if (game.tutorial.currentStep < game.tutorial.steps.length) {
+    const currentStep = game.tutorial.steps[game.tutorial.currentStep];
+    currentStep.completed = true;
+    game.tutorial.currentStep++;
+    if (game.tutorial.currentStep >= game.tutorial.steps.length) {
+      completeTutorial();
+    }
+  }
+}
+var tutorialItemCount = 1;
+var tutorialPlayerMoved = false;
+function checkTutorialProgress() {
+  if (!game.tutorial.active || game.tutorial.completed) return;
+  const currentStep = game.tutorial.steps[game.tutorial.currentStep];
+  if (!currentStep) return;
+  if (currentStep.id === "movement") {
+    if ((game.player.gridX !== 10 || game.player.gridY !== 10) && !tutorialPlayerMoved) {
+      tutorialPlayerMoved = true;
+      advanceTutorialStep();
+      addLog("Good! You can move around. Now let me tell you about combat...");
+      setTimeout(() => {
+        const wizard = game.npcs.find((n) => n.isWizard);
+        if (wizard) handleWizardDialogue(wizard);
+      }, 2e3);
+    }
+  } else if (currentStep.id === "combat" && game.player.xp > 0) {
+    advanceTutorialStep();
+    addLog("Excellent! You defeated the training dummy. Now try collecting items...");
+    setTimeout(() => {
+      const wizard = game.npcs.find((n) => n.isWizard);
+      if (wizard) handleWizardDialogue(wizard);
+    }, 2e3);
+  } else if (currentStep.id === "items") {
+    if (game.items.length < tutorialItemCount) {
+      tutorialItemCount = game.items.length;
+      advanceTutorialStep();
+      addLog("Well done! Items can be very useful. Now try opening that chest...");
+      setTimeout(() => {
+        const wizard = game.npcs.find((n) => n.isWizard);
+        if (wizard) handleWizardDialogue(wizard);
+      }, 2e3);
+    }
+  } else if (currentStep.id === "chest") {
+    const chestX = 10;
+    const chestY = 8;
+    if (game.tiles[chestY] && game.tiles[chestY][chestX] === TILE_TYPES.FLOOR) {
+      advanceTutorialStep();
+      addLog("Perfect! You are learning quickly. One final word...");
+      setTimeout(() => {
+        const wizard = game.npcs.find((n) => n.isWizard);
+        if (wizard) {
+          handleWizardDialogue(wizard);
+        } else {
+          completeTutorial();
+        }
+      }, 2e3);
+    }
+  } else if (currentStep.id === "ready") {
+    setTimeout(() => {
+      if (game.tutorial.currentStep === game.tutorial.steps.length - 1) {
+        const wizard = game.npcs.find((n) => n.isWizard);
+        if (wizard) handleWizardDialogue(wizard);
+      }
+    }, 1e3);
+  }
+}
+function completeTutorial() {
+  if (game.tutorial.completed) return;
+  game.tutorial.completed = true;
+  game.tutorial.active = false;
+  if (game.tutorialGate) {
+    game.tutorialGate.opened = true;
+    const gateX = game.tutorialGate.x;
+    const gateY = game.tutorialGate.y;
+    if (game.tiles[gateY] && game.tiles[gateY][gateX] === TILE_TYPES.GATE) {
+      game.tiles[gateY][gateX] = TILE_TYPES.FLOOR;
+      addLog('Master Aldric opens the gate. "The world beyond is dangerous, but you are ready."');
+    }
+  } else {
+    const villageSize = 20;
+    const gateX = villageSize - 1;
+    const gateY = 10;
+    if (game.tiles[gateY] && game.tiles[gateY][gateX] === TILE_TYPES.GATE) {
+      game.tiles[gateY][gateX] = TILE_TYPES.FLOOR;
+      addLog('Master Aldric opens the gate. "The world beyond is dangerous, but you are ready."');
+    }
+  }
+  addLog("You can now pass through the gate to explore the wider world.");
+}
+var hasTransitioned = false;
+function transitionToMainWorld() {
+  if (hasTransitioned || !game.tutorial || !game.tutorial.completed || game.tutorial.active) {
+    return;
+  }
+  hasTransitioned = true;
+  addLog("You step through the gate into the wider world...");
+  addLog("The dark realm stretches before you. Monsters roam freely here.");
+  initWorld();
+  let startX = 2;
+  let startY = 10;
+  if (!game.tiles[startY] || game.tiles[startY][startX] !== TILE_TYPES.FLOOR) {
+    let found = false;
+    for (let y = 8; y < 15 && !found; y++) {
+      for (let x = 1; x < 5 && !found; x++) {
+        if (game.tiles[y] && game.tiles[y][x] === TILE_TYPES.FLOOR) {
+          startX = x;
+          startY = y;
+          found = true;
+        }
+      }
+    }
+  }
+  if (game.tiles[startY] && game.tiles[startY][startX] === TILE_TYPES.FLOOR) {
+    game.player.gridX = startX;
+    game.player.gridY = startY;
+  }
+  spawnEnemies();
+  spawnItems();
+  updateCamera();
+  game.tutorial.active = false;
+}
+function openChest(x, y) {
+  const gold = 20 + Math.floor(Math.random() * 40);
+  game.player.gold += gold;
+  addLog(`Found ${gold} gold pieces in a weathered chest.`);
+  if (Math.random() > 0.6) {
+    game.player.keys++;
+    addLog("You found a key!");
+  }
+  game.tiles[y][x] = TILE_TYPES.FLOOR;
+  updateUI();
+  checkTutorialProgress();
+}
+function openShop() {
+  document.getElementById("shopModal").classList.remove("hidden");
+  renderShop();
+}
+function renderShop() {
+  const shopItems = [
+    { name: "Healing Salve", desc: "Restores 40 HP", price: 30, effect: "heal", value: 40 },
+    { name: "Iron Blade", desc: "+3 Attack", price: 120, effect: "attack", value: 3 },
+    { name: "Leather Armor", desc: "+3 Defense", price: 100, effect: "defense", value: 3 },
+    { name: "Experience Tome", desc: "+80 XP", price: 60, effect: "xp", value: 80 }
+  ];
+  const shopDiv = document.getElementById("shopItems");
+  shopDiv.innerHTML = "";
+  shopItems.forEach((item) => {
+    const itemDiv = document.createElement("div");
+    itemDiv.className = "shop-item";
+    itemDiv.innerHTML = `
+            <div class="shop-item-info">
+                <div class="shop-item-name">${item.name}</div>
+                <div class="shop-item-desc">${item.desc}</div>
+            </div>
+            <div>
+                <span class="shop-item-price">${item.price} gold</span>
+                <button class="buy-btn" ${game.player.gold < item.price ? "disabled" : ""} 
+                        onclick="buyItem(${JSON.stringify(item).replace(/"/g, "&quot;")})">
+                    Buy
+                </button>
+            </div>
+        `;
+    shopDiv.appendChild(itemDiv);
+  });
+}
+window.buyItem = function(item) {
+  if (game.player.gold >= item.price) {
+    game.player.gold -= item.price;
+    addLog(`Purchased ${item.name} from the merchant.`);
+    if (item.effect === "heal") {
+      game.player.hp = Math.min(game.player.maxHp, game.player.hp + item.value);
+    } else if (item.effect === "attack") {
+      game.player.attack += item.value;
+    } else if (item.effect === "defense") {
+      game.player.defense += item.value;
+    } else if (item.effect === "xp") {
+      game.player.xp += item.value;
+      checkLevelUp();
+    }
+    updateUI();
+    renderShop();
+  }
+};
+function collectItem(item, index) {
+  addLog(`Collected ${item.type.name}.`);
+  if (item.type.effect === "heal") {
+    game.player.hp = Math.min(game.player.maxHp, game.player.hp + item.type.value);
+  } else if (item.type.effect === "gold") {
+    game.player.gold += item.type.value;
+  } else if (item.type.effect === "xp") {
+    game.player.xp += item.type.value;
+    checkLevelUp();
+  } else if (item.type.effect === "key") {
+    game.player.keys += item.type.value;
+  }
+  game.items.splice(index, 1);
+  updateUI();
+}
+function startCombat(enemy, index) {
+  game.inCombat = true;
+  game.currentEnemy = { enemy, index };
+  document.getElementById("combatModal").classList.remove("hidden");
+  updateCombatUI();
+}
+function updateCombatUI() {
+  const enemy = game.currentEnemy.enemy;
+  document.getElementById("combatInfo").innerHTML = `
+        <p><strong>${game.player.name}</strong> - HP: ${game.player.hp}/${game.player.maxHp}</p>
+        <p><strong>${enemy.typeName}</strong> - HP: ${enemy.hp}/${enemy.maxHp}</p>
+        <p style="margin-top: 15px; color: #c9a961;">Choose your action.</p>
+    `;
+}
+function attackEnemy() {
+  const enemy = game.currentEnemy.enemy;
+  const baseDamage = game.player.attack;
+  const variance = Math.floor(Math.random() * 6) - 3;
+  const playerDamage = Math.max(1, baseDamage - enemy.defense + variance);
+  const isCrit = Math.random() < 0.05;
+  const finalDamage = isCrit ? Math.floor(playerDamage * 1.5) : playerDamage;
+  enemy.hp -= finalDamage;
+  enemy.hitTimer = 200;
+  enemy.damageNumber = finalDamage;
+  enemy.damageNumberTimer = 1e3;
+  if (isCrit) {
+    game.screenShake = 10;
+    addLog(`Critical hit! You strike for ${finalDamage} damage!`);
+  } else {
+    addLog(`You strike for ${finalDamage} damage.`);
+  }
+  if (enemy.hp <= 0) {
+    winCombat();
+    return;
+  }
+  const enemyBaseDamage = enemy.attack;
+  const enemyVariance = Math.floor(Math.random() * 6) - 3;
+  const enemyDamage = Math.max(1, enemyBaseDamage - game.player.defense + enemyVariance);
+  game.player.hp -= enemyDamage;
+  game.player.hitTimer = 200;
+  game.player.damageNumber = enemyDamage;
+  game.player.damageNumberTimer = 1e3;
+  addLog(`The ${enemy.typeName} attacks for ${enemyDamage} damage.`);
+  if (game.player.hp <= 0) {
+    game.player.hp = 0;
+    addLog(`You have been defeated.`);
+    setTimeout(() => {
+      game.player.hp = Math.floor(game.player.maxHp * 0.5);
+      game.player.x = canvasWidth / 2;
+      game.player.y = canvasHeight / 2;
+      game.camera.x = game.player.x - canvasWidth / 2;
+      game.camera.y = game.player.y - canvasHeight / 2;
+      addLog(`You awaken, wounded but alive.`);
+      endCombat();
+    }, 2e3);
+    return;
+  }
+  updateCombatUI();
+  updateUI();
+}
+function defend() {
+  const enemy = game.currentEnemy.enemy;
+  const defenseBonus = Math.floor(game.player.attributes.dex / 4) + 2;
+  const enemyBaseDamage = enemy.attack;
+  const enemyVariance = Math.floor(Math.random() * 6) - 3;
+  const enemyDamage = Math.max(1, enemyBaseDamage - (game.player.defense + defenseBonus) + enemyVariance);
+  game.player.hp -= enemyDamage;
+  addLog(`You raise your guard. The ${enemy.typeName} deals ${enemyDamage} damage.`);
+  if (game.player.hp <= 0) {
+    game.player.hp = 0;
+    addLog(`You have been defeated.`);
+    setTimeout(() => {
+      game.player.hp = Math.floor(game.player.maxHp * 0.5);
+      game.player.x = canvasWidth / 2;
+      game.player.y = canvasHeight / 2;
+      game.camera.x = game.player.x - canvasWidth / 2;
+      game.camera.y = game.player.y - canvasHeight / 2;
+      addLog(`You awaken, wounded but alive.`);
+      endCombat();
+    }, 2e3);
+    return;
+  }
+  updateCombatUI();
+  updateUI();
+}
+function flee() {
+  const fleeChance = 0.4 + game.player.attributes.dex / 50;
+  const success = Math.random() < fleeChance;
+  if (success) {
+    addLog(`You successfully retreat from combat.`);
+    endCombat();
+  } else {
+    const enemy = game.currentEnemy.enemy;
+    const enemyBaseDamage = enemy.attack;
+    const enemyVariance = Math.floor(Math.random() * 6) - 3;
+    const enemyDamage = Math.max(1, enemyBaseDamage - game.player.defense + enemyVariance);
+    game.player.hp -= enemyDamage;
+    addLog(`Your escape fails. The ${enemy.typeName} strikes for ${enemyDamage} damage.`);
+    if (game.player.hp <= 0) {
+      game.player.hp = 0;
+      addLog(`You have been defeated.`);
+      setTimeout(() => {
+        game.player.hp = Math.floor(game.player.maxHp * 0.5);
+        game.player.x = canvasWidth / 2;
+        game.player.y = canvasHeight / 2;
+        game.camera.x = game.player.x - canvasWidth / 2;
+        game.camera.y = game.player.y - canvasHeight / 2;
+        addLog(`You awaken, wounded but alive.`);
+        endCombat();
+      }, 2e3);
+      return;
+    }
+    updateCombatUI();
+    updateUI();
+  }
+}
+function winCombat() {
+  const enemy = game.currentEnemy.enemy;
+  game.player.xp += enemy.xpReward;
+  game.player.gold += enemy.goldReward;
+  addLog(`Victory. Gained ${enemy.xpReward} experience and ${enemy.goldReward} gold.`);
+  game.enemies.splice(game.currentEnemy.index, 1);
+  checkLevelUp();
+  updateUI();
+  endCombat();
+}
+function endCombat() {
+  game.inCombat = false;
+  game.currentEnemy = null;
+  document.getElementById("combatModal").classList.add("hidden");
+  if (game.enemies.length < 5) {
+    spawnEnemies();
+  }
+}
+function checkLevelUp() {
+  if (game.player.xp >= game.player.xpToNext) {
+    game.player.level++;
+    game.player.xp -= game.player.xpToNext;
+    game.player.xpToNext = Math.floor(game.player.xpToNext * 1.4);
+    game.player.maxHp += 15 + Math.floor(game.player.attributes.con / 2);
+    game.player.hp = game.player.maxHp;
+    game.player.attack += 2 + Math.floor(game.player.attributes.str / 4);
+    game.player.defense += 1 + Math.floor(game.player.attributes.dex / 5);
+    addLog(`You have reached level ${game.player.level}.`);
+    updateUI();
+  }
+}
+function addLog(message) {
+  const logDiv = document.getElementById("log");
+  const entry = document.createElement("div");
+  entry.className = "log-entry";
+  entry.textContent = message;
+  logDiv.appendChild(entry);
+  logDiv.scrollTop = logDiv.scrollHeight;
+}
+function renderInventoryModal() {
+  const content = document.getElementById("inventoryModalContent");
+  if (game.player.inventory.length === 0) {
+    content.innerHTML = '<p style="color: #888; text-align: center;">Your inventory is empty.</p>';
+  } else {
+    content.innerHTML = game.player.inventory.map(
+      (item, index) => `<div class="inventory-item" style="margin-bottom: 10px; padding: 10px; background: rgba(139, 69, 19, 0.2); border: 1px solid #8b4513; border-radius: 3px;">
+                <strong>${item.name}</strong> - ${item.desc || ""}
+            </div>`
+    ).join("");
+  }
+}
+function updateUI() {
+  document.getElementById("hpText").textContent = `${game.player.hp}/${game.player.maxHp}`;
+  document.getElementById("hpBar").style.width = `${game.player.hp / game.player.maxHp * 100}%`;
+  document.getElementById("xpText").textContent = `${game.player.xp}/${game.player.xpToNext}`;
+  document.getElementById("xpBar").style.width = `${game.player.xp / game.player.xpToNext * 100}%`;
+  document.getElementById("level").textContent = game.player.level;
+  document.getElementById("gold").textContent = game.player.gold;
+  const invDiv = document.getElementById("inventory");
+  let invHTML = "";
+  if (game.player.keys > 0) {
+    invHTML += `<div class="inventory-item">Keys: ${game.player.keys}</div>`;
+  }
+  if (game.player.inventory.length === 0 && game.player.keys === 0) {
+    invHTML = '<div class="inventory-item" style="opacity: 0.5;">Empty</div>';
+  } else {
+    invHTML += game.player.inventory.map(
+      (item) => `<div class="inventory-item">${item.name}</div>`
+    ).join("");
+  }
+  invDiv.innerHTML = invHTML;
+}
+document.addEventListener("keydown", (e) => {
+  if (["w", "W", "a", "A", "s", "S", "d", "D", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+  }
+  game.keys[e.key] = true;
+  if (e.key === "e" || e.key === "E") {
+    if (!game.inCombat) {
+      const modal = document.getElementById("inventoryModal");
+      modal.classList.toggle("hidden");
+      if (!modal.classList.contains("hidden")) {
+        renderInventoryModal();
+      }
+    }
+  }
+});
+document.addEventListener("keyup", (e) => {
+  game.keys[e.key] = false;
+});
+window.addEventListener("blur", () => {
+  game.keys = {};
+});
+window.addEventListener("focus", () => {
+  game.keys = {};
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    game.keys = {};
+  }
+});
+document.getElementById("attackBtn").addEventListener("click", attackEnemy);
+document.getElementById("defendBtn").addEventListener("click", defend);
+document.getElementById("fleeBtn").addEventListener("click", flee);
+document.getElementById("closeShop").addEventListener("click", () => {
+  document.getElementById("shopModal").classList.add("hidden");
+});
+document.getElementById("closeInventory").addEventListener("click", () => {
+  document.getElementById("inventoryModal").classList.add("hidden");
+});
+document.getElementById("closeDialogue").addEventListener("click", () => {
+  document.getElementById("dialogueModal").classList.add("hidden");
+});
+function gameLoop(now = performance.now()) {
+  const dt = Math.min(50, now - lastFrameTime);
+  lastFrameTime = now;
+  if (game.player.hitTimer > 0) {
+    game.player.hitTimer -= dt;
+  }
+  if (game.player.damageNumberTimer > 0) {
+    game.player.damageNumberTimer -= dt;
+  }
+  game.enemies.forEach((enemy) => {
+    if (enemy.hitTimer > 0) {
+      enemy.hitTimer -= dt;
+    }
+    if (enemy.damageNumberTimer > 0) {
+      enemy.damageNumberTimer -= dt;
+    }
+  });
+  if (game.screenShake > 0) {
+    game.screenShake -= dt * 2;
+    if (game.screenShake < 0) game.screenShake = 0;
+  }
+  const shakeX = game.screenShake > 0 ? (Math.random() - 0.5) * game.screenShake : 0;
+  const shakeY = game.screenShake > 0 ? (Math.random() - 0.5) * game.screenShake : 0;
+  const charCreation2 = document.getElementById("charCreation");
+  const isGameActive = charCreation2 && charCreation2.classList.contains("hidden");
+  if (isGameActive) {
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    drawWorld();
+    drawDoors();
+    drawItems();
+    drawNPCs();
+    drawEnemies();
+    drawPlayer();
+    ctx.restore();
+    if (game.player.damageNumber && game.player.damageNumberTimer > 0) {
+      const screenX = game.player.gridX * game.tileSize - game.camera.x;
+      const screenY = game.player.gridY * game.tileSize - game.camera.y;
+      const centerX = screenX + game.tileSize / 2;
+      const centerY = screenY + game.tileSize / 2;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, game.player.damageNumberTimer / 1e3);
+      ctx.fillStyle = "#ff0000";
+      ctx.font = "bold 12px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const offsetY = -20 - (1e3 - game.player.damageNumberTimer) / 10;
+      ctx.fillText("-" + game.player.damageNumber, centerX + shakeX, centerY + offsetY + shakeY);
+      ctx.restore();
+    }
+    updatePlayer(dt);
+    updateEnemies(dt);
+  } else {
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+  }
+  requestAnimationFrame(gameLoop);
+}
+var resizeTimeout;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    resizeCanvas();
+  }, 100);
+});
+function initializeGame() {
+  resizeCanvas();
+  setTimeout(() => {
+    initCharacterCreation();
+  }, 50);
+  gameLoop();
+}
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => {
+    initializeGame();
+  });
+} else {
+  initializeGame();
+}
+</script>
+</body>
+</html>
