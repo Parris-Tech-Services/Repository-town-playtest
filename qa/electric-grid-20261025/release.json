@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "dee8b47971aed04e45cd9e6555236e67a00d7a14",
-  "contentHash": "ad40a8e140f2f868d65a8670800e862f9db3edf59b7d21eb3f0275aad616d74c",
+  "sourceCommit": "679315fafe36e7884ceb791fcefabe8ab211ab4e",
+  "contentHash": "f0e36d52c1ed4793c4fbc75230ee2dc5809e760193685f8701b0e32c3c094821",
   "production": "https://repository-town-claude-complete.vercel.app/",
   "staging": "https://repository-town-claude-playtest.vercel.app/",
   "backup": "https://parris-tech-services.github.io/Repository-town/",
@@ -1094,7 +1094,7 @@
     "world/hall-interior.js": "bf2157930834439eec5039684a57b825ff0c30157f4d8683639007d880a15aaa",
     "world/hotel-interior.js": "25f946b020c9542cf963acba8f102b6f5dd5239a723efcc2d7a969976747314f",
     "world/house-entrance.js": "091169f248c9fe0b307e487017687bceb260eac559fab595561c2be95d96617a",
-    "world/household.js": "e42d3fc617860f4ed16f128ad8eb5a000371105f3eed76d651562d22bdaa9c8c",
+    "world/household.js": "cb0f076542d2a6fe619c45af9b43b257f13cf4441faa7ff29133675fa7b67446",
     "world/interior-kit.js": "7d1ca5cb56d3d577ced36598fdf59c0c4971ffe8f4abddd7c7e86f2171598b5f",
     "world/interior.js": "4173ae5e958257cee2d8784a076a1fdf87b9c0cdb07fbe450891dd6f853195e3",
     "world/jobs.js": "bef6c2db20930e89ceb67cc0b2d7e6745efa499990d41bcd0de147dae0ffe560",

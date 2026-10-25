@@ -306,11 +306,11 @@ export function householdHour(life, hour) {
     if (h.lights) p += POWER.lights;
     if (h.climate !== 'off') p += POWER.climate;
     const k = v.step?.kind;
-    if (awake && k === 'cook') p += POWER.oven;
-    if (awake && (k === 'relax')) p += POWER.tv;
-    if (awake && (k === 'finances' || (k === 'work' && v.work === 'home'))) p += POWER.computer;
-    if (awake && k === 'laundry') p += POWER.washer;
-    if (awake && k === 'shower') p += POWER.hotwater;
+    if (powered && awake && k === 'cook') p += POWER.oven;
+    if (powered && awake && (k === 'relax')) p += POWER.tv;
+    if (powered && awake && (k === 'finances' || (k === 'work' && v.work === 'home'))) p += POWER.computer;
+    if (powered && awake && k === 'laundry') p += POWER.washer;
+    if (powered && awake && k === 'shower') p += POWER.hotwater;
     let w = awake ? WATER.toilet : 0;
     if (awake && k === 'cook') w += WATER.cook;
     if (awake && k === 'shower') w += WATER.shower;
