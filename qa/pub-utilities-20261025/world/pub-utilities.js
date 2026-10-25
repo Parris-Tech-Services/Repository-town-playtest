@@ -1,12 +1,20 @@
 // Fictional Merged Branch pilot. SI-derived units, not an as-built installation.
 export const PUB_DESIGN = Object.freeze({cisternL:6, refillLmin:3, hotTankL:160, heaterKW:3.6, lpgKWhKg:12.8, burnerKW:18, upsKWh:.12, networkKW:.04});
 export function pubUtilities(life) {
-  return life.civic.pubUtilities ||= {version:1, waterValve:true, sewerOpen:true, breaker:true, upstreamInternet:true, lpgValve:true, lpgKg:90, cisternL:6, hotC:60, coldC:3, upsKWh:.12, greaseKg:0, binsKg:0, recyclingKg:0, oilL:0, roofRunoffL:0, rainMmHour:0, waterL:0, sewageL:0, tradeWasteL:0, electricityKWh:0, gasKg:0, meals:0, overlay:'off', log:[]};
+  const state = life.civic.pubUtilities ||= {version:1, waterValve:true, sewerOpen:true, breaker:true, upstreamInternet:true, lpgValve:true, lpgKg:90, cisternL:6, hotC:60, coldC:3, upsKWh:.12, greaseKg:0, binsKg:0, recyclingKg:0, oilL:0, roofRunoffL:0, rainMmHour:0, waterL:0, sewageL:0, tradeWasteL:0, electricityKWh:0, gasKg:0, meals:0, overlay:'off', log:[]};
+  state.emergencyMinutes ??= 90;
+  state.coldExposureMinutes ??= 0;
+  state.foodQuarantined ??= false;
+  state.extractionOn ??= true;
+  return state;
 }
 export function validPubUtilities(s){
  if(!s||typeof s!=='object'||Array.isArray(s)||s.version!==1)return false;
  for(const key of ['waterValve','sewerOpen','breaker','upstreamInternet','lpgValve'])if(typeof s[key]!=='boolean')return false;
  for(const key of ['lpgKg','cisternL','hotC','coldC','upsKWh','greaseKg','binsKg','recyclingKg','oilL','waterL','sewageL','tradeWasteL','electricityKWh','gasKg','meals'])if(!Number.isFinite(s[key])||s[key]<0||s[key]>1e12)return false;
+ for(const key of ['emergencyMinutes','coldExposureMinutes','roofRunoffL','rainMmHour'])if(s[key]!==undefined&&(!Number.isFinite(s[key])||s[key]<0||s[key]>1e12))return false;
+ for(const key of ['foodQuarantined','extractionOn'])if(s[key]!==undefined&&typeof s[key]!=='boolean')return false;
+ if(s.emergencyMinutes>90)return false;
  return s.cisternL<=6&&s.upsKWh<=.12&&s.hotC<=100&&s.coldC<=100&&['off','electricity','water','sewer','gas','internet','waste'].includes(s.overlay)&&Array.isArray(s.log)&&s.log.length<=20&&s.log.every(x=>typeof x==='string'&&x.length<1000);
 }
 export function pubStatus(life) {
@@ -15,7 +23,7 @@ export function pubStatus(life) {
 }
 export function pubKitchenReady(life){
  const s=pubUtilities(life),p=pubStatus(life);
- return p.power&&p.water&&p.hot&&p.sewer&&p.cold&&p.gas&&s.lpgKg>=18/6/12.8&&s.greaseKg<20&&s.binsKg<80;
+ return p.power&&p.water&&p.hot&&p.sewer&&p.cold&&!s.foodQuarantined&&s.extractionOn&&p.gas&&s.lpgKg>=18/6/12.8&&s.greaseKg<20&&s.binsKg<80;
 }
 export function tickPubUtilities(life,minutes) {
   if(!Number.isFinite(minutes)||minutes<=0)return;
@@ -23,6 +31,10 @@ export function tickPubUtilities(life,minutes) {
   // Bounded substeps keep heating/UPS transitions stable during time acceleration.
   for(let m=0;m<minutes;m+=.5){const dt=Math.min(.5,minutes-m),h=dt/60,p=pubStatus(life);
     if(p.water){const refill=Math.min(d.cisternL-s.cisternL,d.refillLmin*dt);s.cisternL+=refill;s.waterL+=refill;}
+    // Accumulated warm storage remains unsafe after recooling; explicit disposal required.
+    if(s.coldC>5){s.coldExposureMinutes+=dt;if(s.coldExposureMinutes>=120)s.foodQuarantined=true;}
+    if(p.power)s.emergencyMinutes=Math.min(90,s.emergencyMinutes+dt*.25);
+    else s.emergencyMinutes=Math.max(0,s.emergencyMinutes-dt);
     const heater=p.power&&s.hotC<60?d.heaterKW:0;
     s.roofRunoffL=(s.roofRunoffL||0)+Math.max(0,Number(s.rainMmHour)||0)*252*.9*h;
     s.hotC=Math.max(18,Math.min(60,s.hotC+heater*h/(d.hotTankL*.001163)-(s.hotC-18)*dt/1440));
@@ -34,6 +46,19 @@ export function tickPubUtilities(life,minutes) {
 function record(s,message){s.log.unshift(message);s.log=s.log.slice(0,20);return message;}
 export function pubAction(life,action){
   const s=pubUtilities(life),p=pubStatus(life),d=PUB_DESIGN;
+  if(action==='water-drink'){
+    if(!p.water)return record(s,'Free drinking water unavailable: potable mains isolated. Alcohol service must stop until safe drinking water is available.');
+    s.waterL+=.25;return record(s,'Free drinking water served: 0.25 L potable water consumed.');
+  }
+  if(action==='discard-food'){
+    if(!p.cold)return record(s,'Restore refrigeration below 5 °C before restocking.');
+    const stock=life.place?.('pub')?.stock;
+    let removed=0;
+    if(stock)for(const key of ['lamb','veg','pie','pub_parmy','pub_roast','pub_pie','pub_chips']){removed+=Math.max(0,stock[key]||0);stock[key]=0;}
+    s.foodQuarantined=false;s.coldExposureMinutes=0;
+    return record(s,'Unsafe cold stock discarded ('+removed+' inventory units). Normal deliveries and food preparation must replenish saleable stock.');
+  }
+  if(action==='extraction'){s.extractionOn=!s.extractionOn;return record(s,'Kitchen extraction '+(s.extractionOn?'running':'failed: cooking interlock active')+'.');}
   if(action==='flush'){
     if(!p.sewer)return record(s,'Toilet out of service: sewer connection isolated.');
     if(s.cisternL<3)return record(s,'Not enough stored cistern water. Wait for mains refill.');
