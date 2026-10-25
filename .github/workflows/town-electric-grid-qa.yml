@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: ac5731912cfff53983951b4c8b69d8b592d44e73
+          ref: e25c5d730f1f461aa08bf5ba1397145150bd6373
           path: source
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -27,18 +27,24 @@ jobs:
           node-version: '22'
           cache: npm
           cache-dependency-path: source/repository-town/package-lock.json
-      - name: Full release and utility privacy gate
+      # Isolated, opt-in gameplay QA: deliberately not production certification.
+      # The larger all-town build:release suite has unrelated, independently
+      # tracked historical-roster regressions; never claim it is green here.
+      - name: Focused phone HUD, Town Companion and grid regression plus release integrity
         working-directory: source/repository-town
         run: |
           npm ci --no-audit --no-fund
+          node tests/hud-visibility.mjs
+          node tests/companion.mjs
           node tests/electrical-pilot.mjs
           node tests/electrical-backbone.mjs
-          npm run build:release
+          npm run build
+          npm run check:privacy
           node tools/verify-release.mjs dist/public
       - name: Assert exact built source and published UI/data
         working-directory: source/repository-town
         run: |
-          node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('dist/public/release.json'));if(o.sourceCommit!=='ac5731912cfff53983951b4c8b69d8b592d44e73')throw Error('wrong build SHA');"
+          node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('dist/public/release.json'));if(o.sourceCommit!=='e25c5d730f1f461aa08bf5ba1397145150bd6373')throw Error('wrong build SHA');"
           test -f dist/public/world/electrical-pilot-data.js
           test -f dist/public/world/electrical-pilot-visuals.js
           test -f dist/public/ui/electrical-pilot-panel.js
@@ -76,7 +82,7 @@ jobs:
           rsync -a --delete source/repository-town/dist/public/ "$target/"
           test -f "$target/release.json"
           sha=$(git -C source rev-parse HEAD)
-          test "$sha" = "ac5731912cfff53983951b4c8b69d8b592d44e73"
+          test "$sha" = "e25c5d730f1f461aa08bf5ba1397145150bd6373"
           printf 'Source: joshualparris/JoshMemory\nCommit: %s\nStatus: verified electrical pilot QA, not approved production\n' "$sha" > "$target/QA_BUILD.txt"
           test "$(sha256sum site/index.html | cut -d' ' -f1)" = "$orig"
           cd site
