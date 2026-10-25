@@ -1,0 +1,95 @@
+name: Build isolated Repository Town electrical grid QA
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/town-electric-grid-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: town-electricity-qa-20261025
+  cancel-in-progress: false
+jobs:
+  electric-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact tested town source
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: a6a0b1eb97250e1d1038759eb185b861cf81e9ee
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Full release and utility privacy gate
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          node tests/electrical-pilot.mjs
+          node tests/electrical-backbone.mjs
+          npm run build:release
+          node tools/verify-release.mjs dist/public
+      - name: Assert exact built source and published UI/data
+        working-directory: source/repository-town
+        run: |
+          node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('dist/public/release.json'));if(o.sourceCommit!=='a6a0b1eb97250e1d1038759eb185b861cf81e9ee')throw Error('wrong build SHA');"
+          test -f dist/public/world/electrical-pilot-data.js
+          test -f dist/public/world/electrical-pilot-visuals.js
+          test -f dist/public/ui/electrical-pilot-panel.js
+          grep -q 'btn-electrical-grid' dist/public/main.js
+      - name: Browser-playtest desktop and Android-like viewport before publishing
+        working-directory: source/repository-town
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+          node tools/serve.mjs dist/public 8091 > /tmp/electric-qa.log 2>&1 &
+          pid=$!
+          trap 'kill "$pid" 2>/dev/null || true' EXIT
+          TOWN_URL=http://localhost:8091/ TOWN_SHOTS=audit/electricity/pilot-playtest node tests/electrical-pilot-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: electric-qa-browser-and-loadflow
+          path: source/repository-town/audit/electricity/pilot-playtest/
+          retention-days: 45
+      - name: Checkout existing Pages handover (never overwrite its homepage)
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+      - name: Publish exact verified build under isolated QA path
+        shell: bash
+        run: |
+          set -euo pipefail
+          orig=$(sha256sum site/index.html | cut -d' ' -f1)
+          target='site/qa/electric-grid-20261025'
+          mkdir -p "$target"
+          rsync -a --delete source/repository-town/dist/public/ "$target/"
+          test -f "$target/release.json"
+          sha=$(git -C source rev-parse HEAD)
+          test "$sha" = "a6a0b1eb97250e1d1038759eb185b861cf81e9ee"
+          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nStatus: verified electrical pilot QA, not approved production\n' "$sha" > "$target/QA_BUILD.txt"
+          test "$(sha256sum site/index.html | cut -d' ' -f1)" = "$orig"
+          cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa/electric-grid-20261025
+          if ! git diff --cached --quiet; then
+            git commit -m "qa(town): publish tested electricity game preview $sha [skip ci]"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Surface live QA address
+        run: |
+          echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/electric-grid-20261025/'
+          echo 'Do not equate build acceptance with live-site accessibility until release manifest is fetched.'
