@@ -4,16 +4,19 @@ const ENDPOINT='https://repository-town-no-code-ai.parris-neathaustralia.workers
 export function mountCompanion({getContext,onOpen,onClose,isBlocked=()=>false}) {
   const style=document.createElement('style');style.textContent=`
 #town-companion-button[hidden]{display:none!important}
-#town-companion-button{position:fixed;right:12px;bottom:100px;z-index:25;padding:12px;border-radius:12px;background:#12363c;color:#fff;border:1px solid #83cbc2;font:inherit}
-@media (pointer:coarse){#town-companion-button{right:max(12px,env(safe-area-inset-right));bottom:calc(max(18px,env(safe-area-inset-bottom)) + 140px);padding:8px 11px;font-size:13px}}
-@media (pointer:coarse) and (max-width:700px){#town-companion-button{right:10px;bottom:222px}}
+#town-companion-button{position:static;padding:7px 10px;border-radius:8px;background:#12363c;color:#fff;border:1px solid #83cbc2;font:inherit;min-height:40px}
 #town-companion[hidden]{display:none}#town-companion{position:fixed;z-index:110;right:10px;top:var(--companion-top,10px);width:min(440px,calc(100vw - 20px));height:min(670px,calc(var(--companion-height,100dvh) - 20px));display:flex;flex-direction:column;gap:10px;box-sizing:border-box;padding:16px;background:#11282df5;color:#edf5ed;border:1px solid #83cbc2;border-radius:16px;box-shadow:0 12px 45px #0008;font:14px system-ui}
 #town-companion header{display:flex;align-items:center;justify-content:space-between}#town-companion h2{margin:0;font-size:20px}#town-companion button{cursor:pointer;background:#24494f;color:white;border:1px solid #6c9a97;border-radius:8px;padding:9px;font:inherit}#town-companion button:disabled{opacity:.5}#companion-feed{flex:1;min-height:70px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}#companion-feed p{padding:10px;background:#203d43;border-radius:8px;line-height:1.5}#town-companion form{display:flex;gap:6px}#companion-input{min-width:0;flex:1;padding:11px;font:16px system-ui;border-radius:8px}#companion-prompts{display:flex;flex-wrap:wrap;gap:5px}#companion-prompts button{font-size:12px;padding:7px}#companion-evidence{max-height:90px;overflow:auto}#town-companion small{color:#bed6cc}#town-companion a{color:#a0e1d7}`;
   document.head.append(style);
   const launch=document.createElement('button');launch.id='town-companion-button';launch.textContent='Ask AI · K';launch.title='Ask Town Companion about this place';
   const el=document.createElement('section');el.id='town-companion';el.hidden=true;el.setAttribute('role','dialog');el.setAttribute('aria-label','Town Companion');
   el.innerHTML='<header><h2>Town Companion</h2><button type="button" id="companion-close" aria-label="Close Town Companion">Close</button></header><div id="companion-context"></div><div><button id="companion-pin" type="button">Pin this context</button> <button id="companion-task" type="button" disabled>Download development task</button></div><div id="companion-prompts"></div><div id="companion-feed" role="log" aria-live="polite"></div><details id="companion-evidence"><summary>Source evidence</summary><div></div></details><small id="companion-status">Questions and selected game context go to the AI provider. No code changes are made here.</small><form><input id="companion-input" aria-label="Ask about this place or object" placeholder="What can I do here?" maxlength="750" required><button type="submit">Ask</button></form>';
-  document.body.append(launch,el);
+  // Keep the launcher under the + menu rather than over the joystick or street.
+  // The companion dialog stays attached to body for proper viewport positioning.
+  const gridLauncher=document.getElementById('btn-electrical-grid');
+  if(gridLauncher)gridLauncher.after(launch);
+  else (document.getElementById('hud-details')||document.body).append(launch);
+  document.body.append(el);
   const $=id=>el.querySelector('#companion-'+id),feed=$('feed'),form=el.querySelector('form'),input=$('input');
   let pinned=null,knowledge=null,history=[],controller=null,last=null,focusBefore=null,blocked=false;
   const snapshot=()=>companionContext(getContext());
@@ -23,7 +26,7 @@ export function mountCompanion({getContext,onOpen,onClose,isBlocked=()=>false}) 
   window.visualViewport?.addEventListener('resize',viewport);window.visualViewport?.addEventListener('scroll',viewport);
   function close(){controller?.abort();el.hidden=true;onClose();focusBefore?.focus?.();setCompanionLauncherVisibility(launch,blocked,false);}
   function setBlocked(value){blocked=!!value;if(blocked&&!el.hidden)close();setCompanionLauncherVisibility(launch,blocked,!el.hidden);}
-  async function open(){if(blocked||isBlocked())return;focusBefore=document.activeElement;onOpen();el.hidden=false;setCompanionLauncherVisibility(launch,false,true);viewport();showContext();input.focus();if(!knowledge)try{const r=await fetch('companion-knowledge.json');if(!r.ok)throw Error();knowledge=await r.json();}catch{$('status').textContent='Source evidence unavailable. Answers must flag this limitation.';}}
+  async function open(){if(blocked||isBlocked())return;focusBefore=document.activeElement;document.dispatchEvent(new Event('town:collapse-hud'));onOpen();el.hidden=false;setCompanionLauncherVisibility(launch,false,true);viewport();showContext();input.focus();if(!knowledge)try{const r=await fetch('companion-knowledge.json');if(!r.ok)throw Error();knowledge=await r.json();}catch{$('status').textContent='Source evidence unavailable. Answers must flag this limitation.';}}
   launch.onclick=()=>{if(!isBlocked())open();};$('close').onclick=close;
   $('pin').onclick=()=>{pinned=pinned?null:snapshot();$('pin').textContent=pinned?'Unpin / follow location':'Pin this context';showContext();};
   for(const q of ['What can I do here?','How was this coded?','Can I buy this?','Can I push this button?','What features are missing here?','How can I make this more realistic?']){const b=document.createElement('button');b.type='button';b.textContent=q;b.onclick=()=>{input.value=q;form.requestSubmit();};$('prompts').append(b);}

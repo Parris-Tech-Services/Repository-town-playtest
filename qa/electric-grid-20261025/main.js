@@ -189,15 +189,12 @@ async function start() {
   tableOrder.textContent='🍽 Order at table';
   tableOrder.hidden=true;tableOrder.title='Order food or drinks without leaving your seat';
   $('needs-strip').append(tableOrder);
-  const gridButton=document.createElement('button');
-  gridButton.id='btn-electrical-grid';gridButton.type='button';
-  gridButton.textContent='⚡ Grid';gridButton.title='Inspect individual electrical circuits, appliances and local outages';
-  gridButton.setAttribute('aria-label','Open Railway Hotel and street electricity pilot');
-  // A collapsed needs strip hides its children on mobile. This dedicated
-  // on-screen utility control remains discoverable on both desktop and touch.
-  gridButton.style.cssText='position:fixed;right:12px;top:96px;z-index:30;background:#273e4c;color:#fff;border:1px solid #aad6e3;border-radius:18px;padding:8px 12px;font:600 13px system-ui;box-shadow:0 2px 9px #0007;';
-  document.body.append(gridButton);
-  gridButton.onclick=()=>openPanel(electricalPilotPanel(life));
+  // The Grid launcher lives INSIDE the collapsible + menu, alongside Ask AI.
+  // It is deliberately not a floating overlay over the mobile game.
+  $('btn-electrical-grid').onclick=()=>{
+    document.dispatchEvent(new Event('town:collapse-hud'));
+    openPanel(electricalPilotPanel(life));
+  };
   tableOrder.onclick=()=>{
     if(player.seated && inside?.place && ['cafe','pub'].includes(inside.place.id))
       openPanel(placePanel(life,inside.place.id));
@@ -332,7 +329,9 @@ async function start() {
     const base = byCoord.get(coord);
     // Memorial buildings are public galleries, not a randomly assigned NPC home.
     // Never append generic kitchen, bathroom/laundry or living room overlays.
-    const h = resident && !base.memorial ? { ...base, household: resident.name } : base;
+    const family=life.householdMembers(coord);
+    const h=resident&&!base.memorial?{...base,household:resident.name,
+      householdResidents:family.residents,marriedCouple:family.sharedDoubleBed}:base;
     const floors = h.memorial ? null : createFloorStack(h, makeLabel);
     const built = floors ? floors.levels[0] : buildInterior(h, makeLabel);
     attachPilotInteriorLighting(built.group,'H:'+coord);

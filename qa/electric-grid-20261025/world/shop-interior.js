@@ -93,7 +93,13 @@ export function buildCivicInterior(site,makeLabel,life=null) {
   if(site.id==='hotel')return buildHotelInterior(site,makeLabel);
   if(['realestate','dealership','mechanic'].includes(site.id))return buildTradeInterior(site,makeLabel);
   const [roomTitle,deskName,featureName,accent,deskInfo,featureInfo] =
-    FITTINGS[site.id] || [site.name,'Service desk','Town noticeboard',0x98a8b3,'Visit this workplace','This building supports the town.'];
+    FITTINGS[site.id] || (site.expansion
+      ? [site.name,'Service reception','Workplace & displays',
+          ({health:0x8bbdc6,tech:0x5d9cac,nursery:0x75ae6b,rural:0x9b9b71,
+            heritage:0xb49c78,workshop:0x88979c,retail:0xc49b7c,school:0xc9a36d,
+            sports:0x85aaa0,park:0x76ae8a,pool:0x73b4ca,fuel:0x9ba6b3}[site.style]||0x98a8b3),
+          'Ask about '+site.name,site.description+' — This is a first-stage interior shell awaiting specialist fixture and utility design.']
+      : [site.name,'Service desk','Town noticeboard',0x98a8b3,'Visit this workplace','This building supports the town.']);
   // The bakery has its own researched layout: shop floor, counter and a visible production kitchen.
   if(site.id==='depot')return buildDepotInterior(site,makeLabel);
   if(site.id==='waterworks')return buildWaterworksInterior(site,makeLabel,life);

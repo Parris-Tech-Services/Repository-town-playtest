@@ -17,6 +17,10 @@ export function houseAddress(coordinate) {
 }
 export function placeAddress(place) {
   if (!place || !LETTERS.includes(place.col) || place.col.length !== 1) throw new Error('Invalid site column');
+  if(place.side==='north'){
+    if(!Number.isInteger(place.row)||place.row<2||place.row>7)throw new Error('North-facing infill must use an already built road (rows 2–7)');
+    return place.col+place.row+'-N';
+  }
   return place.side === 'south' ? place.col + '9-N' : place.col + '8-S';
 }
 export function parseTownAddress(value) {
@@ -57,7 +61,7 @@ export function auditTownSlots(houses, places) {
     }
   }
   for (const h of houses) set(houseAddress(h.coordinate), { kind:'house', legacy:h.coordinate, name:h.name||'Repository house' });
-  for (const p of places) set(placeAddress(p), { kind:'site', id:p.id, name:p.name, siteKind:p.kind, note:p.side==='south'?'Across existing row-8 road':'On original row-8 lots' });
+  for (const p of places) set(placeAddress(p), { kind:'site', id:p.id, name:p.name, siteKind:p.kind, note:p.side==='south'?'Across existing row-8 road':p.side==='north'?'New infill facing existing road '+(p.row-1)+' — no new street constructed':'On original row-8 lots' });
   const values=[...slots.values()];
   const count=(kind)=>values.filter(s=>s.kind===kind).length;
   return { slots:values, counts:{total:values.length,houses:count('house'),sites:count('site'),railway:count('railway'),fields:count('farm-field'),unbuiltNotSurveyed:count('unbuilt-not-surveyed'),notSurveyed:count('not-surveyed')+count('boundary-not-surveyed'),planningOnly:count('planning-only')} };

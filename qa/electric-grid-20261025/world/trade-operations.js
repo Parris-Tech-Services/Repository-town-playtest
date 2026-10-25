@@ -3,7 +3,7 @@
 // Locations are the existing real 3-D town coordinates; no random teleporting.
 export const REPAIR_SITES=Object.freeze({
  leakingTap:'cafe',blockedDrain:'sewage',faultySwitch:'store',
- stormDamage:'pub',laptop:'school'
+ stormDamage:'pub',repaintExterior:'pub',laptop:'school'
 });
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const clone=(p)=>({x:p.x,z:p.z});

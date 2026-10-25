@@ -1,3 +1,4 @@
+import { buildExpansionFacade } from './town-expansion-facades.js';
 import { shopLightingOn, interiorPalette } from './lighting.js';
 import * as THREE from 'three';
 import {pilotMains} from './electrical-pilot.js';
@@ -170,6 +171,9 @@ const BUILD = {
   pub(b) {
     b.box(0x7a4a3a, 14, 7, 11, 0, 3.5, 1.5); b.box(0x3a2a22, 14.6, 0.8, 11.6, 0, 7.4, 1.5);
     for (let f = 0; f < 2; f++) for (const x of [-4.5, -1.6, 1.6, 4.5]) if (!(f === 0 && Math.abs(x) < 2)) b.box(GLASS, 1.2, 1.4, 0.08, x, 1.6 + f * 3.1, 7.04);
+    // Brick quoins and cornice hint at a period-inspired fictional hotel with unknown construction date.
+    for(const x of [-6.35,6.35])for(const y of [1.0,2.2,3.4,4.6,5.8])b.box(0xb47d61,.58,.22,.12,x,y,7.10);
+    b.box(0xd4b391,14.2,.23,.18,0,6.6,7.10);
     b.box(0x2a1e18, 1.6, 2.5, 0.06, 0, 1.25, 7.04);
     b.block(DARK, 0.1, 3.4, 0.1, 6.4, 0, 8.2); b.box(DARK, 1.2, 0.08, 0.08, 5.9, 3.3, 8.2); b.box(0x2f5a3a, 0.9, 1.1, 0.08, 5.6, 2.6, 8.2);
     for (const x of [-5.2, -4.4]) b.cyl(0x7a5030, 0.4, 0.95, x, 0.48, 8.0);
@@ -660,7 +664,8 @@ export function createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog }) 
     // One shared atlas and merged mesh keeps these signs cheap on Android.
     // Operational 24h sites publish visitor reception hours, not factory hours.
     const south=p.side==='south';
-    signs.push({place:p,text:openingHoursLabel(p),x:p.x+3.35,y:2.95,
+    if(p.side==='north') { /* north-facing signs are authored after facade */ }
+    else signs.push({place:p,text:openingHoursLabel(p),x:p.x+3.35,y:2.95,
       z:south?FIELD_Z0-0.25:LOT8_Z+7.28,
       w:4.35,h:0.40,rotY:south?Math.PI:0,bg:'#f2ead6',fg:'#302c25'});
     const b = new Builder(); b.glass = [];
@@ -690,6 +695,27 @@ export function createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog }) 
       if (at) signs.push({place:p, text: p.name, x: p.x - at[0], y: at[1], z: FIELD_Z0 + 7 - at[2], w: at[3], h: at[4], rotY: Math.PI, bg: at[5], fg: at[6] });
       if(p.field)fields.push({p,...buildField(p,group,statics,statics.glass)});
       finish();
+      continue;
+    }
+    // North-facing infill on an EXISTING road (e.g. Creative Court 7-N).
+    // Massing fits within 12 m depth between the roadway and rear of row's houses.
+    if (p.side === 'north') {
+      b.at(p.x,0,p.originZ,Math.PI,()=>{fp=buildExpansionFacade(b,p);});
+      finish();
+      // The facade front is p.originZ-7. The entire footprint stays behind it (+z).
+      if(fp)colliders.push({x0:p.x-fp.w/2,x1:p.x+fp.w/2,
+        z0:p.originZ-7,z1:p.originZ-7+fp.d});
+      const marker=makeLabel(p.address+' · '+p.name,'house');
+      marker.position.set(p.x,3.6,p.originZ-10.8);group.add(marker);labels.push(marker);
+      // Nameboard faces northwards onto existing road; no fake new street.
+      signs.push({place:p,text:p.name,x:p.x,y:p.style==='heritage'?4.9:3.75,
+        z:p.originZ-7.35,w:10.2,h:.57,rotY:Math.PI,
+        bg:'#263b4e',fg:'#f5eddb'});
+      signs.push({place:p,text:openingHoursLabel(p),x:p.x+3.0,y:2.95,
+        z:p.originZ-7.35,w:4.3,h:.36,rotY:Math.PI,
+        bg:'#f3e8d5',fg:'#293840'});
+      spots.push({key:'place:'+p.id,id:p.id,pos:new THREE.Vector3(p.x,0,p.front.z),
+        label:p.name+' — visit '+p.address});
       continue;
     }
     // The wheat farm's silos stand behind its shed, clear of the end of the avenue (9.5 m out).
@@ -764,7 +790,7 @@ export function createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog }) 
     return out;
   };
   // Street furniture on the pavement where one shop meets the next: a bench and a bin.
-  const shopXs = [...life.places.values()].filter((q) => q.side !== 'south' && q.kind !== 'farm').map((q) => q.x).sort((a, b) => a - b);
+  const shopXs = [...life.places.values()].filter((q) => q.side !== 'south' && q.side !== 'north' && q.kind !== 'farm').map((q) => q.x).sort((a, b) => a - b);
   for (let i = 0; i + 1 < shopXs.length; i++) {
     const x = (shopXs[i] + shopXs[i + 1]) / 2, z = LOT8_Z + 8.3;
     if (AVENUES.some((a) => Math.abs(a - x) < 6)) continue;
@@ -1076,7 +1102,7 @@ export function createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog }) 
     }
   }
 
-  return { life, group, colliders, spots, seats, people, update, save, events, skyColour: bg, skyParts: [stars, rain, moon], building: (id) => buildings.get(id) || [], placeFront: (id) => { const p = life.place(id); return p.side === 'south' ? { x: p.x, z: FIELD_Z0 - 4.4, yaw: Math.PI } : { x: p.x, z: LOT8_Z + 12.6, yaw: 0 }; } };
+  return { life, group, colliders, spots, seats, people, update, save, events, skyColour: bg, skyParts: [stars, rain, moon], building: (id) => buildings.get(id) || [], placeFront: (id) => { const p = life.place(id); return p.side === 'north' ? { x:p.x,z:p.front.z,yaw:Math.PI } : p.side === 'south' ? { x: p.x, z: FIELD_Z0 - 4.4, yaw: Math.PI } : { x: p.x, z: LOT8_Z + 12.6, yaw: 0 }; } };
 }
 
 // What a villager calls out as the player passes, from the time of day and what they're up to.

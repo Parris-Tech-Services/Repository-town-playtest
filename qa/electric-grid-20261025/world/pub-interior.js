@@ -1,3 +1,4 @@
+import {pubHistoryDescription} from './pub-history.js';
 import { pubUtilities, pubStatus } from './pub-utilities.js';
 import { createKit, ROOM } from './interior-kit.js';
 
@@ -13,6 +14,19 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   const { THREE, group, box, cyl, ball, solid, text, add, blocker, model } = k;
   const { W, BACK, EDGE } = ROOM;
   const CZ = PUB_LAYOUT.counterZ;
+  const doors = [], sight = [];
+  // Match the existing interior door animator. Leaf closes when away from its threshold.
+  const door = (id, x0, x1, z) => {
+    const width=x1-x0, hinge=new THREE.Group(); hinge.name=id;
+    hinge.position.set(x0,0,z);
+    const leaf=new THREE.Mesh(new THREE.BoxGeometry(width-.04,2.36,.08),new THREE.MeshLambertMaterial({color:0x56635b}));
+    leaf.position.set(width/2,1.18,0); hinge.add(leaf);
+    for(const dz of [-.08,.08]){const handle=new THREE.Mesh(new THREE.BoxGeometry(.22,.04,.04),new THREE.MeshLambertMaterial({color:0xc4c8cc}));handle.position.set(width-.2,1,dz);hinge.add(handle);}
+    hinge.userData={baseRot:0,open:0,centre:new THREE.Vector3((x0+x1)/2,0,z)};
+    group.add(hinge);doors.push(hinge);
+    sight.push({x0,x1,y0:0,y1:2.4,z0:z-.08,z1:z+.08,door:hinge});
+    box(width,.3,.16,(x0+x1)/2,2.55,z,0xddd7c9);
+  };
   group.add(new THREE.HemisphereLight(0xffe4c0, 0x5a4636, 1.7));
   const warm = new THREE.PointLight(0xffc880, 1.2, 16, 1.5); warm.position.set(0, 3.4, -1); group.add(warm);
 
@@ -39,6 +53,9 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   solid(1.8, 0.95, 0.6, -3.0, 0.48, -10.5, 0xd9dde0); box(1.7, 0.8, 0.04, -3.0, 0.5, -10.18, 0xcfe8ee, { a: 0.4 });
   box(1.4, 2.2, 0.08, 1.8, 1.1, BACK + 0.12, 0x6a5a4a);                                    // cold-room door
   text(site.name, 0, 3.55, CZ - 0.5, 'room'); text('Bar · Meals · Keno', 0, 1.9, CZ - 0.1);
+  // Plaque: fictional original construction year, not an NSW heritage listing.
+  box(.07,.8,1.35,6.85,2.35,3.55,BRASS);box(.075,.64,1.17,6.8,2.35,3.55,DARKW);
+  text('DATE UNKNOWN',6.45,2.45,3.55,'room');
 
   // ── bistro tables (right-front) and lounge (left) ──
   const table = (x, z) => {
@@ -81,26 +98,58 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
 
   // Back-of-house: kitchen on left, sanitary compartment on right.
   solid(.12,2.7,3.8,3.8,1.35,-10,0xddd7c9);
-  solid(1.0,2.7,.12,4.3,1.35,-8.1,0xddd7c9); // door gap x4.8..6.7
-  text('WC · wash basin',5.4,2.6,-8.2);
+  solid(1.0,2.7,.12,4.3,1.35,-8.1,0xddd7c9);
+  solid(.72,2.7,.12,6.56,1.35,-8.1,0xddd7c9);
+  door('pub:wc-door',4.8,6.2,-8.1);
+  // A second screen prevents a direct bar-to-pan sightline while the door opens.
+  solid(.12,2.4,1.55,5.0,1.2,-10.7,0xddd7c9);
+  box(2.8,.025,3.6,5.4,.025,-10.0,0xb9c6bd);
+  text('WC · privacy door',5.5,2.8,-8.0);
+
   cyl(.3,.25,.4,5.7,.3,-10.7,0xf5f5ef); box(.6,.65,.22,5.7,.68,-11.2,0xf5f5ef);
   box(.7,.18,.5,4.45,.85,-10.6,STEEL); cyl(.025,.025,.25,4.45,1.04,-10.8,STEEL);
   box(.3,.4,.12,4.0,1.3,-10.6,0xe5e8eb); // soap/towel dispenser
   text('To sewer · vented sanitary drain',5.4,1.8,-11.5);
-  solid(1.1,.9,2,-5.7,.45,-10.4,STEEL); // cooker / preparation bench
-  for(const z of [-10.9,-10.2])cyl(.18,.18,.03,-5.7,.93,z,0x222222);
-  box(1.3,.3,2.1,-5.7,2.6,-10.4,STEEL);box(.35,1.4,.35,-5.7,3.4,-10.4,STEEL); // extraction hood
+  // Enclosed food room; 1.4 m opening into staff service corridor.
+  solid(.12,2.7,4.9,-3.9,1.35,-9.35,0xdde4df);
+  solid(.55,2.7,.12,-6.625,1.35,-6.9,0xdde4df);
+  solid(.95,2.7,.12,-4.375,1.35,-6.9,0xdde4df);
+  door('pub:kitchen-door',-6.35,-4.85,-6.9);
+  box(2.8,.025,4.8,-5.4,.025,-9.4,0xaebbb6);
+  solid(.9,.9,2,-6.3,.45,-10.4,STEEL); // cooker / preparation bench
+  for(const z of [-10.9,-10.2])cyl(.18,.18,.03,-6.3,.93,z,0x222222);
+  box(1.1,.3,2.1,-6.3,2.6,-10.4,STEEL);box(.35,1.4,.35,-6.3,3.4,-10.4,STEEL); // extraction hood
   solid(.9,.9,.8,-5.7,.45,-8.4,STEEL);box(.6,.06,.5,-5.7,.94,-8.4,0x485f68);
   cyl(.03,.03,.3,-5.7,1.1,-8.7,STEEL);
   box(.6,1,.15,-6.8,1.4,-7.3,0xcbd1d4); // metered switchboard
   box(.8,.55,.2,-6.7,2.1,-6.4,0x333c43); // NBN / router / communications UPS
   cyl(.35,.35,1.2,-2, .65,-10.7,0xdddcd2); // insulated hot-water cylinder
-  solid(.6,.8,.5,-5.7,.4,-7.2,STEEL); cyl(.02,.02,.24,-5.7,1,-7.4,STEEL);
+  solid(.6,.8,.5,-6.5,.4,-7.7,STEEL); cyl(.02,.02,.24,-6.5,1,-7.9,STEEL);
   text('Kitchen · separate hand basin · extraction',-4.8,2.7,-8.5);
   text('Cold room · dedicated refrigeration circuit',1.5,2.7,-11.4);
   add('toilet','Toilet and hand washing','pub-utilities','Stored cistern water, sanitary drain and warm hand basin.',5.6,-9.2);
-  add('kitchen','Working kitchen services','pub-utilities','Cooking, extraction, potable water and grease pre-treatment.',-4.6,-8.6);
+  add('kitchen','Working kitchen services','pub-utilities','Cooking, extraction, potable water and grease pre-treatment.',-4.6,-7.6);
   add('services','Utility meters and service diagram','pub-utilities','Inspect and test the pub connections.',-5.6,-6.5);
+  // Physical hygiene / safety equipment. No claim of certified dimensions or capacity.
+  for(const [id,x,z] of [['kitchen',-6.75,-7.5],['wc',4.0,-10.0]]){
+    box(.17,.24,.12,x,1.3,z,0xf2f0df).name='pub:'+id+'-soap';
+    box(.28,.35,.14,x,1.65,z,0xeeeeea).name='pub:'+id+'-towels';
+  }
+  solid(.65,.85,.65,-4.55,.425,-10.8,STEEL); // dedicated dishwasher
+  text('Dirty return → wash → clean rack',-4.6,1.6,-10.8);
+  for(const [x,z,color] of [[-4.6,-9.7,0x555b55],[-4.6,-8.8,0x397049]]){
+    cyl(.22,.22,.65,x,.33,z,color);box(.5,.05,.5,x,.68,z,color); // lidded bins
+  }
+  box(.4,.5,.12,-6.72,1.6,-6.0,0xd3332d).name='pub:fire-blanket';
+  cyl(.11,.11,.55,-6.6,.8,-5.2,0xc62c28).name='pub:extinguisher';
+  text('Fire blanket · extinguisher',-6.2,2.2,-6.0);
+  cyl(.12,.12,.05,0,4.5,-1,0xf7f6eb).name='pub:smoke-alarm';
+  box(1.1,.32,.09,0,2.85,5.8,0x13743d,{e:0x39d979}).name='pub:exit-sign';
+  text('EXIT',0,2.85,5.65);
+  const emergency=new THREE.PointLight(0xe5f0ff,0,12,1.5);emergency.position.set(0,2.9,3);emergency.name='pub:emergency-light';group.add(emergency);
+  text('Free drinking water · ask at bar',1.1,1.7,CZ+.2);
+  add('water-point','Free drinking water','pub-utilities','Potable water availability follows the water isolation valve.',1.4,-4.4);
+  add('fire-safety','Fire equipment and evacuation','info','Fictional venue: stop service, leave by the front exit and muster clear of the entrance. Equipment locations are represented; fire schedule, travel-distance design and competent inspection remain unverified.',-3.4,-3.0);
   // Diagrammatic service routes deliberately shown above head height; not surveyed pipe positions.
   const layers={};
   for(const [id,color,x] of [['electricity',0xffcd38,-2],['water',0x38baff,-1],['sewer',0xb07949,0],['gas',0xf3a257,1],['internet',0xb783ff,2],['waste',0x72ce76,3]]){
@@ -122,11 +171,21 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
     for(const [id,layer] of Object.entries(layers))layer.visible=state.overlay===id;
     // All ordinary electric fixtures follow this building's breaker as well as town supply.
     group.userData.updateLighting?.(status.power);
+    emergency.intensity=!status.power&&state.emergencyMinutes>0?1.5:0;
   };
+  add('heritage','Hotel history · original construction unknown','info',pubHistoryDescription(),5.6,3.5);
   add('counter', 'Bar', 'civic-ledger', 'Pull up a stool. Order a meal or a drink at the bar, or open the Town Ledger.', PUB_LAYOUT.staffUse.x, PUB_LAYOUT.staffUse.z);
   add('taps', 'Beer taps', 'info', 'Four taps and a fridge of bottles. Licensed hours run from eleven in the morning to late; the publican serves responsibly.', -2.4, -4.4);
   add('menu', 'Menu board', 'info', 'Chicken parmi, the roast of the day and a pie with chips. The kitchen uses beef, chicken and vegies delivered from the farms and the butcher.', -5.4, 3.9);
   add('lounge', 'Lounge and fire', 'info', 'Leather chairs round a fireplace for a long yarn after work.', -3.2, -1.5);
   add('pool', 'Pool table', 'info', 'A pool table, a dartboard and a keno screen: the Friday night regulars treat the room as their own.', 3.2, -3.4);
-  return k.finish({ utilityVisuals, staff: { pos: PUB_LAYOUT.staff, use: PUB_LAYOUT.staffUse } });
+  const interior = k.finish({ doors, sight, utilityVisuals, staff: { pos: PUB_LAYOUT.staff, use: PUB_LAYOUT.staffUse } });
+  interior.rooms.push({name:'Kitchen',x0:-6.9,x1:-3.96,z0:-11.9,z1:-6.96,w:2.94,d:4.94,parent:0});
+  interior.rooms.push({name:'Sanitary compartment',x0:3.86,x1:6.9,z0:-11.9,z1:-8.16,w:3.04,d:3.74,parent:0});
+  for(const item of interior.interactables){
+    if(item.key===site.id+':kitchen')item.room=1;
+    if(item.key===site.id+':toilet')item.room=2;
+    item.roomName=interior.rooms[item.room].name;
+  }
+  return interior;
 }

@@ -7,6 +7,8 @@ export const TRADE_STAFF=Object.freeze([
  {id:'sam',name:'Samir Patel',trade:'plumbing',job:'licensed plumber',licence:'NSW plumbing contractor',qualified:true},
  {id:'noah',name:'Noah Reed',trade:'building',job:'licensed builder',licence:'NSW general building contractor',qualified:true},
  {id:'ivy',name:'Ivy Chen',trade:'it',job:'computer repair technician',licence:null,qualified:true},
+ {id:'asha',name:'Asha Green',trade:'painting',job:'painting and decorating contractor',
+  licence:'FICTIONAL town painting/decorating contractor credential — not a real NSW licence',qualified:true},
  {id:'kai',name:'Kai Bell',trade:'electrical',job:'first-year electrical apprentice',licence:null,qualified:false,supervisor:'ella'},
  {id:'mia',name:'Mia Harris',trade:'plumbing',job:'plumbing apprentice',licence:null,qualified:false,supervisor:'sam'}
 ]);
@@ -25,6 +27,9 @@ export const REPAIR_TYPES=Object.freeze({
  blockedDrain:{label:'Blocked drain',trade:'plumbing',materials:{pipe:2,seal:1},labour:70,hours:3,asset:'house',risk:'Confirm drainage category and test for leaks.'},
  faultySwitch:{label:'Faulty lighting circuit',trade:'electrical',materials:{cable:1,switch:1},labour:85,hours:3,asset:'house',risk:'De-energise, isolate, test dead, verify protection; licensed electrical worker only.'},
  stormDamage:{label:'Damaged verandah timber',trade:'building',materials:{timber:4,fasteners:3,paint:1},labour:90,hours:4,asset:'house',risk:'Assess structural safety; licensed/supervised building contractor where required.'},
+ repaintExterior:{label:'Exterior painting and weatherproofing',trade:'painting',materials:{paint:3,seal:2},
+  labour:145,hours:6,asset:'house',
+  risk:'Inspect historic fabric, surface preparation, lead-paint risk, weather and falls protection; verify NSW licensing requirements if this were real work.'},
  laptop:{label:'Faulty community laptop',trade:'it',materials:{parts:2},labour:40,hours:2,asset:'community',risk:'Protect personal data and return parts for recycling.'}
 });
 export const QUALIFICATIONS=Object.freeze([
