@@ -167,9 +167,6 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   }
   solid(.65,.85,.65,-4.55,.425,-10.8,STEEL); // dedicated dishwasher
   text('Dirty return → wash → clean rack',-4.6,1.6,-10.8);
-  for(const [x,z,color] of [[-2.4,-10.7,0x555b55],[-1.9,-10.7,0x397049]]){
-    cyl(.22,.22,.65,x,.33,z,color);box(.5,.05,.5,x,.68,z,color); // lidded bins
-  }
   box(.4,.5,.12,-6.72,1.6,-6.0,0xd3332d).name='pub:fire-blanket';
   cyl(.11,.11,.55,-6.6,.8,-5.2,0xc62c28).name='pub:extinguisher';
   text('Fire blanket · extinguisher',-6.2,2.2,-6.0);

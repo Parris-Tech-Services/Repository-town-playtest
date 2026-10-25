@@ -719,7 +719,16 @@ export function createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog }) 
     if (SHOPFRONT[p.id]) { const [w, h] = SHOPFRONT[p.id], [bg, fg] = SHOP_COLOURS[p.id]; signs.push({place:p, text: p.name, x: p.x, y: h - 0.55, z: LOT8_Z + 7.15, w: w * 0.6, h: 0.7, bg, fg, cross: p.id === 'clinic' }); }
     else if (SIGN_AT[p.id]) { const at = SIGN_AT[p.id]; signs.push({place:p, text: p.name, x: p.x + at[0], y: at[1], z: LOT8_Z + at[2], w: at[3], h: at[4], bg: at[5], fg: at[6] }); }
     else if (p.kind === 'farm') farmSign(p);
-    if (fp) colliders.push({ x0: p.x - fp.w / 2, x1: p.x + fp.w / 2, z0: LOT8_Z + (fp.front ?? 7) - fp.d, z1: LOT8_Z + (fp.front ?? 7) });
+    if (fp) {
+      const z0=LOT8_Z+(fp.front??7)-fp.d,z1=LOT8_Z+(fp.front??7);
+      // Retain the outside-world solid body but leave the pub's actual front
+      // doorway clear through the entry transition, including wheelchair radius.
+      if(p.id==='pub')colliders.push(
+        {x0:p.x-fp.w/2,x1:p.x-1.05,z0,z1},
+        {x0:p.x+1.05,x1:p.x+fp.w/2,z0,z1},
+        {x0:p.x-1.05,x1:p.x+1.05,z0,z1:z1-.8});
+      else colliders.push({x0:p.x-fp.w/2,x1:p.x+fp.w/2,z0,z1});
+    }
     if (kind === 'square') {
       colliders.push({ x0: p.x - 2.7, x1: p.x + 2.7, z0: LOT8_Z - 6.7, z1: LOT8_Z - 1.3 });
       for(const [i,x,z,yaw] of [[0,-6,-4,Math.PI/2],[1,6,-4,-Math.PI/2],[2,0,3,Math.PI],[3,0,-11,0]])

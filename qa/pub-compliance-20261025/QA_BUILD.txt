@@ -1,3 +1,3 @@
 Source: joshualparris/JoshMemory
-Commit: 705a7b6e57c609915d6feb4ff161b477376a3dce
+Commit: f2cefefe86e5f423d3a9f9bdcaaf906e02399706
 Build: full release/privacy gate

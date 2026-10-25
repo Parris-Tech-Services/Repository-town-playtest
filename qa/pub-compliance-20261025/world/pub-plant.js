@@ -44,6 +44,8 @@ export function addPubExteriorServices(b){
  b.box(0xb9c6bd,1.5,.025,28,8,.014,-.8); // side accessible route, no step
  b.box(0xb9c6bd,9,.025,1.5,4,.014,-14); // rear route to side path
  b.box(0xb9c6bd,8,.025,1.5,4,.014,12.2); // connects to frontage walkway
+ b.cyl(0xcbd0d2,.38,1.8,-8.5,.9,-4.5); // insulated external hot-water cylinder
+ for(const [w,d,x,z]of [[1.6,1.5,-9,-7.2],[2,1.5,-9,-10],[1.2,.8,10,-8.5],[1.2,.8,10,-10],[.8,.8,-8.5,-4.5]])b.solid?.(w,d,x,z);
  // Roof plant and perimeter support representations, no structural capacity claim.
  b.box(0xb8c5ca,.4,1.1,.4,-6,5.3,-8); // kitchen exhaust discharge
  for(const x of [-6.8,6.8])for(const z of [-10.8,6.8])b.box(0x775a42,.2,4.4,.2,x,2.2,z);
