@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: f2cefefe86e5f423d3a9f9bdcaaf906e02399706
+          ref: f4e35b93558a88f296655c68a82ed846d79aeb93
           path: source
           persist-credentials: false
 
@@ -59,12 +59,13 @@ jobs:
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           node tests/pub-compliance-browser.mjs
+          node tests/pub-venue-browser.mjs
 
       - name: Preserve pub gameplay screenshots
         uses: actions/upload-artifact@v4
         with:
           name: pub-compliance-desktop-android
-          path: source/repository-town/audit/pub/completion/
+          path: source/repository-town/audit/pub/
 
       - name: Checkout retired Pages handover site without altering its homepage
         uses: actions/checkout@v4
