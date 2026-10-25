@@ -1,0 +1,54 @@
+name: Verify hosted pub compliance QA
+on:
+  workflow_run:
+    workflows: [Build isolated Repository Town pub compliance QA preview]
+    types: [completed]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  hosted-pub:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: 705a7b6e57c609915d6feb4ff161b477376a3dce
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: repository-town/package-lock.json
+      - name: Wait for exact published release
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,time,urllib.request
+          url='https://parris-tech-services.github.io/Repository-town-playtest/qa/pub-compliance-20261025/release.json'
+          for attempt in range(60):
+              try:
+                  d=json.load(urllib.request.urlopen(url+'?check='+str(attempt),timeout=15))
+                  if d.get('sourceCommit')=='705a7b6e57c609915d6feb4ff161b477376a3dce':
+                      print('Exact hosted source',d['sourceCommit'],'fingerprint',d['contentHash']);break
+              except Exception:
+                  pass
+              time.sleep(5)
+          else:
+              raise SystemExit('Exact pub release did not become publicly available')
+          PY
+      - name: Play real hosted pub on desktop and emulated Android
+        working-directory: repository-town
+        env:
+          TOWN_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/pub-compliance-20261025/
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+          node tests/pub-compliance-browser.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hosted-pub-compliance-desktop-android
+          path: repository-town/audit/pub/completion/
