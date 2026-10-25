@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: ece78d3a3f5e67360f5f2315539e1f5581bc186a
+          ref: f9eaf79a27f3061e81306e018af21c55f2b52485
           path: source
           persist-credentials: false
       - name: Set up Node 22
@@ -39,7 +39,7 @@ jobs:
           node tests/electrical-pilot.mjs
           npm run build:release
           node tools/verify-release.mjs dist/public
-          node -e "const r=require('./dist/public/release.json'); if(r.sourceCommit!=='ece78d3a3f5e67360f5f2315539e1f5581bc186a') throw Error('Wrong game source SHA');"
+          node -e "const r=require('./dist/public/release.json'); if(r.sourceCommit!=='f9eaf79a27f3061e81306e018af21c55f2b52485') throw Error('Wrong game source SHA');"
           test -f dist/public/world/pub-history.js
           test -f dist/public/world/pub-utilities.js
           test -f dist/public/world/electrical-pilot.js
@@ -75,7 +75,7 @@ jobs:
           mkdir -p "$target"
           rsync -a --delete source/repository-town/dist/public/ "$target/"
           actual=$(git -C source rev-parse HEAD)
-          test "$actual" = 'ece78d3a3f5e67360f5f2315539e1f5581bc186a'
+          test "$actual" = 'f9eaf79a27f3061e81306e018af21c55f2b52485'
           printf 'Source: joshualparris/JoshMemory\nCommit: %s\nStatus: isolated QA, NOT production or certified NCC compliance\n' "$actual" > "$target/QA_BUILD.txt"
           test -f "$target/release.json"
           test "$(sha256sum site/index.html | cut -d' ' -f1)" = "$before"
