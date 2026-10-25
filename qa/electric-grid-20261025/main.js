@@ -390,6 +390,7 @@ async function start() {
     }
     const yawIn = player.yaw;
     const built=buildCivicInterior(site,makeLabel,life);
+    attachPilotInteriorLighting(built.group,'B:'+site.id);
     installPhysicalJobs(built,site,makeLabel,life);
     built.workplay=installWorkplay(built,site,makeLabel,life,{openPanel,closePanel,status,sound:kind=>ambience.work(kind),getVisitors:()=>inside?.visitors?.entries});
     if(site.id==='bakery')built.bakeryImmersion=installBakeryImmersion(built,life,camera,makeLabel);

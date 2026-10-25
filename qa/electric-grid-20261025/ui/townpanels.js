@@ -11,6 +11,7 @@ import { workingAt, shopService } from '../world/shop-attendance.js';
 import { facilityAccess, visitorHours } from '../world/facility-access.js';
 import { COUNTERS, lineAt, pendingOrders } from '../world/counter-queue.js';
 import { householdReport, feederFor, TARIFF, fireDanger, season } from '../world/household.js';
+import { pilotMains } from '../world/electrical-pilot.js';
 import { propertyOfficePanel, motorMarketPanel, motorWorkshopPanel } from './property-panels.js';
 import { tradeEducationPanel } from './trade-education-panels.js';
 
@@ -403,7 +404,8 @@ const STORE_LABEL = { fridge: 'fridge', freezer: 'chest freezer', pantry: 'pantr
 export function householdPanel(life, name, what) {
   const v = life.villagers.find((x) => x.name === name);
   if (!v) return { title: 'Household', body: '<p>Nobody lives here at the moment.</p>', actions: [] };
-  const r = householdReport(life, v), powered = life.gridPowered(feederFor(v));
+  const pilot=pilotMains(life,'H:'+v.home.coordinate);
+  const r = householdReport(life, v), powered = pilot===null?life.gridPowered(feederFor(v)):pilot;
   const shelf = (store) => {
     const s = r.larder.find((x) => x.store === store);
     return s.items.length ? '<ul>' + s.items.map((i) => `<li>${esc(i.text)}${i.state === 'fresh' ? '' : ` — <b>${esc(i.state)}</b>`}</li>`).join('') + '</ul>' : '<p>Empty.</p>';

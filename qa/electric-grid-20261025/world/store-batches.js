@@ -1,3 +1,5 @@
+import { pilotMains } from './electrical-pilot.js';
+
 // Batch metadata reconciles against the existing authoritative stock totals.
 // Reserving/returning a carton moves its exact batch; it never manufactures stock.
 const shelfLife={bread:2,milk:3,eggs:7,coffee:30,tea:30};
@@ -52,7 +54,8 @@ export function tickStoreBatches(t){
  if(!t.civic.storeBatches)return;
  const s=storeBatches(t),stock=t.place('store').stock;let wasted=0;
  const elapsed=Math.max(0,clock(t)-(s.lastAt??clock(t)));s.lastAt=clock(t);
- const powered=t.gridPowered('bakery');
+ const pilot=pilotMains(t,'B:store');
+ const powered=pilot===null?t.gridPowered('bakery'):pilot;
  for(const b of s.lots)if(chilled(b.good)&&!powered)b.warm=(b.warm||0)+elapsed;
  for(const b of s.lots){if(b.expires<=t.day||(chilled(b.good)&&(b.warm||0)>=240)){stock[b.good]=Math.max(0,(stock[b.good]||0)-b.n);wasted+=b.n;b.n=0;}}
  s.lots=s.lots.filter(b=>b.n>0);

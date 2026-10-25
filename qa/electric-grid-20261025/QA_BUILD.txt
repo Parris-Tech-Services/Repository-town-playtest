@@ -1,3 +1,3 @@
 Source: joshualparris/JoshMemory
-Commit: a6a0b1eb97250e1d1038759eb185b861cf81e9ee
+Commit: dee8b47971aed04e45cd9e6555236e67a00d7a14
 Status: verified electrical pilot QA, not approved production

@@ -8,6 +8,7 @@ export const PILOT_NETWORK = Object.freeze({
     "B:butcher",
     "B:cafe",
     "B:greengrocer",
+    "B:hotel",
     "B:post",
     "B:pub",
     "B:school",
@@ -96,6 +97,25 @@ export const PILOT_NETWORK = Object.freeze({
       "transformerId": "DIST-R8-B2",
       "connectedKva": 18,
       "connectionNode": "SWB:B:greengrocer"
+    },
+    {
+      "id": "B:hotel",
+      "address": "I9-N",
+      "kind": "hotel",
+      "phase": "ABC",
+      "serviceId": "SVC:B:hotel",
+      "meterId": "MTR:B:hotel",
+      "door": {
+        "x": -117,
+        "z": 184.5
+      },
+      "meterPosition": {
+        "x": -115.75,
+        "z": 185
+      },
+      "transformerId": "DIST-R8-B2",
+      "connectedKva": 18,
+      "connectionNode": "SWB:B:hotel"
     },
     {
       "id": "B:post",
@@ -836,6 +856,46 @@ export const PILOT_NETWORK = Object.freeze({
       "ratedKva": null
     },
     {
+      "id": "LV-SOUTH-R8-B2",
+      "type": "lv_bus",
+      "position": {
+        "x": -78,
+        "z": 183.6
+      },
+      "voltageKv": 0.4,
+      "ratedKva": null
+    },
+    {
+      "id": "TAP:B:hotel",
+      "type": "lv_pillar",
+      "position": {
+        "x": -117,
+        "z": 183.6
+      },
+      "voltageKv": 0.4,
+      "ratedKva": null
+    },
+    {
+      "id": "MTR:B:hotel",
+      "type": "service_meter",
+      "position": {
+        "x": -115.75,
+        "z": 185
+      },
+      "voltageKv": 0.4,
+      "ratedKva": null
+    },
+    {
+      "id": "SWB:B:hotel",
+      "type": "switchboard",
+      "position": {
+        "x": -115.75,
+        "z": 185
+      },
+      "voltageKv": 0.4,
+      "ratedKva": null
+    },
+    {
       "id": "MV-SPUR-R8-B3",
       "type": "mv_tap",
       "position": {
@@ -1369,6 +1429,94 @@ export const PILOT_NETWORK = Object.freeze({
       ],
       "lengthGameMetres": 3.65,
       "ampacityA": 250,
+      "ratedKva": null,
+      "ratedMva": null
+    },
+    {
+      "id": "MAIN-SWITCH:B:hotel",
+      "from": "MTR:B:hotel",
+      "to": "SWB:B:hotel",
+      "type": "service_switchboard",
+      "voltageKv": 0.4,
+      "route": [
+        {
+          "x": -115.75,
+          "z": 185
+        },
+        {
+          "x": -115.75,
+          "z": 185
+        }
+      ],
+      "lengthGameMetres": 0,
+      "ampacityA": 250,
+      "ratedKva": null,
+      "ratedMva": null
+    },
+    {
+      "id": "SERVICE:B:hotel",
+      "from": "TAP:B:hotel",
+      "to": "MTR:B:hotel",
+      "type": "underground_service",
+      "voltageKv": 0.4,
+      "route": [
+        {
+          "x": -117,
+          "z": 183.6
+        },
+        {
+          "x": -115.75,
+          "z": 183.6
+        },
+        {
+          "x": -115.75,
+          "z": 185
+        }
+      ],
+      "lengthGameMetres": 2.65,
+      "ampacityA": 250,
+      "ratedKva": null,
+      "ratedMva": null
+    },
+    {
+      "id": "LV-MAIN:B:hotel",
+      "from": "LV-SOUTH-R8-B2",
+      "to": "TAP:B:hotel",
+      "type": "lv_main",
+      "voltageKv": 0.4,
+      "route": [
+        {
+          "x": -78,
+          "z": 183.6
+        },
+        {
+          "x": -117,
+          "z": 183.6
+        }
+      ],
+      "lengthGameMetres": 39,
+      "ampacityA": 400,
+      "ratedKva": null,
+      "ratedMva": null
+    },
+    {
+      "id": "LV-DUCT-R8-B2",
+      "from": "LV-BUS-R8-B2",
+      "to": "LV-SOUTH-R8-B2",
+      "type": "lv_road_crossing",
+      "voltageKv": 0.4,
+      "route": [
+        {
+          "x": -78,
+          "z": 170.4
+        },
+        {
+          "x": -78,
+          "z": 183.6
+        }
+      ],
+      "lengthGameMetres": 13.2,
+      "ampacityA": 400,
       "ratedKva": null,
       "ratedMva": null
     },
@@ -2398,6 +2546,7 @@ export const PILOT_NETWORK = Object.freeze({
         "B:butcher",
         "B:cafe",
         "B:greengrocer",
+        "B:hotel",
         "B:store"
       ],
       "position": {

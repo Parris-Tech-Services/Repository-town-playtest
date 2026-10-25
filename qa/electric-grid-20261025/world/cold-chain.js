@@ -5,6 +5,7 @@
 // Chilled stock follows the Australian 2-hour/4-hour rule: after four hours without refrigeration
 // it is unsafe and is thrown out.
 import { COUNTERS } from './counter-queue.js';
+import { pilotMains } from './electrical-pilot.js';
 
 // Share of each perishable shelf lost per day (stale, bruised or past its date). Whole units only,
 // so a small shelf of two or three doesn't lose anything.
@@ -16,10 +17,12 @@ const shelvesOf = (p) => [p.stock, p.out].filter(Boolean);
 
 // Once an hour: cold rooms lose power with the bakery feeder; four hours off and chilled stock goes.
 export function coldChainHour(life) {
-  const powered = life.gridPowered('bakery');
+  const legacyPowered = life.gridPowered('bakery');
   let tossed = 0;
   for (const id of COUNTERS) {
     const p = life.place(id);
+    const pilot=pilotMains(life,'B:'+id);
+    const powered=pilot===null?legacyPowered:pilot;
     p.coldOff = powered ? 0 : (p.coldOff || 0) + 60;
     if (p.coldOff < COLD_LIMIT) continue;
     const lost = [];

@@ -83,7 +83,7 @@ export function createElectricalPilotVisuals(townGroup,life){
 // Many house interiors currently have global non-electrical ambient light.
 // Give targeted pilot interiors a genuine per-service light circuit.
 export function attachPilotInteriorLighting(group,propertyId){
-  if(!group||!/^H:[K-Q]7$/.test(propertyId))return;
+  if(!group||!pilotNetwork().siteIds.includes(propertyId))return;
   const lighting=[];
   group.traverse(o=>{if(o.isLight)lighting.push([o,o.intensity]);});
   const prior=group.userData.updateLighting;

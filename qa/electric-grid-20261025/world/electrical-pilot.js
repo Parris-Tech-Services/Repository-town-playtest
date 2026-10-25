@@ -15,6 +15,7 @@ export const PILOT_FAULTS=Object.freeze({
   pubDistrict:'MV-TX-R8-B3',
   northHouses:'MV-TX-R7-B3',
   shared:'MV-INTAKE',
+  hotel:'SERVICE:B:hotel',
   post:'SERVICE:B:post',
   house:'SERVICE:H:N7'
 });
@@ -59,6 +60,10 @@ export function validElectricalPilotState(s){
 }
 export function initialiseElectricalPilot(life){
   const current=life.civic.electricalPilot;
+  // Migrate version-1 15-property saves without losing the user's live breaker
+  // positions or PV/battery meter history when adding the real I9-N hotel.
+  if(current?.version===1 && current.meterKwh &&
+    current.meterKwh['B:hotel']===undefined)current.meterKwh['B:hotel']=0;
   if(!validElectricalPilotState(current)){
     life.civic.electricalPilot=pilotInitialState();
   }
@@ -83,6 +88,7 @@ export function pilotDemand(site,minute,weather='sunny'){
   const night=hour<6||hour>=20,hot=weather==='sunny'&&hour>=12&&hour<19;
   let kw=0.2;
   switch(site.id){
+    case 'B:hotel':kw=2.2+(hour>=6&&hour<10?4.5:0)+(hour>=17&&hour<23?3.5:0)+(hot?2.2:0.6);break;
     case 'B:pub':
       kw=1.35+(hour>=11&&hour<23?2.2:0.45)
           +(hour>=12&&hour<14?7.5:0)+(hour>=18&&hour<21?10:0)

@@ -1,3 +1,5 @@
+import { pilotMains } from './electrical-pilot.js';
+
 // Villager households: what each home holds and how the people in it live there. Pure logic, no
 // three.js, deterministic (no Math.random or wall clock). life.js calls in from its hourly step,
 // its daily close and the villagers' plans; townpanels and the house interiors read the results.
@@ -292,7 +294,8 @@ export function householdHour(life, hour) {
   const notes = [];
   for (const v of life.villagers) {
     const h = ensureHousehold(v), home = atHome(v), awake = home && v.step?.kind !== 'sleep';
-    const powered = life.gridPowered(feederFor(v));
+    const pilot=pilotMains(life,'H:'+v.home.coordinate);
+    const powered=pilot===null?life.gridPowered(feederFor(v)):pilot;
     // Climate: the reverse-cycle unit holds 21° while someone is up (or when it's bitter or sweltering).
     const drift = t + 3;
     const extreme = drift < 10 || drift > 30;

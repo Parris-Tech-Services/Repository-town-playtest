@@ -979,7 +979,7 @@ export function createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog }) 
       const id=child.userData.lightingSite;
       const customer=['clinic','waterworks','sewage','bakery'].includes(id)?id:
         ['mill','foundry','soyplant'].includes(id)?'industry':null;
-      const pilot=pilotMains(life,id.startsWith('H:')?id:'B:'+id);
+      const pilot=pilotMains(life,id.startsWith('H:')||id.startsWith('B:')?id:'B:'+id);
       child.userData.updateLighting(pilot??(customer?life.gridPowered(customer):powered));
     }
     for (const d of doorCards) d.m.material = facilityAccess(life, d.q).allowed ? d.openMat : d.closedMat;
