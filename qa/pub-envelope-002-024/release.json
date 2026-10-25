@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "sourceCommit": "49984e3780f1ad3a70e7106df8e342b9dcc08b95",
+  "sourceCommit": "e274e84d2349c371f261349f6f807e749c317d0a",
   "contentHash": "3013cf11f3f56a512d80a9dc7441dc96f46cf9ac05ad7c384574df115567dacd",
   "production": "https://repository-town-claude-complete.vercel.app/",
   "staging": "https://repository-town-claude-playtest.vercel.app/",
