@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {};
+  var IMG = {};
+  var API = null;
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  // Local API: games whose server only stores records (data/games.json → localApi) keep
+  // them in this browser instead, so they play from a folder or the offline zip.
+  function apiHandle(u, method, bodyText) {
+    if (!API) return null;
+    var url; try { url = new URL(u, location.href); } catch (e) { return null; }
+    // Fixed answers (e.g. a signed-in local player for games built around a login).
+    var fixed = API.fixed && Object.keys(API.fixed).find(function (k) { return url.pathname.replace(/\/$/, '').endsWith('/api/' + k); });
+    if (fixed && method === 'GET') return new Response(JSON.stringify(API.fixed[fixed]), { status: 200, headers: { 'content-type': 'application/json' } });
+    var m = url.pathname.match(/\/api\/([\w-]+)(?:\/([\w-]+))?\/?$/);
+    if (!m || !API.collections || !API.collections[m[1]]) return null;
+    var col = m[1], id = m[2], key = 'town-api:' + API.game + ':' + col;
+    var list; try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { list = []; }
+    var save = function () { try { localStorage.setItem(key, JSON.stringify(list)); } catch (e) { /* storage full or blocked */ } };
+    var body = {}; try { body = bodyText ? JSON.parse(bodyText) : {}; } catch (e) { body = {}; }
+    var json = function (status, data) { return new Response(data === undefined ? null : JSON.stringify(data), { status: status, headers: { 'content-type': 'application/json' } }); };
+    var now = new Date().toISOString();
+    if (!id) {
+      if (method === 'GET') return json(200, list);
+      if (method === 'POST') {
+        var next = list.reduce(function (n, r) { return Math.max(n, +r.id || 0); }, 0) + 1;
+        var rec = Object.assign({}, API.collections[col].defaults || {}, body, { id: next, createdAt: now, updatedAt: now });
+        list.push(rec); save(); return json(201, rec);
+      }
+    } else {
+      var i = list.findIndex(function (r) { return String(r.id) === String(id); });
+      if (i < 0) return json(404, { message: 'Not found' });
+      if (method === 'GET') return json(200, list[i]);
+      if (method === 'PUT' || method === 'PATCH') { list[i] = Object.assign({}, list[i], body, { id: list[i].id, updatedAt: now }); save(); return json(200, list[i]); }
+      if (method === 'DELETE') { list.splice(i, 1); save(); return new Response(null, { status: 204 }); }
+    }
+    return json(405, { message: 'Method not allowed' });
+  }
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var method = String((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+    var api = u && apiHandle(u, method, init && typeof init.body === 'string' ? init.body : '');
+    if (api) return Promise.resolve(api);
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        xhr.dispatchEvent(new Event('readystatechange'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+
+</script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIM-DBO1 Defender Trainer</title>
+  <meta name="description" content="Client-side blue-team awareness game for internal staff training. Fictional data only.">
+  <link rel="stylesheet" href="game.css">
+  <style>
+    body { margin: 0; background: #070a0e; padding: 24px 0; }
+    .sim-note {
+      max-width: 760px; margin: 0 auto 16px; padding: 0 16px;
+      color: #8ba0b4; font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13px; line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <p class="sim-note">
+    Standalone preview — runs entirely in your browser, nothing is sent anywhere.
+    All data is fictional (facility &ldquo;SIM-DBO1&rdquo;). Blue-team training only.
+  </p>
+  <div id="dbo1sim-root" class="dbo1sim-root" role="application" aria-label="SIM-DBO1 Defender Trainer"></div>
+  <script src="game.js"></script>
+</body>
+</html>
