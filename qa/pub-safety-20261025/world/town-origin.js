@@ -9,7 +9,7 @@ export const TOWN_ORIGIN=Object.freeze({
   currentMayor2026:'Vern',
   site: Object.freeze({latitude:-32.2736,longitude:148.4084,datum:'EPSG:4326',fictional:true,surveyed:false}),
   bounds: Object.freeze({minX:-390,maxX:390,minZ:-190,maxZ:290}),
-  historicPub: Object.freeze({id:'B:pub',built:1911,firstTrade:1912}),
+  historicPub: Object.freeze({id:'B:pub',built:null,firstTrade:null,originalName:null}),
 });
 export function gameMetresToCoordinates(x,z) {
  if(!Number.isFinite(x)||!Number.isFinite(z))throw new TypeError('finite game x and z required');

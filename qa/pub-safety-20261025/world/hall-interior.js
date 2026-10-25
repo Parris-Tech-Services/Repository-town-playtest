@@ -1,3 +1,4 @@
+import {TOWN_ORIGIN,townChronicleNotice} from './town-origin.js';
 import { createKit, ROOM } from './interior-kit.js';
 
 // The Town Hall, laid out like a country meeting rooms:
@@ -53,6 +54,10 @@ export function buildHallInterior(site, makeLabel, roomTitle = 'Town Hall') {
   model('lamp_standing', -6.2, 3.8, 0, { w: 0.45, d: 0.45, h: 1.7 });
   solid(0.9, 0.8, 0.5, -5.6, 0.4, 5.0, WOOD); for (let i = 0; i < 5; i++) box(0.3, 0.02, 0.22, -5.8 + (i % 3) * 0.2, 0.82 + i * 0.012, 5.0, [CREAM, 0xe8d8b0, 0xd8e0e8][i % 3]);   // brochures
 
+  // Repository Town founding history: an exhibit, not a claim of a legally gazetted NSW municipality.
+  text('Repo’s Stores · 1883', -6.1, 2.72, 2.5);
+  add('founding', 'Town origins · Sir Reginald Repo', 'info', townChronicleNotice(), -4.7, 3.5);
+  add('geography', 'Where is Repository Town?', 'info', 'Candidate fictional NSW map anchor: '+TOWN_ORIGIN.site.latitude.toFixed(6)+', '+TOWN_ORIGIN.site.longitude.toFixed(6)+'. About 4.7 km in a straight line southwest of Minore. Regional Dubbo–Narromine railway, Mitchell Highway and Macquarie–Wambuul basin; exact parcel, flood, land zoning, feeder and water source are not verified.',-3.2,4.3);
   add('counter', 'Public counter', 'civic-ledger', 'Pay rates, lodge a request or open the Town Ledger. The council meets here on its meeting days; the Town Ledger shows the budget, votes and repairs.', HALL_LAYOUT.staffUse.x, HALL_LAYOUT.staffUse.z);
   add('chamber', 'Meeting room', 'info', 'Five councillors sit at the table below the mayor\'s chair. Meetings are open to the public, and the gallery seats fill on a big vote.', -3.0, -6.2);
   add('notices', 'Council noticeboard', 'info', 'Decisions, budgets and works notices go up here. Roads, power and water repairs are decided in chamber and carried out by council crews.', 5.2, 0.4);
