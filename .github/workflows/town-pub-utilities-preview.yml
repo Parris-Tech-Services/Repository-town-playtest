@@ -1,0 +1,104 @@
+name: Build isolated Repository Town pub utilities QA preview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/town-pub-utilities-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: town-pub-utilities-qa
+  cancel-in-progress: false
+
+jobs:
+  build-verified-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Fetch canonical Repository Town source
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: b7d623c88a16e19032e72860d9b5dd288b9e4201
+          path: source
+          persist-credentials: false
+
+      - name: Install build environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+
+      - name: Full release tests, privacy and output verification
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:release
+          node tools/verify-release.mjs dist/public
+
+      - name: Verify pub utilities in the built output
+        working-directory: source/repository-town
+        run: |
+          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('dist/public/release.json'));const sha=require('child_process').execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();if(p.sourceCommit!==sha)throw Error('Wrong source SHA');console.log(sha)"
+          test -f dist/public/world/pub-utilities.js
+          test -f dist/public/ui/pub-utilities-panel.js
+          node tests/pub-utilities.mjs
+
+      - name: Playtest pub fixtures on desktop and emulated Android
+        working-directory: source/repository-town
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+          node tools/serve.mjs dist/public 8091 > /tmp/pub-qa-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          node tests/pub-utilities-browser.mjs
+
+      - name: Preserve pub gameplay screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: pub-utilities-desktop-android
+          path: source/repository-town/audit/pub-utilities/
+
+      - name: Checkout retired Pages handover site without altering its homepage
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+
+      - name: Publish isolated candidate under qa/pub-utilities-20261025
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="site/qa/pub-utilities-20261025"
+          mkdir -p "$target"
+          rsync -a --delete source/repository-town/dist/public/ "$target/"
+          test -f site/index.html
+          grep -q 'Download saved progress' site/index.html
+          sha=$(git -C source rev-parse HEAD)
+          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nBuild: full release/privacy gate\n' "$sha" > "$target/QA_BUILD.txt"
+          cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa/pub-utilities-20261025
+          if git diff --cached --quiet; then
+            echo 'Identical QA preview already published'
+          else
+            git commit -m "qa(town): publish source-verified pub utilities preview $sha [skip ci]"
+            git push origin HEAD:main
+          fi
+
+      - name: Confirm QA preview path
+        run: |
+          echo 'Review: https://parris-tech-services.github.io/Repository-town-playtest/qa/pub-utilities-20261025/'
+          echo 'Root handover and existing approved production mirror were not overwritten.'
