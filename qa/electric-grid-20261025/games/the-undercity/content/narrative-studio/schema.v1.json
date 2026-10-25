@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "title": "The Undercity Narrative Studio Packet",
+  "primary_stats": [
+    "observation",
+    "guile",
+    "persuasion",
+    "resolve"
+  ],
+  "stages": [
+    "pitch",
+    "skeleton",
+    "prose",
+    "qa",
+    "approved"
+  ],
+  "qa_types": [
+    "content",
+    "design",
+    "mechanical",
+    "continuity"
+  ],
+  "max_secret_depth": 5,
+  "branch_count": {
+    "min": 2,
+    "max": 5
+  },
+  "notes": "Editorial-stage contract, not the live game storylet schema."
+}

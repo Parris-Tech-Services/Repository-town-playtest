@@ -1,0 +1,22 @@
+.layer {
+  padding: 1.5rem;
+  border-radius: 12px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.region-layer {
+  border-color: #cbd5e0;
+}
+
+.detail-layer {
+  border-color: #cbd5e0;
+}
+
+.scene-area {
+  margin: 1.5rem 0;
+  padding: 2rem;
+  background: #edf2f7;
+  border-radius: 8px;
+  text-align: center;
+}

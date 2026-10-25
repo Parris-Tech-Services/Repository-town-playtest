@@ -1,0 +1,26 @@
+# dependencies
+node_modules
+
+# build outputs
+dist
+server/public
+
+# Replit local state
+.local/
+.replit
+replit.nix
+.upm/
+.cache/
+
+# env / secrets
+.env
+.env.*
+
+# logs & OS cruft
+*.log
+.DS_Store
+Thumbs.db
+
+# vite temp
+vite.config.ts.*
+*.tar.gz

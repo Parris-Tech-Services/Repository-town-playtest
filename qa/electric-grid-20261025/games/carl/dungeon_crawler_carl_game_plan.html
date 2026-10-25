@@ -1,0 +1,300 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.container { padding: 1rem 0; max-width: 100%; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.tab { padding: 6px 14px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; border: 1.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all .15s; }
+.tab.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+.section { display: none; }
+.section.active { display: block; }
+h2 { font-size: 18px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.subtitle { font-size: 13px; color: var(--color-text-secondary); margin-bottom: 1.2rem; }
+.phase-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.2rem; }
+.card { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; }
+.card h3 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 6px; }
+.card p, .card li { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+.card ul { padding-left: 14px; }
+.card li { margin-bottom: 3px; }
+.badge { display: inline-block; font-size: 11px; font-weight: 500; padding: 2px 8px; border-radius: 99px; margin-bottom: 8px; }
+.badge-purple { background: #EEEDFE; color: #3C3489; }
+.badge-teal { background: #E1F5EE; color: #085041; }
+.badge-amber { background: #FAEEDA; color: #633806; }
+.badge-coral { background: #FAECE7; color: #4A1B0C; }
+.badge-blue { background: #E6F1FB; color: #0C447C; }
+.badge-gray { background: #F1EFE8; color: #444441; }
+@media (prefers-color-scheme: dark) {
+  .badge-purple { background: #26215C; color: #CECBF6; }
+  .badge-teal { background: #04342C; color: #9FE1CB; }
+  .badge-amber { background: #412402; color: #FAC775; }
+  .badge-coral { background: #4A1B0C; color: #F5C4B3; }
+  .badge-blue { background: #042C53; color: #B5D4F4; }
+  .badge-gray { background: #2C2C2A; color: #D3D1C7; }
+}
+.divider { border: none; border-top: 1px solid var(--color-border-tertiary); margin: 1rem 0; }
+.lore-block { background: var(--color-background-secondary); border-left: 3px solid #7F77DD; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 10px 14px; margin-bottom: 10px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+.lore-block strong { color: var(--color-text-primary); font-weight: 500; }
+.system-block { background: var(--color-background-secondary); border-left: 3px solid #EF9F27; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; padding: 10px 14px; margin-bottom: 10px; font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; }
+.system-block strong { color: #BA7517; font-weight: 500; }
+.full-card { background: var(--color-background-secondary); border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 14px 16px; margin-bottom: 12px; }
+.full-card h3 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 8px; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+.phase-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.phase-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; flex-shrink: 0; }
+.phase-num.p1 { background: #EEEDFE; color: #3C3489; }
+.phase-num.p2 { background: #E1F5EE; color: #085041; }
+.phase-num.p3 { background: #FAEEDA; color: #633806; }
+.phase-num.p4 { background: #FAECE7; color: #4A1B0C; }
+.phase-num.p5 { background: #E6F1FB; color: #0C447C; }
+@media (prefers-color-scheme: dark) {
+  .phase-num.p1 { background: #26215C; color: #CECBF6; }
+  .phase-num.p2 { background: #04342C; color: #9FE1CB; }
+  .phase-num.p3 { background: #412402; color: #FAC775; }
+  .phase-num.p4 { background: #4A1B0C; color: #F5C4B3; }
+  .phase-num.p5 { background: #042C53; color: #B5D4F4; }
+}
+.ask-btn { display: inline-block; margin-top: 10px; padding: 7px 14px; font-size: 13px; font-weight: 500; border-radius: var(--border-radius-md); border: 1.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all .15s; }
+.ask-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-primary); }
+</style>
+
+<div class="container">
+  <h2 role="heading">Dungeon Crawler Carl — complete game plan</h2>
+  <p class="subtitle">Book-accurate design document. Click a tab to explore each pillar.</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" onclick="show('phases')">Build phases</button>
+    <button class="tab" onclick="show('lore')">Lore accuracy</button>
+    <button class="tab" onclick="show('systems')">Core systems</button>
+    <button class="tab" onclick="show('chars')">Characters</button>
+    <button class="tab" onclick="show('world')">World design</button>
+    <button class="tab" onclick="show('tech')">Tech stack</button>
+  </div>
+
+  <!-- BUILD PHASES -->
+  <div id="phases" class="section active">
+    <div class="phase-header"><div class="phase-num p1">1</div><div><h3 style="font-size:15px;font-weight:500;color:var(--color-text-primary);">Foundation — Tutorial Guild</h3><p style="font-size:12px;color:var(--color-text-secondary);">The prototype, made book-accurate</p></div></div>
+    <div class="phase-grid">
+      <div class="card"><span class="badge badge-purple">Start here</span><h3>Core engine</h3><ul><li>Grid-based movement on a 12×12 map</li><li>Carl starts in boxer shorts + leather jacket (no pants)</li><li>Donut is Level 0 — explicitly civilian, not combat-ready</li><li>Mordecai in Chupacabra form behind the desk</li><li>Collision, proximity triggers, dialogue cycling</li></ul></div>
+      <div class="card"><span class="badge badge-teal">Book-accurate additions</span><h3>What the prototype is missing</h3><ul><li>The System interface — pop-up notifications styled like a dungeon OS</li><li>Carl's <em>specific</em> leather jacket (not generic — it's the one item that matters)</li><li>Donut's Grand Champion pedigree title displayed in her stat block</li><li>Mordecai's stress level rising each dialogue cycle</li><li>The smell complaints escalating from Donut</li></ul></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('Build out Phase 1 of the Dungeon Crawler Carl game in Python with book-accurate Tutorial Guild details')">Build Phase 1 →</button>
+
+    <hr class="divider">
+    <div class="phase-header"><div class="phase-num p2">2</div><div><h3 style="font-size:15px;font-weight:500;color:var(--color-text-primary);">Class & stats system</h3><p style="font-size:12px;color:var(--color-text-secondary);">The dungeon's class selection is book-critical</p></div></div>
+    <div class="phase-grid">
+      <div class="card"><h3>Carl's path</h3><ul><li>Starts classless — the system offers a selection box</li><li>Must choose before entering Floor 1</li><li>Book-accurate classes: Crawler, Barbarian, Rogue, Healer, Enchanter, Monk</li><li>Carl eventually leans physical/brawler due to no formal magic</li><li>No Pants debuff is a <em>real mechanical penalty</em> to armor</li></ul></div>
+      <div class="card"><h3>Donut's path</h3><ul><li>Starts Level 0, civilian, no class</li><li>First kills unlock her class selection separately</li><li>Her trajectory: toward magic/support (book-accurate)</li><li>Cat traits: agility bonus, low carry weight, claw attacks</li><li>Grand Champion title grants cosmetic fame stat</li></ul></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('Design the class selection system for Dungeon Crawler Carl game — book accurate')">Design class system →</button>
+
+    <hr class="divider">
+    <div class="phase-header"><div class="phase-num p3">3</div><div><h3 style="font-size:15px;font-weight:500;color:var(--color-text-primary);">Floor 1 — the savannas</h3><p style="font-size:12px;color:var(--color-text-secondary);">First real dungeon floor, fully playable</p></div></div>
+    <div class="phase-grid">
+      <div class="card"><h3>Environment</h3><ul><li>Open grassland-style biome — not a cave</li><li>Scattered ruins, transition zones to other biomes</li><li>Kobolds, goblins, basic crawlers as early enemies</li><li>Saferooms — doors Carl can actually unlock and use</li><li>Timer mechanic: each floor has a collapse deadline</li></ul></div>
+      <div class="card"><h3>Key Floor 1 elements</h3><ul><li>The first explosive item introduction</li><li>Crafting discovery: Carl figures out improvised weapons</li><li>The gladiator arena entrance (book-accurate side content)</li><li>Viewer sponsorships begin — random item drops from fans</li><li>Princess Donut earns her first kill and gains XP</li></ul></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('Design Floor 1 of the Dungeon Crawler Carl game — the savannas biome, book accurate')">Design Floor 1 →</button>
+
+    <hr class="divider">
+    <div class="phase-header"><div class="phase-num p4">4</div><div><h3 style="font-size:15px;font-weight:500;color:var(--color-text-primary);">The Syndicate & viewer system</h3><p style="font-size:12px;color:var(--color-text-secondary);">The show-within-a-game meta layer</p></div></div>
+    <div class="phase-grid">
+      <div class="card"><h3>Viewer sponsorships</h3><ul><li>Viewers are alien races watching the dungeon as entertainment</li><li>Sponsorships drop items into the dungeon in real time</li><li>Popularity stat affects quality and frequency of drops</li><li>Donut is more naturally popular — players must manage this</li><li>Controversial actions spike viewership (book-accurate)</li></ul></div>
+      <div class="card"><h3>The Syndicate faction</h3><ul><li>NPC crawlers who are organized criminals using the dungeon</li><li>Can ally, betray, or ignore — all have consequences</li><li>Book-accurate: they run the saferoom economy</li><li>Princess Donut's social skills unlock Syndicate dialogue trees</li><li>Carl's bluntness closes dialogue options Donut opens</li></ul></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('Design the viewer sponsorship and Syndicate faction systems for Dungeon Crawler Carl game')">Design these systems →</button>
+
+    <hr class="divider">
+    <div class="phase-header"><div class="phase-num p5">5</div><div><h3 style="font-size:15px;font-weight:500;color:var(--color-text-primary);">Deeper floors & end state</h3><p style="font-size:12px;color:var(--color-text-secondary);">Books 2–4 content: escalation and revelation</p></div></div>
+    <div class="card"><h3>What escalates per floor</h3><ul><li>Floor 2: urban ruins — city-style navigation, more complex NPCs</li><li>Floor 3: the Desperado Club — Carl becomes a legitimate celebrity crawler</li><li>Floor 4: the naiad levels — underwater/cavern hybrid biome</li><li>Revelations about the dungeon's true purpose accumulate as lore collectibles</li><li>Boss encounters become character-specific rather than generic fights</li></ul></div>
+    <button class="ask-btn" onclick="sendPrompt('Design the deeper floors content plan for Dungeon Crawler Carl game, covering books 2 through 4')">Plan deeper floors →</button>
+  </div>
+
+  <!-- LORE ACCURACY -->
+  <div id="lore" class="section">
+    <h2>Lore accuracy requirements</h2>
+    <p class="subtitle">Things the game must get right that most adaptations miss</p>
+
+    <div class="lore-block"><strong>Carl's jacket is not optional flavor.</strong> The leather jacket is explicitly described as the one piece of real protection he has. It must be a named, stats-bearing item in the inventory system — not a cosmetic. Its durability matters to the plot of book 1.</div>
+    <div class="lore-block"><strong>Donut's breed and title are mechanically significant.</strong> She is a Grand Champion Persian show cat. Her high Charisma/social stats should trace directly to this. She is not just Carl's pet — she is a co-protagonist with a separate stat sheet and separate class evolution.</div>
+    <div class="lore-block"><strong>The System is a character.</strong> Announcements must be voiced as unhinged, sarcastic, and darkly comedic. The System mocks crawlers, hypes deaths, and editorialize outcomes. It is not a neutral HUD — it has a personality. All System notifications should feel like they were written by a deranged game-show host.</div>
+    <div class="lore-block"><strong>The dungeon is a literal alien TV show.</strong> This must be felt in gameplay — viewer counts, sponsor drops, and popularity ratings are real mechanics. Carl's unpredictability and Donut's charm are their primary survival advantages beyond combat.</div>
+    <div class="lore-block"><strong>Mordecai's stress is a running gag with real stakes.</strong> He genuinely cares about Carl and Donut surviving. His Chupacabra form is his manager form — he has other forms. His dialogue should degrade in composure as danger increases.</div>
+    <div class="lore-block"><strong>No pants is a real debuff, not a joke.</strong> Carl's lack of pants must impose a specific, named armor penalty. Book 1 hinges on this detail — the system catalogues him exactly as found. His later gear upgrades reference this origin.</div>
+    <div class="lore-block"><strong>Explosions are Carl's primary language.</strong> Crafting explosive items from dungeon materials is not a side system — it is Carl's core combat identity. He is not a magic user. He is a man who figures out how to blow things up with whatever is available.</div>
+    <div class="lore-block"><strong>The floors have collapse timers.</strong> Each floor has a hard deadline before it is destroyed and any remaining crawlers with it. This is book-accurate and must create real time pressure in gameplay — not just a background element.</div>
+
+    <button class="ask-btn" onclick="sendPrompt('Give me a full lore accuracy checklist for a Dungeon Crawler Carl game, including all book-specific details')">Full lore checklist →</button>
+  </div>
+
+  <!-- CORE SYSTEMS -->
+  <div id="systems" class="section">
+    <h2>Core systems breakdown</h2>
+    <p class="subtitle">Every mechanical system the game needs, prioritized by book importance</p>
+
+    <div class="full-card">
+      <span class="badge badge-purple">Critical</span>
+      <h3>The System interface</h3>
+      <p>Pop-up notifications in dungeon-OS style. All text must be sarcastic, dark-comedic, and specific. Examples: <em>"Achievement unlocked: Still Alive. Reward: Nothing yet."</em> — <em>"Congratulations, Crawler #4,411! You have failed to die in the first thirty seconds. The viewers are disappointed."</em> System notifications gate class selection, announce floor timers, confirm kills, and editorialize combat outcomes.</p>
+      <div class="tag-row"><span class="tag">UI layer</span><span class="tag">personality-driven</span><span class="tag">sarcastic tone</span><span class="tag">Book 1 critical</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-purple">Critical</span>
+      <h3>Dual protagonist system</h3>
+      <p>Carl and Donut have completely separate stat sheets, separate class trees, and separate social reputations. Donut's Charisma is off the charts. Carl's is average. Donut opens dialogue doors Carl cannot. Carl opens combat solutions Donut cannot. The game must require both to be used — not just Carl with Donut as a pet.</p>
+      <div class="tag-row"><span class="tag">character system</span><span class="tag">co-op adjacent</span><span class="tag">social stats</span><span class="tag">Book 1–4 critical</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-teal">High priority</span>
+      <h3>Crafting — improvised explosives</h3>
+      <p>Carl's primary combat style. The crafting system must support: combining dungeon materials into explosive devices, discovering recipes through experimentation (not just menus), variable yield based on materials used, and the ability to improvise during combat. This is not a side system — it is Carl's character identity.</p>
+      <div class="tag-row"><span class="tag">crafting</span><span class="tag">combat identity</span><span class="tag">discovery-based</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-teal">High priority</span>
+      <h3>Viewer popularity & sponsorships</h3>
+      <p>A live popularity meter visible to the player. Specific actions spike it: creative kills, funny moments, unexpected survival. Donut's appearance and Carl's chaotic behavior are the primary drivers. Sponsors send item drops mid-dungeon. Different alien viewer factions have different tastes — pleasing one might displease another.</p>
+      <div class="tag-row"><span class="tag">meta layer</span><span class="tag">economy</span><span class="tag">alien viewers</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-amber">Important</span>
+      <h3>Floor timer & collapse mechanic</h3>
+      <p>Each floor has a visible countdown. When it hits zero, the floor collapses and kills remaining crawlers. This creates mandatory pacing — players cannot grind indefinitely on a single floor. The timer also affects what NPCs are willing to help with (a Syndicate member won't barter with 2 minutes left).</p>
+      <div class="tag-row"><span class="tag">pacing</span><span class="tag">tension</span><span class="tag">book-accurate</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-amber">Important</span>
+      <h3>Saferooms economy</h3>
+      <p>Saferooms are the only truly safe zones. They have shops, rest mechanics, and NPC interaction. The Syndicate partially controls saferoom commerce. Prices respond to floor danger level. Donut's social stats can haggle; Carl's bluntness gets a flat price. Some saferoom-only items are critical for survival on the next floor.</p>
+      <div class="tag-row"><span class="tag">economy</span><span class="tag">rest system</span><span class="tag">NPC interaction</span></div>
+    </div>
+
+    <button class="ask-btn" onclick="sendPrompt('Build a detailed spec for the Dungeon Crawler Carl System interface with book-accurate sarcastic notification text')">Spec the System UI →</button>
+  </div>
+
+  <!-- CHARACTERS -->
+  <div id="chars" class="section">
+    <h2>Book-accurate character specs</h2>
+    <p class="subtitle">What the game must capture about each major character</p>
+
+    <div class="full-card">
+      <span class="badge badge-gray">Carl Estanza</span>
+      <h3>Starting state (book 1, chapter 1)</h3>
+      <ul style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:14px;">
+        <li>Wearing: boxer shorts, leather jacket, socks — nothing else</li>
+        <li>No class, Level 1 crawler</li>
+        <li>Background: worked odd jobs, owned the apartment Donut lived in</li>
+        <li>Combat style: improvised, explosive, physical brawler</li>
+        <li>Social style: blunt to a fault, accidentally honest, unexpectedly effective</li>
+        <li>Key trait: he refuses to give up even when giving up is the smart play</li>
+        <li>Relationship with Donut: he pretends she's just the cat, she knows she runs things</li>
+      </ul>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-gray">Princess Donut</span>
+      <h3>Starting state (book 1, chapter 1)</h3>
+      <ul style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:14px;">
+        <li>Persian cat, show breed, Grand Champion pedigree — this is her whole identity</li>
+        <li>Level 0 civilian — she has zero combat experience</li>
+        <li>Charisma stat is already high at level 0 due to breed and title</li>
+        <li>Complains constantly — but specifically about smell, dirt, and indignity</li>
+        <li>Is immediately more popular with viewers than Carl</li>
+        <li>Her magic aptitude emerges naturally — she did not choose it consciously</li>
+        <li>She genuinely loves Carl but would never say so in those words</li>
+      </ul>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-gray">Mordecai</span>
+      <h3>The manager — book-accurate portrayal</h3>
+      <ul style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:14px;">
+        <li>Appears in Chupacabra form in the Tutorial Guild — this is his manager/work form</li>
+        <li>Is visibly stressed from the first line of dialogue</li>
+        <li>Deeply competent but dealing with genuinely impossible clients</li>
+        <li>Has real affection for both Carl and Donut that he expresses through exasperation</li>
+        <li>Knows far more about the dungeon's true nature than he can reveal</li>
+        <li>His dialogue should degrade from professional → frantic → barely holding it together</li>
+        <li>He is not comic relief — he is a tragic character playing a comedy role</li>
+      </ul>
+    </div>
+
+    <button class="ask-btn" onclick="sendPrompt('Write full stat sheets and dialogue trees for Carl, Donut, and Mordecai in a Dungeon Crawler Carl game')">Build character sheets →</button>
+  </div>
+
+  <!-- WORLD DESIGN -->
+  <div id="world" class="section">
+    <h2>World design — floor by floor</h2>
+    <p class="subtitle">Book-accurate floor environments and what makes each one distinct</p>
+
+    <div class="full-card">
+      <span class="badge badge-teal">Floor 1</span>
+      <h3>The savannas — book 1</h3>
+      <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;">Open grassland biome. Not underground — it is sky-lit via illusion (the dungeon creates fake environments). Basic enemies: kobolds, goblin scouts, crawling insects the size of dogs. The first gladiator arena entrance appears here. Carl discovers improvised explosives are devastatingly effective. Donut earns her first kill and immediately begins asking about her viewer count.</p>
+      <div class="tag-row"><span class="tag">grassland</span><span class="tag">daytime illusion</span><span class="tag">intro enemies</span><span class="tag">gladiator side-content</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-amber">Floor 2</span>
+      <h3>The city ruins — book 2</h3>
+      <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;">A destroyed city environment. More complex navigation — buildings to enter, sewer systems, rooftop routes. The Syndicate is more present here. Carl's reputation from Floor 1 precedes him. More complex enemy factions with internal politics. Donut begins her magic development in earnest. The viewer popularity system becomes more complex — factions of alien viewers start taking sides.</p>
+      <div class="tag-row"><span class="tag">urban ruins</span><span class="tag">faction politics</span><span class="tag">vertical navigation</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-coral">Floor 3</span>
+      <h3>The Desperado Club level — book 3</h3>
+      <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;">Carl becomes a named celebrity in the dungeon. The Desperado Club is a massive, book-accurate saferoom/entertainment complex that serves as a major story hub. Social mechanics peak here — Donut is a bona fide star. Major Syndicate plot threads resolve and complicate. New crawler allies (and betrayals) happen here. This floor has the most complex environment of the first three books.</p>
+      <div class="tag-row"><span class="tag">celebrity status</span><span class="tag">complex hub</span><span class="tag">Syndicate arc</span></div>
+    </div>
+
+    <div class="full-card">
+      <span class="badge badge-blue">Saferooms (all floors)</span>
+      <h3>Consistent saferoom rules</h3>
+      <p style="font-size:13px;color:var(--color-text-secondary);line-height:1.6;">Every saferoom must have: a shop (Syndicate-adjacent pricing), a rest mechanic, at least one NPC with a unique personality, no enemies, and a door that locks from the inside. Saferoom shops stock items relevant to the <em>next</em> floor — this is a subtle navigation hint the books use. The Syndicate's presence in saferooms escalates as floors deepen.</p>
+      <div class="tag-row"><span class="tag">universal</span><span class="tag">safe zones</span><span class="tag">economy hub</span></div>
+    </div>
+
+    <button class="ask-btn" onclick="sendPrompt('Design a complete world map spec for Dungeon Crawler Carl game floors 1 through 4, with book-accurate biomes and key locations')">Map all floors →</button>
+  </div>
+
+  <!-- TECH STACK -->
+  <div id="tech" class="section">
+    <h2>Recommended tech stack</h2>
+    <p class="subtitle">How to take the Python prototype into a real game</p>
+
+    <div class="phase-grid">
+      <div class="card"><span class="badge badge-purple">Option A — 2D indie</span><h3>Pygame / Godot</h3><ul><li>Pygame: extend the prototype directly, add sprites, tile maps, sound</li><li>Godot 4: free, Python-adjacent (GDScript), excellent for tile-based games</li><li>Best for solo dev or small team</li><li>Grid movement maps naturally from the prototype</li></ul></div>
+      <div class="card"><span class="badge badge-teal">Option B — CRPG style</span><h3>Unity (2D)</h3><ul><li>More polish ceiling for isometric or top-down view</li><li>C# is a step up from Python but well-documented</li><li>Asset store helps with dungeon tile sets</li><li>Better for teams with a visual design focus</li></ul></div>
+    </div>
+
+    <div class="full-card">
+      <h3>Data architecture — what needs to be modular</h3>
+      <ul style="font-size:13px;color:var(--color-text-secondary);line-height:1.8;padding-left:14px;">
+        <li><strong style="color:var(--color-text-primary);">All dialogue in JSON</strong> — Mordecai, Donut, System announcements. Never hard-code strings into game logic.</li>
+        <li><strong style="color:var(--color-text-primary);">Stats as data</strong> — every character stat, debuff, and modifier in a data file, not hardcoded. The "No Pants" debuff is a record in a debuffs table.</li>
+        <li><strong style="color:var(--color-text-primary);">Floor maps as tiled data</strong> — Tiled map editor exports to JSON; Godot and Pygame both import it natively.</li>
+        <li><strong style="color:var(--color-text-primary);">System notifications as templates</strong> — write a notification engine that fills in crawler name, kill count, item found into pre-written sarcastic templates.</li>
+        <li><strong style="color:var(--color-text-primary);">Crafting recipes as a graph</strong> — items and their combinations stored as nodes, making recipe discovery easy to extend without touching code.</li>
+      </ul>
+    </div>
+
+    <div class="system-block"><strong>First milestone target:</strong> A playable Tutorial Guild + Floor 1 entry corridor, with the System interface showing sarcastic notifications, Donut following Carl with her own stat display, and one working crafting combination that produces an explosion. That is a demo worth showing.</div>
+
+    <button class="ask-btn" onclick="sendPrompt('Give me a complete Godot 4 project structure for a Dungeon Crawler Carl game, starting from the Python prototype')">Godot project structure →</button>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>

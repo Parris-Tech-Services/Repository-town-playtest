@@ -1,0 +1,159 @@
+:root { --panel: #101a2cee; --line: #8197b7; --ink: #fff; --accent: #7fe0ff; }
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #90c8ef; color: var(--ink); font: 14px/1.4 system-ui, sans-serif; }
+canvas#scene { display: block; width: 100vw; height: 100dvh; touch-action: none; }
+button, input { font: inherit; color: var(--ink); background: #1d344d; border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; }
+button { cursor: pointer; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+button[aria-pressed="true"] { background: #2f6b8c; border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#loading { position: fixed; inset: 0; z-index: 50; display: grid; place-content: center; text-align: center; background: #13233a; }
+#loading.error { background: #5a1f25; }
+#hud { position: fixed; top: max(10px, env(safe-area-inset-top)); left: 10px; z-index: 10; background: var(--panel); padding: 10px; border-radius: 12px; max-width: min(360px, calc(100vw - 20px)); }
+#hud h1 { font-size: 17px; margin: 0; }
+.hud-heading { display:flex; align-items:center; justify-content:space-between; gap:9px; }
+.hud-title-short { display:none; }
+#btn-hud-toggle { font-size:23px; font-weight:700; padding:0; width:38px; height:38px; min-width:38px; display:grid; place-items:center; line-height:1; border-radius:9px; flex-shrink:0; }
+#hud-details { margin-top:6px; }
+#hud.hud-minimised { width:max-content; max-width:calc(100vw - 20px); padding:5px 6px 5px 10px; border:1px solid #66819d; }
+#hud.hud-minimised #hud-details { display:none; }
+#hud.hud-minimised h1 { font-size:14px; white-space:nowrap; }
+#hud.hud-minimised .hud-heading { gap:9px; }
+#hud.hud-minimised .hud-title-full { display:none; }
+#hud.hud-minimised .hud-title-short { display:inline; }
+#hud.hud-minimised #btn-hud-toggle { width:38px; height:38px; min-width:38px; font-size:21px; }
+#hud #btn-hud-toggle:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+
+#search-form { display: flex; gap: 6px; }
+#search { flex: 1; min-width: 0; }
+.row { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+#status { margin: 6px 0 0; font-size: 12px; opacity: .85; min-height: 1em; }
+#card { position: fixed; left: 10px; bottom: 10px; z-index: 9; background: var(--panel); padding: 12px; border-radius: 12px; max-width: min(380px, calc(100vw - 20px)); }
+#card h2 { margin: 0 0 4px; font-size: 16px; }
+#card .kind { color: var(--accent); margin: 0 0 6px; }
+#card a, #panel a { color: var(--accent); }
+#prompt { position: fixed; left: 50%; bottom: 22%; transform: translateX(-50%); z-index: 9; background: #000a; padding: 8px 14px; border-radius: 20px; pointer-events: none; white-space: nowrap; }
+#panel, #help { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 20; width: min(520px, calc(100vw - 20px)); max-height: 52dvh; overflow: auto; background: #0d1626f2; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+#panel h2, #help h2 { margin: 0 32px 8px 0; font-size: 17px; }
+#panel-close, #help-close { position: absolute; top: 8px; right: 8px; padding: 4px 9px; }
+#panel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+#panel .big { font-size: 20px; }
+#panel .dim { opacity: .7; font-size: 12px; }
+#minimap { position: fixed; top: max(10px, env(safe-area-inset-top)); right: 10px; z-index: 8; width: 260px; height: 110px; background: #15253bd0; border-radius: 10px; }
+#floor-indicator { position:fixed; top:max(68px, calc(env(safe-area-inset-top) + 55px)); left:10px; z-index:9; background:#10223eea; padding:7px 12px; border-radius:9px; border:1px solid #8197b7; font-weight:600; max-width:calc(100vw - 20px); }
+@media (max-width:700px) { #floor-indicator { top:max(65px, calc(env(safe-area-inset-top) + 55px)); font-size:12px; max-width:210px; } }
+#crosshair { position: fixed; left: 50%; top: 50%; width: 6px; height: 6px; margin: -3px; border-radius: 50%; background: #fffc; z-index: 5; pointer-events: none; }
+#touch { position: fixed; inset: 0; z-index: 7; pointer-events: none; }
+#stick { position: absolute; width: 110px; height: 110px; left: 30px; bottom: 40px; border-radius: 50%; background: #ffffff22; border: 2px solid #ffffff55; opacity: .55; }
+#stick.on { opacity: 1; }
+#knob { position: absolute; left: 30px; top: 30px; width: 50px; height: 50px; border-radius: 50%; background: #ffffffaa; }
+#actions { position: absolute; right: max(14px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: repeat(2, 58px); gap: 10px; pointer-events: auto; }
+#actions button { height: 58px; font-size: 24px; border-radius: 50%; background: #15243ccc; touch-action: none; }
+@media (max-width: 700px) {
+  #hud { padding: 8px; font-size: 12px; max-width: 230px; }
+  #hud h1 { font-size: 14px; }
+  #hud.hud-minimised { padding:4px 5px 4px 9px; }
+  #minimap { width: 140px; height: 60px; }
+  #card { bottom: auto; top: 150px; font-size: 12px; max-width: 260px; }
+  #panel, #help { bottom: 160px; max-height: 40dvh; }
+}
+#panel.wide { width: min(760px, calc(100vw - 20px)); max-height: 70dvh; }
+#panel h3, #panel h4, #panel h5, #panel h6 { margin: 12px 0 4px; font-size: 15px; }
+#panel h3 { font-size: 17px; }
+#panel pre { background: #0007; padding: 8px; border-radius: 8px; overflow-x: auto; font-size: 12px; white-space: pre; }
+#panel code { background: #0005; padding: 0 4px; border-radius: 4px; font-size: 12px; }
+#panel blockquote { border-left: 3px solid var(--line); margin: 6px 0; padding-left: 10px; opacity: .85; }
+#panel ul, #panel ol { padding-left: 20px; margin: 4px 0; }
+#panel ul.files { list-style: none; padding-left: 8px; font-family: ui-monospace, monospace; font-size: 12px; overflow-wrap: anywhere; }
+#panel details summary { cursor: pointer; padding: 3px 0; }
+#panel .row { font-size: 13px; margin: 2px 0; }
+#panel .crit { color: #ffd166; font-weight: bold; }
+#game { position: fixed; inset: 0; z-index: 50; background: #000; display: flex; flex-direction: column; }
+#game-bar { display: flex; align-items: center; gap: 10px; padding: max(6px, env(safe-area-inset-top)) 10px 6px; background: #101a2c; border-bottom: 1px solid var(--line); }
+#game-title { flex: 1; font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#game-frame { flex: 1; width: 100%; border: 0; background: #000; }
+body.playing #hud, body.playing #touch, body.playing #minimap, body.playing #crosshair, body.playing #prompt, body.playing #card { display: none !important; }
+#panel-actions button.play { font-size: 18px; padding: 10px 22px; background: #2b6e3c; border-color: #6fdc8c; }
+
+
+#loading a, #hud a { color: var(--accent); }
+#hud .btn-link { border: 1px solid var(--line); border-radius: 8px; padding: 7px 10px; text-decoration: none; }
+#prompt { white-space: normal; text-align: center; max-width: calc(100vw - 24px); width: max-content; }
+@media (max-width: 700px) {
+  #hud { max-width: calc(100vw - 20px); width: 230px; }
+  #hud button, #hud .btn-link { min-height: 40px; }
+  #minimap { top: auto; bottom: 165px; width: 110px; height: 47px; pointer-events: none; }
+  #card { top: auto; bottom: 165px; max-width: calc(100vw - 145px); max-height: 28dvh; overflow: auto; }
+  #panel, #help { bottom: max(10px, env(safe-area-inset-bottom)); max-height: 65dvh; }
+}
+#panel .chat { display: flex; flex-direction: column; min-height: 0; }
+#panel .chat-log { flex: 1 1 auto; min-height: 0; max-height: 38dvh; overflow-y: auto; overscroll-behavior: contain; padding: 4px 2px; }
+#panel .chat-log p { margin: 6px 0; line-height: 1.4; }
+#panel .chat-log .you { color: #ffe08a; }
+#panel .chat-form { flex: 0 0 auto; position: sticky; bottom: 0; z-index: 1; display: flex; gap: 8px; margin-top: 8px; padding-top: 6px; background: var(--panel); }
+#panel .chat-input, #panel .chat-key { flex: 1; min-width: 0; font: inherit; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); background: #050a14; color: var(--ink); }
+#panel .chat-key { width: 12em; padding: 4px 8px; }
+#panel .chat-brain { margin-top: 8px; }
+
+/* Immersive bedroom transition: full viewport, above every HUD/phone control. */
+#sleep-screen{position:fixed;inset:0;z-index:200;display:grid;place-items:center;
+  background:rgba(3,5,10,0);color:#f1f2f6;pointer-events:all;
+  opacity:1;transition:background .85s ease;}
+#sleep-screen.sleep-dark{background:rgba(3,5,10,1);}
+.sleep-content{text-align:center;opacity:0;transition:opacity .65s ease;padding:24px;max-width:90vw;}
+#sleep-screen.sleep-dark .sleep-content{opacity:1;}
+.sleep-icon{font-size:40px;line-height:1.6;filter:drop-shadow(0 0 20px #8da2cf88);}
+#sleep-message{font-size:clamp(19px,5vw,28px);margin:4px 0;font-weight:650;}
+#sleep-time{font-variant-numeric:tabular-nums;color:#b8c7dd;font-size:16px;letter-spacing:.04em;}
+@media(prefers-reduced-motion:reduce){#sleep-screen,.sleep-content{transition-duration:.12s;}}
+/* Town life */
+#clock { font-size: 12px; font-weight: normal; opacity: .85; margin-left: 6px; white-space: nowrap; }
+.bar { display: inline-block; width: 120px; height: 10px; background: #0003; border-radius: 5px; vertical-align: middle; overflow: hidden; }
+.bar span { display: block; height: 100%; background: linear-gradient(90deg, #6aa83a, #e0c060); }
+.ok { color: #7fe08f; }
+table.ledger { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.ledger th, table.ledger td { text-align: left; padding: 3px 6px; border-bottom: 1px solid #ffffff1a; vertical-align: top; }
+ul.news { margin: 4px 0; padding-left: 18px; font-size: 13px; }
+#panel h3 { margin: 10px 0 4px; font-size: 14px; }
+#panel .chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+#panel .chat-chip { font-size: 12px; padding: 4px 9px; border-radius: 14px; background: #162940; border: 1px solid #4e6b8c; }
+#panel .chat-chip:hover { border-color: var(--accent); background: #213e5e; }
+@media (max-width: 700px) {
+  #panel.chat-typing .chat-chips, #panel.chat-typing .chat-brain, #panel.chat-typing #panel-actions { display: none; }
+  #panel.chat-typing {
+    top: calc(var(--npc-top, 0px) + max(6px, env(safe-area-inset-top)));
+    bottom: auto;
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+    transform: none;
+    width: auto;
+    height: calc(var(--npc-vh, 100dvh) - max(6px, env(safe-area-inset-top)) - max(6px, env(safe-area-inset-bottom)));
+    max-height: calc(var(--npc-vh, 100dvh) - max(6px, env(safe-area-inset-top)) - max(6px, env(safe-area-inset-bottom)));
+    display: flex;
+    flex-direction: column;
+  }
+  #panel.chat-typing #panel-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  #panel.chat-typing .chat { flex: 1 1 auto; min-height: 0; }
+  #panel.chat-typing .chat-log { max-height: none; }
+}
+/* The house card sits over the joystick half of a phone screen; let thumbs through to the canvas. */
+@media (pointer: coarse) {
+  #card { pointer-events: none; }
+  #card a { pointer-events: auto; }
+}
+
+/* Persistent survival status; still readable with the compact mobile HUD. */
+#needs-strip{display:flex;align-items:center;gap:8px;font-size:12px;padding:4px 0 0;justify-content:space-between}
+#needs-strip button{font-size:12px;min-height:28px;padding:3px 8px;border-radius:7px}
+#hud.hud-minimised #needs-strip{display:none}
+@media(max-width:600px){#needs-strip{font-size:11px}#needs-strip button{font-size:11px;padding:3px 6px}}
+
+/* Visit-ready opening hours directory: legible on mobile and desktop. */
+.hours-list{display:grid;gap:6px;margin:8px 0 16px;}
+.hours-entry{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.04);}
+.hours-entry-info{display:flex;flex:1 1 160px;min-width:0;flex-direction:column;gap:3px;}
+.hours-entry-info strong{overflow-wrap:anywhere;}
+.hours-entry-info .dim{font-size:.88em;}
+.hours-status{font-size:.87em;flex:0 1 auto;}
+.hours-entry button{padding:5px 12px;min-width:44px;}
+@media(max-width:600px){.hours-entry{gap:6px;padding:7px}.hours-entry-info{flex-basis:150px}.hours-status{flex-basis:auto}}
