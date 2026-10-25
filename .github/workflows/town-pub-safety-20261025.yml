@@ -1,0 +1,93 @@
+name: Publish isolated pub safety and privacy QA build
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/town-pub-safety-20261025.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: town-pub-safety-qa-20261025
+  cancel-in-progress: false
+jobs:
+  pub-safety-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact reconciled pub source (no credentials)
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: ece78d3a3f5e67360f5f2315539e1f5581bc186a
+          path: source
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Full release, code audit and electrical/pub safeguards
+        working-directory: source/repository-town
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          node --test tests/pub-2026-audit.mjs tests/pub-history.mjs
+          node tests/pub-utilities.mjs
+          node tests/electrical-pilot.mjs
+          npm run build:release
+          node tools/verify-release.mjs dist/public
+          node -e "const r=require('./dist/public/release.json'); if(r.sourceCommit!=='ece78d3a3f5e67360f5f2315539e1f5581bc186a') throw Error('Wrong game source SHA');"
+          test -f dist/public/world/pub-history.js
+          test -f dist/public/world/pub-utilities.js
+          test -f dist/public/world/electrical-pilot.js
+      - name: Test pub gameplay on desktop and Android viewport
+        working-directory: source/repository-town
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx playwright install --with-deps chromium
+          node tools/serve.mjs dist/public 8091 > /tmp/pub-safety-qa.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          node tests/pub-utilities-browser.mjs
+      - name: Upload QA browser evidence even if failed
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pub-safety-qa-desktop-android
+          path: source/repository-town/audit/pub-utilities/
+      - name: Checkout existing Pages QA handover without changing homepage
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+      - name: Publish pinned build in isolated directory
+        shell: bash
+        run: |
+          set -euo pipefail
+          before=$(sha256sum site/index.html | cut -d' ' -f1)
+          target=site/qa/pub-safety-20261025
+          mkdir -p "$target"
+          rsync -a --delete source/repository-town/dist/public/ "$target/"
+          actual=$(git -C source rev-parse HEAD)
+          test "$actual" = 'ece78d3a3f5e67360f5f2315539e1f5581bc186a'
+          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nStatus: isolated QA, NOT production or certified NCC compliance\n' "$actual" > "$target/QA_BUILD.txt"
+          test -f "$target/release.json"
+          test "$(sha256sum site/index.html | cut -d' ' -f1)" = "$before"
+          cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa/pub-safety-20261025
+          if ! git diff --cached --quiet; then
+            git commit -m "qa(town): publish verified WC/kitchen/electric pub preview $actual [skip ci]"
+            git fetch origin main
+            git rebase origin/main
+            git push origin HEAD:main
+          fi
+      - name: Report QA URL
+        run: echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/pub-safety-20261025/'
