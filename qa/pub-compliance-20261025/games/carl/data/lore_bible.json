@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "status_labels": ["confirmed", "inferred", "gameplay_adaptation", "placeholder", "requires_verification"],
+  "legal_risk_labels": ["low", "medium", "high", "licensed_only"],
+  "entries": [
+    {
+      "id": "character_carl",
+      "category": "character",
+      "name": "Carl",
+      "source": "Book 1 opening chapters",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Main player character with classless start, under-equipped gear, and improvised combat emphasis.",
+      "legal_risk": "licensed_only",
+      "implementation_refs": ["data/characters.json:carl"]
+    },
+    {
+      "id": "character_donut",
+      "category": "character",
+      "name": "Princess Donut",
+      "source": "Book 1 opening chapters",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Co-protagonist companion with separate stats, Level 0 civilian start, high charisma and fame potential.",
+      "legal_risk": "licensed_only",
+      "implementation_refs": ["data/characters.json:donut"]
+    },
+    {
+      "id": "character_mordecai",
+      "category": "character",
+      "name": "Mordecai",
+      "source": "Book 1 Tutorial Guild sequence",
+      "canon_status": "requires_verification",
+      "gameplay_translation": "Guide NPC who explains rules, gives early objectives, and escalates in stress.",
+      "legal_risk": "licensed_only",
+      "implementation_refs": ["data/characters.json:mordecai", "data/dialogue.json:mordecai"]
+    },
+    {
+      "id": "rule_system_announcements",
+      "category": "rule",
+      "name": "System announcements",
+      "source": "Book 1 onward",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Event-driven UI voice for achievements, rewards, class selection, floor timers, deaths, and mockery.",
+      "legal_risk": "medium",
+      "implementation_refs": ["data/announcements.json", "src/announcements.py"]
+    },
+    {
+      "id": "rule_floor_timers",
+      "category": "rule",
+      "name": "Floor collapse timers",
+      "source": "Book 1 onward",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Visible countdown that affects pacing, NPC behavior, availability, and end-of-floor failure.",
+      "legal_risk": "medium",
+      "implementation_refs": []
+    },
+    {
+      "id": "item_leather_jacket",
+      "category": "item",
+      "name": "Carl's Leather Jacket",
+      "source": "Book 1 opening chapters",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Named torso gear with armor value, durability, and plot relevance.",
+      "legal_risk": "licensed_only",
+      "implementation_refs": ["data/items.json:leather_jacket"]
+    },
+    {
+      "id": "item_no_pants",
+      "category": "equipment_state",
+      "name": "No-pants debuff",
+      "source": "Book 1 opening chapters",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Named defensive penalty and System-commentary trigger.",
+      "legal_risk": "medium",
+      "implementation_refs": ["data/characters.json:carl.debuffs"]
+    },
+    {
+      "id": "item_crude_blast_charge",
+      "category": "item",
+      "name": "Crude Blast Charge",
+      "source": "Prototype gameplay adaptation",
+      "canon_status": "gameplay_adaptation",
+      "gameplay_translation": "First safe tutorial expression of Carl's explosive crafting identity.",
+      "legal_risk": "low",
+      "implementation_refs": ["data/items.json:crude_blast_charge"]
+    },
+    {
+      "id": "location_tutorial_guild",
+      "category": "location",
+      "name": "Tutorial Guild",
+      "source": "Book 1 Tutorial Guild sequence",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Opening controlled environment for rules, inventory, System UI, and Mordecai guidance.",
+      "legal_risk": "licensed_only",
+      "implementation_refs": ["data/tutorial_guild_map.txt"]
+    },
+    {
+      "id": "system_viewers_sponsors",
+      "category": "system",
+      "name": "Viewer and sponsor pressure",
+      "source": "Book 1 onward",
+      "canon_status": "confirmed",
+      "gameplay_translation": "Popularity, sponsor drops, audience faction preferences, and spectacle incentives.",
+      "legal_risk": "medium",
+      "implementation_refs": []
+    }
+  ]
+}
