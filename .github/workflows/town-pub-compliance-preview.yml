@@ -12,7 +12,7 @@ permissions:
 
 concurrency:
   group: town-pub-compliance-qa
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-verified-preview:
@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: f4e35b93558a88f296655c68a82ed846d79aeb93
+          ref: fe22f16a621ba2e7ff2553429227ec885997ae6a
           path: source
           persist-credentials: false
 

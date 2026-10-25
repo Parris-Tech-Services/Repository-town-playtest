@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: f4e35b93558a88f296655c68a82ed846d79aeb93
+          ref: fe22f16a621ba2e7ff2553429227ec885997ae6a
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
@@ -31,7 +31,7 @@ jobs:
           for attempt in range(60):
               try:
                   d=json.load(urllib.request.urlopen(url+'?check='+str(attempt),timeout=15))
-                  if d.get('sourceCommit')=='f4e35b93558a88f296655c68a82ed846d79aeb93':
+                  if d.get('sourceCommit')=='fe22f16a621ba2e7ff2553429227ec885997ae6a':
                       print('Exact hosted source',d['sourceCommit'],'fingerprint',d['contentHash']);break
               except Exception:
                   pass
