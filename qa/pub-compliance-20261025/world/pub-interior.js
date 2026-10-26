@@ -1,7 +1,8 @@
+import {addPubVerticalCore,PUB_SHAFT_CUTS} from './pub-vertical-core.js';
 import {installPubPresentation} from './pub-presentation.js';
 import {pubServiceLayers} from './pub-service-visuals.js';
 import {addPubPlant} from './pub-plant.js';
-import {pubStandards} from './pub-standards.js';
+import {pubConnected,pubStandards} from './pub-standards.js';
 import {PUB_PHYSICAL_PLAN_2026,pubExitLayout} from './pub-physical-plan-2026.js';
 import {PUB_ENVELOPE,pubFacadeCoordinate} from './pub-envelope.js';
 import {pubHistoryDescription} from './pub-history.js';
@@ -38,14 +39,14 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   const warm = new THREE.PointLight(0xffc880, 1.2, 16, 1.5); warm.position.set(0, 3.4, -1); group.add(warm);
 
   const WOOD = 0x6d4a30, DARKW = 0x3f2b1c, BRASS = 0xc9a24a, GREEN = 0x2f5a3f, LEATHER = 0x7a3b2c, STEEL = 0xc4c8cc;
-  k.shell({ wall: 0x8a6a4e, ceiling: 0x4d382a, floor: 0x5a4030, rearExit:{x0:-1.05,x1:1.05} });
-  for (let i = 0; i < 14; i++) box(0.96, 0.014, 17.4, -6.5 + i, 0.004, -3, i % 2 ? 0x573d2c : 0x634633);   // plank floor
+  k.shell({ wall: 0x8a6a4e, ceiling: 0x4d382a, floor: 0x5a4030, rearExit:{x0:-1.05,x1:1.05},floorCuts:PUB_SHAFT_CUTS,ceilingCuts:PUB_SHAFT_CUTS });
+  // Floor slab supplies the timber finish around the real stair/lift cutouts.   // plank floor
   box(2.2, 0.03, 1.2, 0, 0.02, 5.0, 0x3a2a20);                                                              // door mat
   // dado panelling, ceiling beams, wall lights
   for(const x of [-4.05,4.05])box(5.8,1.2,.06,x,.6,BACK+.15,DARKW);
   for (const sx of [-EDGE + 0.15, EDGE - 0.15]) box(0.06, 1.2, 17.4, sx, 0.6, -3, DARKW);
-  for (let z = -10; z <= 4; z += 3.5) box(W - 0.4, 0.22, 0.25, 0, 3.7, z, DARKW);
-  for (const [x, z] of [[-4, 1], [4, 1], [-4, -3], [4, -7]]) { cyl(0.01, 0.01, 0.7, x, 3.5, z, 0x222222, {}, 4); cyl(0.06, 0.28, 0.24, x, 3.0, z, 0x2f5a3f, { e: 0xffc060 }, 12); }
+  for(let z=-10;z<=4;z+=3.5){if(z>0)box(5.4,.22,.25,3.8,3.7,z,DARKW);else box(W-.4,.22,.25,0,3.7,z,DARKW);}
+  for (const [x, z] of [[4,1],[-4,-3],[4,-7]]) { cyl(0.01, 0.01, 0.7, x, 3.5, z, 0x222222, {}, 4); cyl(0.06, 0.28, 0.24, x, 3.0, z, 0x2f5a3f, { e: 0xffc060 }, 12); }
 
   // ── bar ──
   for(const [w,x]of [[6.3,-1.05],[1.1,3.65]]){solid(w,1.1,.9,x,.55,CZ,WOOD);box(w,.07,1.1,x,1.13,CZ,DARKW);box(w,.08,.1,x,.35,CZ+.5,BRASS);}
@@ -98,7 +99,7 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
       for(const lx of [-.17,.17])for(const lz of [-.17,.17])box(.045,.44,.045,cx+lx,.22,cz+lz,DARKW);
     }
   };
-  const tables=[[3.6,3],[5.7,4.4],...[-5.2,-2.4].flatMap(x=>[-1.2,1.8,4.7].map(z=>[x,z]))];
+  const tables=[[3.6,3],[5.7,4.4],[-2.4,-1.2]];
   for(const [x,z]of tables)table(x,z);
   // fireplace on the left wall
   solid(0.7, 1.6, 2.0, -6.55, 0.8, -4.0, 0x7a5a48); box(0.1, 0.8, 1.2, -6.18, 0.5, -4.0, 0x1a1410); box(0.08, 0.3, 0.9, -6.14, 0.3, -4.0, 0xff7a2a, { e: 0xff5a10 });
@@ -107,9 +108,9 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   solid(1.12,.85,2.03,3.8,.43,-.7,WOOD); box(.915,.05,1.83,3.8,.87,-.7,GREEN);
   // keno / TAB screens, menu board, framed pictures
   box(.08,.8,1.4,6.8,2.4,-3.6,0x1b1d22);box(.04,.7,1.3,6.74,2.4,-3.6,0x2e6a94,{e:0x1e4a74}).name='pub:television';
-  box(.06, 1.2, 2.2, -6.82, 2.5, 3.0, 0x1f2a24); text('Parmi · Roast · Pie of the day', -6.8, 2.5, 3.1);
+  box(.06, 1.2, 2.2, -6.82, 2.5, -1.8, 0x1f2a24); text('Parmi · Roast · Pie of the day', -6.8, 2.5, -1.7);
   for (const [x, y, f] of [[-5, 2.4, 'pictureframe_medium'], [-3.2, 2.5, 'pictureframe_large_A'], [2.5, 2.5, 'pictureframe_small_B']]) { if (model(f, x, BACK + 0.28, 0, { h: 0.7 }, y - 0.35)) continue; box(0.8, 0.6, 0.05, x, y, BACK + 0.2, DARKW); box(0.66, 0.46, 0.03, x, y, BACK + 0.23, 0xb8a98a); }
-  model('lamp_standing', -6.2, -0.1, 0, { w: 0.45, d: 0.45, h: 1.6 }); model('cactus_medium_A', 6.3, 5.2, 0, { w: 0.5, d: 0.5, h: 0.6 });
+   model('cactus_medium_A', 6.3, 5.2, 0, { w: 0.5, d: 0.5, h: 0.6 });
 
   // finishing detail: beer mats, bunting, bar towels, glass rack, ceiling fans, brass rail, pool cues, stools' footrests
   for (const [x, z] of [[3.6, 3.0], [-3.6, 3.0]]) for (let i = 0; i < 4; i++) { cyl(0.05, 0.05, 0.01, x - 0.3 + (i % 2) * 0.6, 0.81, z - 0.3 + Math.floor(i / 2) * 0.6, 0xd9c8a0, {}, 10); }
@@ -117,7 +118,7 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   for(const [w,x]of [[6.3,-1.05],[1.1,3.65]])box(w,.05,.05,x,.9,CZ+.55,BRASS);
   for(let i=0;i<9;i++)cyl(.04,.03,.14,-3.6+i*.2,2.6,BACK+.36,0xe8e0c8,{a:.6},8);
   box(1.8,.04,.3,-2.7,2.7,BACK+.36,WOOD);
-  for(const [x,z]of [[-3.8,-.5],[3.8,-.5],[0,2.5],[0,-2.5]]){cyl(.02,.02,.5,x,3.55,z,0x222222);const rotor=new THREE.Group();rotor.name='pub:ceiling-fan:'+fans.length;rotor.position.set(x,3.3,z);for(let blade=0;blade<4;blade++){const mesh=new THREE.Mesh(new THREE.BoxGeometry(.7,.025,.12),new THREE.MeshLambertMaterial({color:0xb08a60}));mesh.position.set(Math.cos(blade*Math.PI/2)*.35,0,Math.sin(blade*Math.PI/2)*.35);mesh.rotation.y=-blade*Math.PI/2;rotor.add(mesh)}group.add(rotor);fans.push(rotor)}
+  for(const [x,z]of [[-3.8,-2.0],[3.8,-.5],[0,2.5],[0,-2.5]]){cyl(.02,.02,.5,x,3.55,z,0x222222);const rotor=new THREE.Group();rotor.name='pub:ceiling-fan:'+fans.length;rotor.position.set(x,3.3,z);for(let blade=0;blade<4;blade++){const mesh=new THREE.Mesh(new THREE.BoxGeometry(.7,.025,.12),new THREE.MeshLambertMaterial({color:0xb08a60}));mesh.position.set(Math.cos(blade*Math.PI/2)*.35,0,Math.sin(blade*Math.PI/2)*.35);mesh.rotation.y=-blade*Math.PI/2;rotor.add(mesh)}group.add(rotor);fans.push(rotor)}
   for (let i = 0; i < 4; i++) cyl(0.012, 0.012, 1.4, 4.6 + i * 0.2, 1.0, -5.0, 0x8a6a40, { rz: 0.12 }, 4);
 
 
@@ -202,6 +203,7 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
     const state=pubUtilities(life),status=pubStatus(life),ops=pubStandards(life);
     fanSpeed+=((status.power?3:0)-fanSpeed)*Math.min(1,dt*2);if(status.power)fanSpeed=Math.min(3,fanSpeed);for(const fan of fans)fan.rotation.y+=fanSpeed*dt;
     const tv=group.getObjectByName('pub:television');if(tv)tv.visible=status.television;
+    const entry=group.getObjectByName('pub:cellar-entry-beacon'),cellar=life.civic.pubVenue.expansion;if(entry&&cellar){const alarm=cellar.gasAlarm||!cellar.monitorOk||!cellar.ventilation||!status.power||!pubConnected(life,'electricity','switchboard','cellar-vent');entry.material.color.setHex(alarm?0xe63b32:0x59af90);entry.material.emissive.setHex(alarm?0xe63b32:0x59af90);entry.material.emissiveIntensity=status.power||state.emergencyMinutes>0?.5:0;}
     const wc=doors.find(d=>d.name==='pub:wc-door');if(wc)wc.userData.privacy=ops.wcPrivacy;
     for(const [id,layer] of Object.entries(layers))layer.visible=state.overlay===id;
     // All ordinary electric fixtures follow this building's breaker as well as town supply.
@@ -213,13 +215,14 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   add('heritage','Hotel history · original construction unknown','info',pubHistoryDescription(),6.25,2.6);
   add('counter', 'Bar', 'civic-ledger', 'Pull up a stool. Order a meal or a drink at the bar, or open the Town Ledger.', PUB_LAYOUT.staffUse.x, PUB_LAYOUT.staffUse.z);
   add('taps', 'Beer taps', 'info', 'Four taps and a fridge of bottles. Licensed hours run from eleven in the morning to late; the publican serves responsibly.', -2.4, -3.2);
-  add('menu', 'Menu board', 'info', 'Chicken parmi, the roast of the day and a pie with chips. The kitchen uses beef, chicken and vegies delivered from the farms and the butcher.', -6.3, 3.0);
+  add('menu', 'Menu board', 'info', 'Chicken parmi, the roast of the day and a pie with chips. The kitchen uses beef, chicken and vegies delivered from the farms and the butcher.', -6.3, -1.8);
   add('lounge','Bistro and electric hearth','info','Eight four-place tables, seven bar stools and a clear central access aisle. Decorative electric hearth; no solid-fuel fire.',0,-2.5);
   add('pool','Play pool','pub-pool','Two-player physics pool: aim, shot power, cushions, pockets and house-rule fouls.',2.5,-.8);
   add('keno','Keno terminal','pub-keno','Free numbers demonstration; no stakes, prizes or real operator.',5.6,-3.6);
   addPubPlant(k,site);
+  addPubVerticalCore(k,0);
   const servicePresentation=installPubPresentation(k);
-  const interior = k.finish({ doors, sight, utilityVisuals, staff: { pos: PUB_LAYOUT.staff, use: PUB_LAYOUT.staffUse } });
+  const interior = k.finish({lightingOptions:{positions:[[-2,-3],[3.5,1.5],[-3.5,-6.5],[3.5,-6.5]]}, doors, sight, utilityVisuals, staff: { pos: PUB_LAYOUT.staff, use: PUB_LAYOUT.staffUse } });
   interior.attachPubStaff=servicePresentation.attach;interior.afterPeople=servicePresentation.update;
   interior.physicalPlan=PUB_PHYSICAL_PLAN_2026;
   interior.fireEgressDesign=pubExitLayout();
@@ -233,7 +236,7 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
     throw new Error('Pub interior dimensions disagree with the external building');
   interior.buildingEnvelope=envelope;
   interior.storey=0;
-  interior.storeyCount=envelope.modelledStoreys;
+  interior.storeyCount=envelope.accessibleLevels;
 
   interior.rooms.push({name:'Kitchen',x0:-6.9,x1:-3.96,z0:-11.9,z1:-6.96,w:2.94,d:4.94,parent:0});
   interior.rooms.push({name:'Sanitary compartment',x0:3.86,x1:6.9,z0:-11.9,z1:-8.16,w:3.04,d:3.74,parent:0});

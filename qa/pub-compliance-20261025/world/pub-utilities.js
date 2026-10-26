@@ -1,3 +1,4 @@
+import {pubExpansion,tickPubExpansion} from './pub-expansion-state.js';
 import {pubVenue,pubVenueTick,pubServiceEvent} from './pub-venue.js';
 import {pubConnected,pubFoodGate,pubStandards,pubStandardsAction,tickPubStandards} from './pub-standards.js';
 import {pubScenarioAdmission,PUB_PHYSICAL_PLAN_2026} from './pub-physical-plan-2026.js';
@@ -12,7 +13,7 @@ export function pubUtilities(life) {
   state.foodQuarantined ??= false;
   state.extractionOn ??= true;
   state.scenarioPatrons ??= 0;
-  return state;
+  pubExpansion(life);return state;
 }
 export function validPubUtilities(s){
  if(!s||typeof s!=='object'||Array.isArray(s)||s.version!==1)return false;
@@ -23,7 +24,7 @@ export function validPubUtilities(s){
  if(s.secondCisternL>6)return false;
  if(s.emergencyMinutes>90)return false;
  if(s.scenarioPatrons!==undefined&&(!Number.isInteger(s.scenarioPatrons)||s.scenarioPatrons<0||s.scenarioPatrons>PUB_PHYSICAL_PLAN_2026.occupancy.gameplayPatronScenario))return false;
- return s.cisternL<=6&&s.upsKWh<=.12&&s.hotC<=100&&s.coldC<=100&&['off','electricity','water','sewer','gas','internet','waste','stormwater','telephone','mobile','radio','television','fuel'].includes(s.overlay)&&Array.isArray(s.log)&&s.log.length<=20&&s.log.every(x=>typeof x==='string'&&x.length<1000);
+ return s.cisternL<=6&&s.upsKWh<=.12&&s.hotC<=100&&s.coldC<=100&&['off','electricity','water','sewer','gas','internet','waste','stormwater','telephone','mobile','radio','television','fuel','beer'].includes(s.overlay)&&Array.isArray(s.log)&&s.log.length<=20&&s.log.every(x=>typeof x==='string'&&x.length<1000);
 }
 export function pubStatus(life) {
   const s=pubUtilities(life),v=pubVenue(life), pilot=pilotReport(life)?.siteById['B:pub'];
@@ -44,6 +45,7 @@ export function tickPubUtilities(life,minutes) {
   const s=pubUtilities(life), d=PUB_DESIGN;tickPubStandards(life,minutes);pubVenueTick(life,minutes,pubStatus(life).power,pubConnected(life,'water','town-water','dishwasher')&&pubConnected(life,'trade','dishwasher','town-sewer')&&pubConnected(life,'electricity','switchboard','dishwasher'));
   // Bounded substeps keep heating/UPS transitions stable during time acceleration.
   for(let m=0;m<minutes;m+=.5){const dt=Math.min(.5,minutes-m),h=dt/60,p=pubStatus(life);
+    tickPubExpansion(life,dt,{power:p.power,vent:pubConnected(life,'electricity','switchboard','cellar-vent'),cold:pubConnected(life,'electricity','switchboard','keg-cooler'),upper:pubConnected(life,'electricity','switchboard','upper-lights'),sump:p.sewer&&pubConnected(life,'sanitary','cellar-basin','town-sewer')&&pubConnected(life,'electricity','switchboard','cellar-sump')});
     if(p.water&&pubConnected(life,'water','town-water','wc')){const refill=Math.min(d.cisternL-s.cisternL,d.refillLmin*dt);s.cisternL+=refill;s.waterL+=refill;}
     if(p.water&&pubConnected(life,'water','town-water','wc2')){const refill=Math.min(6-s.secondCisternL,3*dt);s.secondCisternL+=refill;s.waterL+=refill;}
     // Accumulated warm storage remains unsafe after recooling; explicit disposal required.

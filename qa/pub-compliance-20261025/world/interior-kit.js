@@ -44,6 +44,8 @@ export function highStreetShell({ box, solid, wall, frontSill = 0.9, sideSill = 
   return { glass: glassMesh(panes), windows };
 }
 
+// Partition slabs around genuine shaft openings; other interiors keep their full slab.
+export function slabPanels(rect,cuts=[]){let panels=[rect];for(const c of cuts){const next=[];for(const r of panels){const a=Math.max(r.x0,c.x0),b=Math.min(r.x1,c.x1),d=Math.max(r.z0,c.z0),e=Math.min(r.z1,c.z1);if(a>=b||d>=e){next.push(r);continue}for(const q of [{x0:r.x0,x1:a,z0:r.z0,z1:r.z1},{x0:b,x1:r.x1,z0:r.z0,z1:r.z1},{x0:a,x1:b,z0:r.z0,z1:d},{x0:a,x1:b,z0:e,z1:r.z1}])if(q.x1-q.x0>.001&&q.z1-q.z0>.001)next.push(q)}panels=next}return panels;}
 export function createKit(site, makeLabel, roomTitle) {
   const { W, D, FRONT, BACK, EDGE, WALL } = ROOM;
   const group = new THREE.Group();
@@ -106,15 +108,15 @@ export function createKit(site, makeLabel, roomTitle) {
   };
   // Floor, ceiling and the windowed shell, with a proper door gap (never a collider across it).
   let windows = [];
-  const shell = ({ wall, ceiling = 0xf0e8d6, floor = 0xb9a88f, frontSill, sideSill, rearExit }) => {
-    box(W, 0.24, D, 0, -0.12, -3, floor);
-    box(W, 0.27, D, 0, 4.7, -3, ceiling);
+  const shell = ({ wall, ceiling = 0xf0e8d6, floor = 0xb9a88f, frontSill, sideSill, rearExit, floorCuts=[],ceilingCuts=[] }) => {
+    for(const r of slabPanels({x0:-EDGE,x1:EDGE,z0:BACK,z1:FRONT},floorCuts))box(r.x1-r.x0,.24,r.z1-r.z0,(r.x0+r.x1)/2,-.12,(r.z0+r.z1)/2,floor).name='floor-slab';
+    for(const r of slabPanels({x0:-EDGE,x1:EDGE,z0:BACK,z1:FRONT},ceilingCuts))box(r.x1-r.x0,.27,r.z1-r.z0,(r.x0+r.x1)/2,4.7,(r.z0+r.z1)/2,ceiling).name='ceiling-slab';
     const s = highStreetShell({ box, solid, wall, frontSill, sideSill, rearExit });
     group.add(s.glass); windows = s.windows;
   };
   let lighting = null;
   const finish = (extra = {}) => {
-    lighting ||= addInteriorLighting(group, site.id);
+    lighting ||= addInteriorLighting(group, site.id,extra.lightingOptions);
     return ({
     group, colliders, interactables, sceneObjects, placedProps, seats,
     rooms: [{ name: roomTitle, x0: -EDGE, x1: EDGE, z0: BACK, z1: FRONT, w: W, d: D, parent: -1 }],

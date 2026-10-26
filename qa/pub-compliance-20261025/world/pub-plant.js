@@ -21,7 +21,7 @@ export function addPubPlant(k,site){
  for(const [x,z] of [[0,1],[-5.5,-8]]){const m=cyl(.15,.15,.04,x,3.64,z,0xe8e5dc);m.name='pub:detector:'+x;}
  box(.18,.22,.06,-1.5,1.1,5.75,0xc53529).name='pub:manual-alarm';
 
- for(const z of [-10.2,-11.1]){const keg=cyl(.24,.24,.55,-1.6,.3,z,steel);keg.name='pub:beer-keg';}
+ // Bulk kegs moved to the cellar; ground cold room is reserved for food.
  // Readable operating/safety displays, no invented real permit numbers.
  text('No smoking · free drinking water · RSA',2.1,2.7,-5.7);
  add('operations','Safety, food handling and approvals','pub-standards','Inspect operating systems and simulated inspection history.',2.4,-3.5);
@@ -32,6 +32,7 @@ export function addPubPlant(k,site){
  return {equipmentScenario:true,certified:false};
 }
 export function addPubExteriorServices(b){
+ b.cyl(0x727d83,.18,1.2,-9,.65,-4);b.box(0xd5bd56,.3,.2,.05,-9,1.0,-3.8); // outdoor beverage CO2, separate from LPG
  // Nominal plot has 6 m each side; keep central rear discharge and frontage clear.
  b.box(0x666e72,1.6,.25,1.5,-9,.13,-7.2); // bunded service pad
  for(const x of [-9.4,-8.6])b.cyl(0xcbd0d2,.25,1.3,x,.8,-7.2);
@@ -41,8 +42,8 @@ export function addPubExteriorServices(b){
  b.box(0x4c5c4a,1.2,1.2,.8,10,.6,-8.5); // pest-resistant lidded bin store
  b.box(0x39704f,1.2,1.2,.8,10,.6,-10);
  for(const x of [-7.18,7.18]){b.box(0x697780,.12,.12,18,x,4.62,-2);b.box(0x697780,.13,4.6,.13,x,2.3,-10.6);}
- b.box(0xb9c6bd,1.5,.025,4,0,.014,-13); // safe rear landing
- b.box(0xb9c6bd,1.5,.025,28,8,.014,-.8); // side accessible route, no step
+ b.box(0xb9c6bd,1.5,.025,7,0,.014,-15);b.box(0xb9c6bd,9.5,.025,1.5,4,.014,-18.2); // safe rear landing
+ b.box(0xb9c6bd,1.5,.025,32.5,8,.014,-2.5); // side accessible route, no step
  b.box(0xb9c6bd,9,.025,1.5,4,.014,-14); // rear route to side path
  b.box(0xb9c6bd,8,.025,1.5,4,.014,12.2); // connects to frontage walkway
  b.cyl(0xcbd0d2,.38,1.8,-8.5,.9,-4.5); // insulated external hot-water cylinder

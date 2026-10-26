@@ -1,3 +1,4 @@
+import {pubStandards,pubStandardsAction} from '../world/pub-standards.js';
 import {pubStandardsPanel} from './pub-standards-panel.js';
 // Panels for town life: shop counters, farms, the Town Ledger and the town guide, plus
 // the gossip and Expedition relic hints villagers share in conversation (src/ui/npc.js).
@@ -228,6 +229,7 @@ function placePanelBase(life, id) {
   const service = shopService(life,p), serving = service.available;
   const visitors = life.villagers.filter((v) => v.step?.at === id && v.step.kind !== 'work' && !v.path.length);
   const rows = [];
+  if (id === 'pub') rows.push(`<p role="status"><b>Adult ID: ${pubStandards(life).verifiedAdult ? 'confirmed — your character is 18+.' : 'not confirmed.'}</b> ${pubStandards(life).verifiedAdult ? 'You can now order alcohol, subject to service checks.' : 'Tap “Confirm character is 18+” above before ordering alcohol. This is a game setting; no real ID upload is needed.'}</p>`);
   rows.push(`<p>${esc(ABOUT[id] || '')}</p>`);
   rows.push(`<p><b>Visiting hours:</b> ${esc(hours(p))} · ${open ? '<span class="ok">open for entry</span>' : `<span class="dim">${esc(access.reason === 'unstaffed' ? 'awaiting staff' : 'closed to visitors')}</span>`} · it's ${esc(life.time())}</p>`);
   rows.push(`<p><b>Counter:</b> ${esc(service.message)}</p>`);
@@ -263,7 +265,10 @@ function placePanelBase(life, id) {
   } });
   const actions = sells.filter(g => serving && (shelves[g] || 0) > 0)
     .map(g => act('Buy ' + GOODS[g].name + ' ($' + GOODS[g].price + ')', () => life.buyItem(id, g)));
-  if(id==='pub')actions.push({label:'Pub safety and emergency controls',run:()=>pubStandardsPanel(life)});
+  if (id === 'pub') {
+    if (!pubStandards(life).verifiedAdult) actions.unshift({label:'Confirm character is 18+',primary:true,run:()=>{pubStandardsAction(life,'confirm-adult');return again();}});
+    actions.push({label:'Pub service controls',primary:true,run:()=>pubStandardsPanel(life,undefined,again)});
+  }
   if (Object.keys(prepared).length) {
     rows.push('<h3>Menu' + (serving ? ' · available to order' : ' · service closed') + '</h3><p>' +
       Object.keys(prepared).map(g => esc(GOODS[g].name) + ' · $' + GOODS[g].price +

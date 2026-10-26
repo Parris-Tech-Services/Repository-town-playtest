@@ -43,26 +43,26 @@ export function interiorPalette(id) {
 
 // A local electric circuit independent of the outdoor clock. The hemisphere
 // approximates bounced room light; visible ceiling fittings provide direct light.
-export function addInteriorLighting(group, id) {
-  const palette = interiorPalette(id), rig = new THREE.Group();
+export function addInteriorLighting(group, id,options={}) {
+  const palette=interiorPalette(id),pendant=options.pendant??palette.pendant,rig=new THREE.Group();
   rig.name = 'Interior electric lighting';
   let hasFill = false;
   group.traverse(o => { if (o.isHemisphereLight || o.isAmbientLight) hasFill = true; });
   if (!hasFill) rig.add(new THREE.HemisphereLight(palette.fill, 0x77716a, 1.65));
   const material = new THREE.MeshLambertMaterial({ color: 0xfffaf1,
     emissive: palette.colour, emissiveIntensity: 0.85 });
-  for (const x of [-3.5, 3.5]) for (const z of [1.5, -6.5]) {
-    const y = palette.pendant ? 3.65 : 4.38;
-    const housing = new THREE.Mesh(palette.pendant
+  for(const [x,z]of options.positions||[[-3.5,1.5],[-3.5,-6.5],[3.5,1.5],[3.5,-6.5]]) {
+    const y=options.height??(pendant?3.65:4.38),ceiling=options.ceiling??4.5;
+    const housing = new THREE.Mesh(pendant
       ? new THREE.ConeGeometry(.32,.23,12,1,true)
       : new THREE.BoxGeometry(1.65,.10,.58),
-      new THREE.MeshLambertMaterial({color:palette.pendant?0x82623b:0x626a70}));
+      new THREE.MeshLambertMaterial({color:pendant?0x82623b:0x626a70}));
     housing.position.set(x,y+.10,z); rig.add(housing);
-    if(palette.pendant){
-      const cable=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,4.5-y,6),housing.material);
-      cable.position.set(x,(4.5+y)/2,z);rig.add(cable);
+    if(pendant){
+      const cable=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,ceiling-y,6),housing.material);
+      cable.position.set(x,(ceiling+y)/2,z);rig.add(cable);
     }
-    const diffuser = new THREE.Mesh(palette.pendant
+    const diffuser = new THREE.Mesh(pendant
       ? new THREE.CylinderGeometry(.26,.26,.035,12)
       : new THREE.BoxGeometry(1.5,.035,.45),material);
     diffuser.position.set(x,y,z); rig.add(diffuser);

@@ -864,7 +864,7 @@ export class TownLife {
       if(!pubKitchenReady(this))return 'The pub kitchen is out of service. Check its utilities panel.';
       pubAction(this,'meal');
     }
-    if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good)){const refusal=pubAlcoholRefusal(this);if(refusal)return refusal;}
+    if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good)){const refusal=pubAlcoholRefusal(this,good);if(refusal)return refusal;}
     const stock = this.shelves(p);
     if(shopId==='pub'&&['pub_beer','pub_bottled_beer'].includes(good))reservePubDrink(this,good);
     else if ((stock[good] || 0) > 0) stock[good]--;

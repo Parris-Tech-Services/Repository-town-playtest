@@ -2,7 +2,7 @@
 // A modelled dimension is NOT an approved building, fire, occupancy or access certificate.
 export const PUB_PHYSICAL_PLAN_2026 = Object.freeze({
  id:'B:pub', address:'N8-S', classification:'provisional Class 6, verify all ancillary uses',
- footprint:Object.freeze({widthM:14,depthM:18,insideFrontZ:6,insideRearZ:-12,modelledStoreys:1,originalConstructionYear:null,
+ footprint:Object.freeze({widthM:14,depthM:18,insideFrontZ:6,insideRearZ:-12,modelledStoreys:2,basementLevels:1,originalConstructionYear:null,
   siteBoundaryVerified:false,externalDischargeVerified:false,structuralDesignVerified:false}),
  occupancy:Object.freeze({gameplayPatronScenario:24,gameplayStaffScenario:3,totalScenario:27,legalMaximum:null,
   managementCounterIsNotActualNPCCount:true,requiredSanitaryFixtureSchedule:null}),
@@ -32,10 +32,12 @@ export function pubExitLayout(){
 export function pubExteriorRoute(site){
  const sign=site.side==='south'?-1:1,oz=site.originZ;
  if(!Number.isFinite(oz)||!Number.isFinite(site.x))throw new TypeError('Pub world origin required');
- return [{x:site.x,z:oz-13.2*sign},{x:site.x+8*sign,z:oz-14*sign},{x:site.x+8*sign,z:oz+12.2*sign},{x:site.x,z:oz+12.2*sign}];
+ return [{x:site.x,z:oz-13.2*sign},{x:site.x,z:oz-18.2*sign},{x:site.x+8*sign,z:oz-18.2*sign},{x:site.x+8*sign,z:oz+12.2*sign},{x:site.x,z:oz+12.2*sign}];
 }
 export function pubRearExitPose(site,colliders,radius=.46){
  const p=pubExteriorRoute(site)[0];
  const blocked=(colliders||[]).some(c=>p.x>c.x0-radius&&p.x<c.x1+radius&&p.z>c.z0-radius&&p.z<c.z1+radius);
  return blocked?null:{...p,yaw:site.side==='south'?Math.PI:0};
 }
+
+export function pubSecondaryExitPose(site,colliders,radius=.46){const sign=site.side==='south'?-1:1,p={x:site.x+8*sign,z:site.originZ-12.6*sign};return (colliders||[]).some(c=>p.x>c.x0-radius&&p.x<c.x1+radius&&p.z>c.z0-radius&&p.z<c.z1+radius)?null:{...p,yaw:site.side==='south'?Math.PI:0};}

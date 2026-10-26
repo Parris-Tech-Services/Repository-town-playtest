@@ -90,7 +90,7 @@ export function pilotDemand(site,minute,weather='sunny'){
   switch(site.id){
     case 'B:hotel':kw=2.2+(hour>=6&&hour<10?4.5:0)+(hour>=17&&hour<23?3.5:0)+(hot?2.2:0.6);break;
     case 'B:pub':
-      kw=1.35+(hour>=11&&hour<23?2.2:0.45)
+      kw=1.85+(hour>=11&&hour<23?2.7:0.45)
           +(hour>=12&&hour<14?7.5:0)+(hour>=18&&hour<21?10:0)
           +(hot?3.2:1.4);break;
     case 'B:bakery':kw=2.3+(hour>=4&&hour<13?12:1)+(hot?1.7:0);break;
