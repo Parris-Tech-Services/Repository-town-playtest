@@ -108,7 +108,7 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   solid(1.12,.85,2.03,3.8,.43,-.7,WOOD); box(.915,.05,1.83,3.8,.87,-.7,GREEN);
   // keno / TAB screens, menu board, framed pictures
   box(.08,.8,1.4,6.8,2.4,-3.6,0x1b1d22);box(.04,.7,1.3,6.74,2.4,-3.6,0x2e6a94,{e:0x1e4a74}).name='pub:television';
-  box(.06, 1.2, 2.2, -6.82, 2.5, -1.8, 0x1f2a24); text('Parmi · Roast · Pie of the day', -6.8, 2.5, -1.7);
+  box(.06,1.2,1.2,-6.82,2.5,-5.8,0x1f2a24).name='pub:menu-board';text('Parmi · Roast · Pie of the day',-6.8,2.5,-5.75);
   for (const [x, y, f] of [[-5, 2.4, 'pictureframe_medium'], [-3.2, 2.5, 'pictureframe_large_A'], [2.5, 2.5, 'pictureframe_small_B']]) { if (model(f, x, BACK + 0.28, 0, { h: 0.7 }, y - 0.35)) continue; box(0.8, 0.6, 0.05, x, y, BACK + 0.2, DARKW); box(0.66, 0.46, 0.03, x, y, BACK + 0.23, 0xb8a98a); }
    model('cactus_medium_A', 6.3, 5.2, 0, { w: 0.5, d: 0.5, h: 0.6 });
 
@@ -215,7 +215,7 @@ export function buildPubInterior(site, makeLabel, roomTitle = 'Country pub') {
   add('heritage','Hotel history · original construction unknown','info',pubHistoryDescription(),6.25,2.6);
   add('counter', 'Bar', 'civic-ledger', 'Pull up a stool. Order a meal or a drink at the bar, or open the Town Ledger.', PUB_LAYOUT.staffUse.x, PUB_LAYOUT.staffUse.z);
   add('taps', 'Beer taps', 'info', 'Four taps and a fridge of bottles. Licensed hours run from eleven in the morning to late; the publican serves responsibly.', -2.4, -3.2);
-  add('menu', 'Menu board', 'info', 'Chicken parmi, the roast of the day and a pie with chips. The kitchen uses beef, chicken and vegies delivered from the farms and the butcher.', -6.3, -1.8);
+  add('menu', 'Menu board', 'info', 'Chicken parmi, the roast of the day and a pie with chips. The kitchen uses beef, chicken and vegies delivered from the farms and the butcher.', -6.3, -5.8);
   add('lounge','Bistro and electric hearth','info','Eight four-place tables, seven bar stools and a clear central access aisle. Decorative electric hearth; no solid-fuel fire.',0,-2.5);
   add('pool','Play pool','pub-pool','Two-player physics pool: aim, shot power, cushions, pockets and house-rule fouls.',2.5,-.8);
   add('keno','Keno terminal','pub-keno','Free numbers demonstration; no stakes, prizes or real operator.',5.6,-3.6);
