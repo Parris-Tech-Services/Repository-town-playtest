@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: 4718823f47c70a0f20407005009471f66af6430a
+          ref: 553894946ba3725aaf047941bb3ff8fd312d22a1
           path: source
           persist-credentials: false
 
@@ -60,6 +60,8 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           node tests/pub-compliance-browser.mjs
           node tests/pub-venue-browser.mjs
+          node tests/pub-expansion-browser.mjs
+          node tests/pub-id-browser.mjs
 
       - name: Preserve pub gameplay screenshots
         uses: actions/upload-artifact@v4
