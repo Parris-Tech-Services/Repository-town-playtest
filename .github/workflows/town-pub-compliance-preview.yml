@@ -61,7 +61,7 @@ jobs:
           node tests/pub-compliance-browser.mjs
           node tests/pub-venue-browser.mjs
           node tests/pub-expansion-browser.mjs
-          node tests/pub-id-browser.mjs
+          TOWN_URL=http://localhost:8091/ node tests/pub-id-browser.mjs
 
       - name: Preserve pub gameplay screenshots
         uses: actions/upload-artifact@v4
