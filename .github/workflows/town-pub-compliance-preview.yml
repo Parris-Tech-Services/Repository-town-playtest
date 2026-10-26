@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: 0c8ce7d92d3e8854c168732e27e5abebce09bbe3
+          ref: 46a3439e5204d856768e61842fa439a0d9b2c200
           path: source
           persist-credentials: false
 
