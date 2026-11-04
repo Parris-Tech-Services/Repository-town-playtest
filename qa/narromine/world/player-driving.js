@@ -83,11 +83,28 @@ export function roadAllows(x,z){
  // treated every street and avenue as infinitely long, so cars could leave the map along them.
  return onPlannedOrCoreRoad(x,z)||onNarromineRoad(x,z);   // + Mitchell Highway and Narromine streets
 }
+// Lane assist: with no steering input, gently steer towards the centre of the
+// left-hand lane (Australia drives on the left). Probes the drivable road edges
+// across the road at a look-ahead point, so it follows any road shape that
+// roadAllows() knows. It never overrides the driver's own steering and does
+// nothing on very wide or unknown surfaces. Returns the heading error in radians.
+export function laneAssistSteer(x,z,yaw,speed,allows=roadAllows){
+ if(speed<4)return 0;
+ const fx=-Math.sin(yaw),fz=-Math.cos(yaw),rx=Math.cos(yaw),rz=-Math.sin(yaw);
+ const ahead=clamp(speed*1.1,8,22),px=x+fx*ahead,pz=z+fz*ahead;
+ if(!allows(x,z)||!allows(px,pz))return 0;
+ const edge=(sx)=>{let d=0;while(d<14&&allows(px+rx*sx*(d+.25),pz+rz*sx*(d+.25)))d+=.25;return d;};
+ const left=edge(-1),right=edge(1),width=left+right;
+ if(width<4.5||width>=27)return 0;
+ const target=(right-left)/2-width/4;          // offset of the left-lane centre, + = to the right
+ return -Math.atan2(target,ahead);             // negative = turn right (yaw decreases)
+}
 export function createPlayerDriving(life,scene,collision,player,camera,input){
  const meshes=new Map();let active=null,speed=0,message='';
  // Camera views while driving, switched with V or the 🎥 button and remembered on this device.
  const VIEWS=['chase','rider','high'],VIEW_NAMES={chase:'Chase view',rider:"Rider's-eye view",high:'High view'};
  let view='chase';try{const saved=localStorage.getItem('town.driveView');if(VIEWS.includes(saved))view=saved;}catch{}
+ let laneAssist=false;try{laneAssist=localStorage.getItem('town.laneAssist')==='on';}catch{}
  function siteSpawn(i,self){
    const site=life.place('dealership');
    if(!site)return null;
@@ -183,6 +200,8 @@ export function createPlayerDriving(life,scene,collision,player,camera,input){
    if(life.day>v.regoUntil||!v.roadworthy||v.condition<60||(v.fuel||0)<=0)speed=0;
    let yaw=v.yaw||0;
    if(Math.abs(speed)>.2)yaw-=m.x*(speed<0?-1:1)*clamp(Math.abs(speed)/Math.min(top,16),0,.9)*(spec.kind==='bike'?1.65:1.25)*dt;
+   // Driver steering always wins; assist only acts hands-off, going forwards on a road.
+   if(laneAssist&&Math.abs(m.x)<.08&&speed>0&&!offRoad)yaw+=clamp(laneAssistSteer(v.x,v.z,yaw,speed)*1.6,-.5,.5)*dt;
    // Swept substeps prevent a 50km/h+ car from jumping through pedestrians,
    // walls or road margins in a slow mobile frame.
    const steps=Math.max(1,Math.ceil(Math.abs(speed)*dt/.7));
@@ -235,9 +254,13 @@ export function createPlayerDriving(life,scene,collision,player,camera,input){
    const v=activeVehicle();if(v)placeCamera(v,vehicleSpec(v.model));
    return VIEW_NAMES[view]+' (V or 🎥 to change)';
  }
+ function toggleLaneAssist(){
+   laneAssist=!laneAssist;try{localStorage.setItem('town.laneAssist',laneAssist?'on':'off');}catch{}
+   return laneAssist?'Lane assist ON: let go of steering and the car keeps to the left lane. Steer any time to take over. K or the lane button switches it off.':'Lane assist OFF.';
+ }
  function activeVehicle(){return active?life.civic.motor.owned.find(v=>v.registration===active)||null:null;}
  function headlightStatus(){const rig=meshes.get(active)?.userData?.headlights;
    return {active:!!active,on:!!rig&&rig.level>0.01,level:rig?.level||0,beamCount:rig?.beams.length||0,
      beamsLit:rig?.beams.filter(b=>b.intensity>0).length||0};}
- return {sync,nearest,enter,exit,update,activeVehicle,headlightStatus,cycleView,get view(){return view;},get driving(){return !!active;},get message(){return message;},clearMessage(){message='';}};
+ return {sync,nearest,enter,exit,update,activeVehicle,headlightStatus,cycleView,toggleLaneAssist,get laneAssist(){return laneAssist;},get view(){return view;},get driving(){return !!active;},get message(){return message;},clearMessage(){message='';}};
 }

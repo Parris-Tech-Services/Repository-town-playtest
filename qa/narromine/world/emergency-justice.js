@@ -108,9 +108,10 @@ export function advanceEmergency(t){
     }
     if(i.status==='dispatched'&&since(i,now)>=1)transition(t,i,'en-route','Responders travel from their station with incident updates; ETA is approximate, not guaranteed.');
     if(i.status==='en-route'&&since(i,now)>=travel(i)-1)
-      transition(t,i,'on-scene','First response unit arrives, makes the scene safe and assesses the report.');
+      {transition(t,i,'on-scene','First response unit arrives, makes the scene safe and assesses the report.');i.onSceneAt??=now;}
     // Each requested service must actually attend before its part is recorded.
     if(i.status==='on-scene'&&since(i,now)>=(i.priority===1?6:2)&&i.services.every(x=>attended(i,x,now))){
+      i.allAttendedAt??=now;
       if(i.patient){
         i.patient.triage=i.type==='medical'?'high priority':i.type==='crash'?'urgent assessment':'smoke exposure check';
         i.patient.treated=true;i.patient.transport=i.type==='fire'?'treated at scene':'clinic triage / hospital referral';
@@ -181,6 +182,28 @@ export function addIndependentEvidence(t,caseId,detail){
   c.evidence.push({kind:'independent',text:'Shop CCTV footage received and chain-of-custody logged',reliability:'corroboration-pending'});
   log(t,c,'Digital footage collected and logged. Footage must be assessed before identifying a suspect.');
   return 'CCTV evidence entered into '+c.id+'. A recording alone does not identify or convict anyone.';
+}
+// Response-time indicators (issue #157): queue wait, first arrival, every requested
+// service attended and incident closed, in game minutes from the 000 call.
+// Nearest-rank median/P90 over the retained incident log (last 40 incidents).
+const MEASURES={wait:i=>i.dispatchedAt&&Math.min(...Object.values(i.dispatchedAt)),
+  firstArrival:i=>i.onSceneAt,allAttended:i=>i.allAttendedAt,closed:i=>i.closedAt};
+const rank=(xs,q)=>xs.length?xs[Math.ceil(q*xs.length)-1]:null;
+export function responseMetrics(t){
+  const groups={all:[]};
+  for(const i of emergencyState(t).incidents){
+    if(INCIDENTS[i.type]?.nonEmergency)continue;
+    groups.all.push(i);(groups[i.type]||=[]).push(i);
+  }
+  const out={};
+  for(const [g,list] of Object.entries(groups)){
+    out[g]={incidents:list.length,stillWaiting:list.filter(i=>!i.dispatched.length).length};
+    for(const [m,get] of Object.entries(MEASURES)){
+      const xs=list.map(i=>{const v=get(i);return Number.isFinite(v)?v-i.at:null;}).filter(v=>v!=null).sort((a,b)=>a-b);
+      out[g][m]={n:xs.length,median:rank(xs,.5),p90:rank(xs,.9)};
+    }
+  }
+  return out;
 }
 export function caseReport(t){
   const s=emergencyState(t);return{

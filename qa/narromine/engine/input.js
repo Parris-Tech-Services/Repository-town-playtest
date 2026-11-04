@@ -48,6 +48,7 @@ export class Input {
         if (k === 'l' && !this.touch) this.toggleMouseCapture();
         if (k === 'm') this.pressed.add('map');
         if (k === 'v') this.pressed.add('view');   // driving camera view
+        if (k === 'k') this.pressed.add('lane');   // driving lane assist on/off
       }
       this.keys.add(k);
       if ([' ', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright'].includes(k)) e.preventDefault();

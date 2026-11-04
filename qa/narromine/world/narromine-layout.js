@@ -9,6 +9,8 @@
 // at the eastern edge of the export, from where the highway becomes Dandaloo Street.
 // Facts and sources: docs/NARROMINE_RESEARCH_AND_PLAN_2026-11-03.md.
 import { NARROMINE_OSM as OSM } from './narromine-osm-data.js';
+import { NARROMINE_FOOTPRINTS } from './narromine-footprints-data.js';
+import { NARROMINE_FOOTPRINT_LIDAR } from './narromine-footprint-lidar-data.js';
 export { OSM };
 import { NARROMINE_BUILDINGS } from './narromine-buildings-data.js';
 import { NARROMINE_LIDAR } from './narromine-lidar-data.js';
@@ -70,7 +72,9 @@ export const RAIL = Object.freeze(OSM.rail.map((r) => Object.freeze({ pts: r.pts
 export function polyRect(pts) {
   let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
   for (const [x, z] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
-  return { x0, x1, z0, z1 };
+  // poly: the true outline. CollisionWorld uses the box to find candidates and the outline to decide,
+  // so a building at an angle to the grid no longer blocks the street beside it with its box corners.
+  return { x0, x1, z0, z1, poly: pts.map(([x, z]) => [x, z]) };
 }
 
 // Spelling corrections for the map data, and sourced history for places that have it.
@@ -156,9 +160,17 @@ export function nearestSegment(x, z) {
 }
 // Box with centre, size along/across the street, rotation (yaw about y), and its world AABB.
 const placed = [];
-const footprint = (cx, cz, w, d, yaw) => { const c = Math.cos(yaw), s = Math.sin(yaw), hx = Math.abs(c) * w / 2 + Math.abs(s) * d / 2, hz = Math.abs(s) * w / 2 + Math.abs(c) * d / 2; return { x0: cx - hx, x1: cx + hx, z0: cz - hz, z1: cz + hz }; };
+const footprint = (cx, cz, w, d, yaw) => { const c = Math.cos(yaw), s = Math.sin(yaw), hx = Math.abs(c) * w / 2 + Math.abs(s) * d / 2, hz = Math.abs(s) * w / 2 + Math.abs(c) * d / 2;
+  // Corners of the rotated box (local x along (cos, -sin), local z along (sin, cos), as placeBox rotates).
+  const poly = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [cx + a * c * w / 2 + b * s * d / 2, cz - a * s * w / 2 + b * c * d / 2]);
+  return { x0: cx - hx, x1: cx + hx, z0: cz - hz, z1: cz + hz, poly }; };
 const overlapsPlaced = (r) => placed.some((q) => r.x0 < q.x1 && r.x1 > q.x0 && r.z0 < q.z1 && r.z1 > q.z0);
 const clearOfStreets = (r) => { for (let x = r.x0; x <= r.x1; x += 2) for (let z = r.z0; z <= r.z1; z += 2) if (nearTownStreet(x, z, 1.5)) return false; return true; };
+// Railway corridor: invented stand-in buildings keep at least 6 m from any mapped track centreline.
+const RAIL_SEGMENTS = OSM.rail.flatMap((r) => r.pts.map(toWorld).slice(1).map((b, i, arr) => [i ? arr[i - 1] : toWorld(r.pts[0]), b]));
+const nearRail = (x, z, m) => RAIL_SEGMENTS.some(([a, b]) => { const dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz || 1;
+  const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / l)); return Math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < m; });
+const clearOfRail = (r) => !(r.poly || [[r.x0, r.z0], [r.x1, r.z0], [r.x1, r.z1], [r.x0, r.z1]]).some(([x, z]) => nearRail(x, z, 6)) && !nearRail((r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2, 6);
 
 export const FILL_SHOPS = Object.freeze(PLACES.flatMap((p) => {
   if (DETAILED.some((d) => d.name === p.name) || BUILDING_CENTRES.some((b) => inPoly(p.x, p.z, b.pts)) || nearMapped(p.x, p.z, 4) || inArea(p.x, p.z)) return [];
@@ -166,30 +178,32 @@ export const FILL_SHOPS = Object.freeze(PLACES.flatMap((p) => {
   // Front on the property line: half the road, a 3 m footpath, then the shop 14 deep behind it.
   const nx = (p.x - n.px) / (n.d || 1), nz = (p.z - n.pz) / (n.d || 1), set = n.s.width / 2 + 3 + 7;
   const cx = n.px + nx * set, cz = n.pz + nz * set, yaw = -n.angle, r = footprint(cx, cz, 10, 14, yaw);
-  if (overlapsPlaced(r) || !clearOfStreets(r)) return [];
+  if (overlapsPlaced(r) || !clearOfStreets(r) || !clearOfRail(r)) return [];
   placed.push(r);
   return [Object.freeze({ generic: true, name: p.name, kind: p.kind, x: cx, z: cz, w: 10, d: 14, yaw, front: Object.freeze([n.px + nx * (n.s.width / 2 + 1.5), n.pz + nz * (n.s.width / 2 + 1.5)]), rect: Object.freeze(r) })];
 }));
 
-export const FILL_HOUSES = Object.freeze((() => {
-  const out = [];
-  for (const s of STREETS) {
-    if (!/^(residential|unclassified|living_street)$/.test(s.kind)) continue;
-    for (let i = 1; i < s.pts.length; i++) {
-      const [ax, az] = s.pts[i - 1], [bx, bz] = s.pts[i], len = Math.hypot(bx - ax, bz - az); if (len < 24) continue;
-      const ux = (bx - ax) / len, uz = (bz - az) / len, angle = Math.atan2(bz - az, bx - ax);
-      for (let t = 12; t < len - 10; t += 21) for (const side of [-1, 1]) {
-        const set = s.width / 2 + 3 + 11, cx = ax + ux * t - uz * side * set, cz = az + uz * t + ux * side * set;
-        if (cx < REGION.x0 + 20 || cx > REGION.x1 - 20 || cz < REGION.z0 + 20 || cz > REGION.z1 - 20) continue;
-        const r = footprint(cx, cz, 11, 10, -angle);
-        if (nearMapped(cx, cz, 8) || inArea(cx, cz) || PLACES.some((p) => Math.hypot(p.x - cx, p.z - cz) < 20) || overlapsPlaced(r) || !clearOfStreets(r)) continue;
-        placed.push(r);
-        out.push(Object.freeze({ generic: true, x: cx, z: cz, w: 11, d: 10, yaw: -angle, rect: Object.freeze(r), tone: (Math.abs(Math.round(cx * 7 + cz * 13)) % 5) }));
-      }
-    }
-  }
-  return out;
-})());
+// Every other building in town, from real traced footprints (Microsoft Global ML Building
+// Footprints, ODbL; tools/narromine-footprints.mjs). These replace the invented stand-in houses that
+// used to be generated along residential streets. Outlines already drawn from OSM or a detailed
+// landmark site are skipped so nothing is doubled. Name kept for existing callers.
+// Street centreline samples every 2 m in an 8 m grid, so a footprint that a mapped road runs through
+// (a carport over a driveway, or a small misalignment between the two sources) is left out and the
+// road stays drivable.
+const STREET_SAMPLES = (() => { const g = new Map(); for (const s of STREETS) for (let i = 1; i < s.pts.length; i++) {
+  const [ax, az] = s.pts[i - 1], [bx, bz] = s.pts[i], n = Math.ceil(Math.hypot(bx - ax, bz - az) / 2);
+  for (let k = 0; k <= n; k++) { const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n, key = Math.floor(x / 8) + ',' + Math.floor(z / 8); if (!g.has(key)) g.set(key, []); g.get(key).push([x, z]); } } return g; })();
+const crossesStreet = (r) => { for (let gx = Math.floor((r.x0 - 1.2) / 8); gx <= Math.floor((r.x1 + 1.2) / 8); gx++) for (let gz = Math.floor((r.z0 - 1.2) / 8); gz <= Math.floor((r.z1 + 1.2) / 8); gz++)
+  for (const [x, z] of STREET_SAMPLES.get(gx + ',' + gz) || []) if (inPoly(x, z, r.poly) || r.poly.some((p, i) => { const q = r.poly[(i + 1) % r.poly.length], dx = q[0] - p[0], dz = q[1] - p[1], l = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - p[0]) * dx + (z - p[1]) * dz) / l)); return Math.hypot(x - p[0] - t * dx, z - p[1] - t * dz) < 1.1; })) return true; return false; };
+export const FILL_HOUSES = Object.freeze(NARROMINE_FOOTPRINTS.flatMap(([x, z, w, d, yaw, h]) => {
+  if (x < REGION.x0 + 5 || x > REGION.x1 - 5 || z < REGION.z0 + 5 || z > REGION.z1 - 5) return [];
+  const r = footprint(x, z, w, d, yaw);
+  // Already modelled: centre inside a mapped OSM outline or detailed site, or a mapped outline's centre inside this one.
+  if (BUILDING_CENTRES.some((b) => inPoly(x, z, b.pts) || inPoly(b.c[0], b.c[1], r.poly)) || inDetailed(x, z) || overlapsPlaced(r)) return [];
+  if (!clearOfRail(r) || crossesStreet(r)) return [];
+  const lidar = NARROMINE_FOOTPRINT_LIDAR[x.toFixed(1) + ',' + z.toFixed(1)] || null;
+  return [Object.freeze({ generic: false, source: 'footprint', x, z, w, d, yaw, h, lidar, rect: Object.freeze(r), tone: (Math.abs(Math.round(x * 7 + z * 13)) % 5) })];
+}));
 
 // Main-street frontages of mapped buildings: the outline edge facing a through street within
 // 14 m gets a veranda; a named place inside the outline names it. Map-derived, not surveyed.

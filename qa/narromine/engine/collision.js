@@ -3,6 +3,20 @@
 // thousands of colliders (188 houses plus yard props).
 const CELL = 8;
 
+// A collider may carry poly: its true outline [[x,z],...]. The box is the quick first test; the outline
+// is exact, so a rotated building blocks only where its walls really are.
+export function circleTouchesPoly(poly, x, z, r) {
+  let inside = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [ax, az] = poly[j], [bx, bz] = poly[i];
+    if ((bz > z) !== (az > z) && x < ((ax - bx) * (z - bz)) / (az - bz) + bx) inside = !inside;
+    const dx = bx - ax, dz = bz - az, l = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l));
+    if ((x - ax - t * dx) ** 2 + (z - az - t * dz) ** 2 < r * r) return true;
+  }
+  return inside;
+}
+
 export class CollisionWorld {
   constructor(colliders = []) {
     this.grid = new Map();
@@ -42,7 +56,7 @@ export class CollisionWorld {
     for (const c of [...this.near(x,z,r), ...moving]) {
       if (c.top != null && feet >= c.top - 0.02) continue;
       const cx = Math.max(c.x0, Math.min(x, c.x1)), cz = Math.max(c.z0, Math.min(z, c.z1));
-      if ((x - cx) ** 2 + (z - cz) ** 2 < r * r) return c;
+      if ((x - cx) ** 2 + (z - cz) ** 2 < r * r && (!c.poly || circleTouchesPoly(c.poly, x, z, r))) return c;
     }
     return null;
   }

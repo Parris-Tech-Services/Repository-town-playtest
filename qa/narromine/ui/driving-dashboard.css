@@ -67,16 +67,20 @@ body.playing #driving-dashboard{display:none!important}
 }
 
 /* Separate Show/Hide button remains usable while driving, even when panel is hidden. */
-#drive-dash-toggle{
- position:fixed;top:max(92px,calc(env(safe-area-inset-top) + 75px));right:max(12px,env(safe-area-inset-right));
+/* Top-left, under the HUD bar: the top-right corner belongs to the compass and minimap. */
+#drive-dash-toggle,#drive-lane-toggle{
+ position:fixed;top:max(92px,calc(env(safe-area-inset-top) + 75px));left:max(12px,env(safe-area-inset-left));
  z-index:13;min-height:42px;padding:8px 12px;border-radius:12px;
  font-size:12px;font-weight:700;letter-spacing:.01em;
  color:#f3f9fc;background:#18364beF;border:1px solid #83b2cb;box-shadow:0 4px 12px #0008;
 }
-#drive-dash-toggle[hidden]{display:none!important}
+#drive-lane-toggle{top:max(142px,calc(env(safe-area-inset-top) + 125px))}
+#drive-lane-toggle[aria-pressed=true]{background:#1f5a34ef;border-color:#8fd3a3}
+#drive-dash-toggle[hidden],#drive-lane-toggle[hidden]{display:none!important}
 #drive-dash-toggle:focus-visible{outline:3px solid #ffe089;outline-offset:2px}
-body.playing #drive-dash-toggle{display:none!important}
+body.playing #drive-dash-toggle,body.playing #drive-lane-toggle{display:none!important}
 @media (pointer:coarse),(max-width:700px){
- #drive-dash-toggle{top:max(117px,calc(env(safe-area-inset-top) + 107px));right:max(12px,env(safe-area-inset-right));
+ #drive-lane-toggle{top:max(169px,calc(env(safe-area-inset-top) + 159px));min-height:44px;padding:8px 10px;font-size:11px;max-width:130px}
+ #drive-dash-toggle{top:max(117px,calc(env(safe-area-inset-top) + 107px));left:max(12px,env(safe-area-inset-left));
   min-height:44px;padding:8px 10px;font-size:11px;max-width:130px}
 }

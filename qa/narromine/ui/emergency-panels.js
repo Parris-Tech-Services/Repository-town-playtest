@@ -1,10 +1,19 @@
 import {INCIDENTS,caseReport,addIndependentEvidence,
-  evaluatePoliceCharge,seekLegalAdvice,justiceSummary,
+  evaluatePoliceCharge,seekLegalAdvice,justiceSummary,responseMetrics,
   verifySceneWitness,examineForensics} from '../world/emergency-justice.js';
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({
   '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
 })[c]);
 const timeline=i=>i.timeline.slice(-5).map(a=>'<li>'+esc(a.when)+' — '+esc(a.text)+'</li>').join('');
+const mins=v=>v==null?'–':v+' min';
+function metricsHtml(life){
+  const m=responseMetrics(life).all;if(!m.incidents)return '';
+  const row=(label,x)=>'<li>'+label+': median '+mins(x.median)+', 90% within '+mins(x.p90)+' ('+x.n+' measured)</li>';
+  return '<h3>Response times (game minutes from the call)</h3><ul>'+row('Unit dispatched',m.wait)+row('First unit on scene',m.firstArrival)+
+    row('Every requested service attended',m.allAttended)+row('Incident closed',m.closed)+'</ul>'+
+    (m.stillWaiting?'<p>'+m.stillWaiting+' call(s) still waiting for a free unit.</p>':'')+
+    '<p><small>Simulated, from the last 40 incidents. Travel is a fixed priority-based time, not a road route.</small></p>';
+}
 export function emergencyPanel(life,position=null,notice=''){
   const report=caseReport(life);
   const calls=report.incidents.slice(-4).reverse().map(i=>
@@ -21,7 +30,7 @@ export function emergencyPanel(life,position=null,notice=''){
       '<p>Operator: <em>Which service do you need? Where is the incident? What has happened? Is anyone in immediate danger?</em></p>'+
       '<p>Choose a scenario below. The dispatcher confirms the report, grades urgency and allocates an available crew. Advance the town clock to follow the response.</p>'+
       '<p><b>Current service resources</b>: '+report.units.map(u=>esc(u.type)+': '+(u.busy?'committed':'available')).join(' · ')+'</p>'+
-      '<h3>Recent calls</h3>'+(calls||'<p>No in-game emergency calls have been logged.</p>'),
+      metricsHtml(life)+'<h3>Recent calls</h3>'+(calls||'<p>No in-game emergency calls have been logged.</p>'),
     actions:[
       ...Object.entries(INCIDENTS).map(([type,s])=>({
         label:(s.nonEmergency?'Non-urgent enquiry: ':'Call for ')+s.label,

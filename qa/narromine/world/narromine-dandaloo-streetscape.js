@@ -1,6 +1,6 @@
 // Dandaloo Street streetscape props. Visually restrained and tile-batched through
 // buildNarromine's existing push() material buckets; no duplicate road/asphalt meshes.
-// Photo-evidenced styles but individual furniture/tree positions remain approximate.
+// Furniture needs individual location evidence; unsupported placements stay unrendered.
 import * as THREE from 'three';
 import { planDandalooStreetscape, planDandalooSouth } from './narromine-dandaloo-streetscape-data.js';
 
@@ -108,14 +108,8 @@ export function buildDandalooStreetscape({ streets, push, box, flatPoly, strip, 
   for (const p of plan.pavers) flatPoly(0xa77f6e, p.pts, 0.112);
   for (const k of plan.kerbs) strip(KERB, ...k.a, ...k.b, 0.15, 0.129, 0.12);
   for (const p of plan.parking) strip(PARK_LINE, ...p.a, ...p.b, 0.105, 0.104, 0.022);
-  // Trimmed, deliberately interrupted median hedges — never another solid wall.
-  for (const band of [-994, -1042, -1092, -1149]) {
-    const m = plan.medians.find(item => item.pts.some(p => Math.abs(p[1] - band) < 5));
-    if (!m) continue;
-    const x = m.pts.reduce((s, p) => s + p[0], 0) / m.pts.length;
-    box(0x56743c, 0.72, 0.53, 2.6, x, 0.36, band);
-    box(0x739454, 0.83, 0.16, 2.7, x, 0.66, band);
-  }
+  // No synthetic hedge bands: their four former coordinates had no individual
+  // location evidence. Restore only with a documented object-level survey.
   for (const item of plan.trees) {
     if (item.kind === 'palm') makePalm(push, item);
     else makeFloweringTree(push, item, item.kind === 'flowering');

@@ -9,6 +9,9 @@ import { roofLetteringSurface } from './narromine-roof-lettering.js';
 import { buildNarromineHotel, NARROMINE_HOTEL_ID } from './narromine-hotel.js';
 import { buildNarromineRoyalHotel, ROYAL_HOTEL_REPLACED_IDS } from './narromine-royal-hotel.js';
 import { buildNarromineRailwayPrecinct } from './narromine-railway-precinct.js';
+import { NARROMINE_TREES } from './narromine-trees-data.js';
+import { buildNarromineFurniture } from './narromine-furniture.js';
+import { NARROMINE_FURNITURE } from './narromine-furniture-data.js';
 import { NARROMINE_RAILWAY_INTEGRATION_SPEC } from './narromine-railway-evidence.js';
 import { buildNarromineCourthousePrecinct } from './narromine-courthouse-precinct.js';
 import { buildNarromineStAugustines, ST_AUGUSTINES_OSM_INDEX } from './narromine-st-augustines.js';
@@ -58,9 +61,15 @@ function speedTexture(n) {
 
 const ROAD_COLOUR = { trunk: 0x45484b, primary: 0x46494c, secondary: 0x47494b, tertiary: 0x4a4c4e, unclassified: 0x4d4f50, residential: 0x4f5153, service: 0x5a5b5a, living_street: 0x55575a, track: 0x9b8566 };
 const AREA_COLOUR = { park: 0x7fae64, pitch: 0x8cc06a, golf_course: 0x79ad5d, cemetery: 0x8a9a7a, school: 0xc7b88f, industrial: 0xa49c90, retail: 0xb9ada0, parking: 0x6a6b6c, sports_centre: 0x9fb8a6, swimming_pool: 0x5aa9d6, track: 0xb47a5a, farmyard: 0xb9a675, residential: null };
+// OSM buildings tagged man_made=silo: the four round bins by the station yard (osm indices 20-23).
+const SILO_CYLINDERS = new Set([20, 21, 22, 23]);
+// OSM man_made=silo outlines 90-170 m across: open grain storage bunkers (osm 15, 16, 17), drawn as
+// low tarped stacks at their LiDAR-measured height.
+const GRAIN_BUNKERS = new Set([15, 16, 17]);
 const BUILDING_STYLE = (b) => {
   // Measured LiDAR height (median roof height above ground) wins over tag- or kind-based guesses.
   const k = b.kind, base = b.lidar ? Math.max(2.4, b.lidar[4]) : b.levels ? b.levels * 3.4 : null;
+  if (GRAIN_BUNKERS.has(b.osmIndex)) return [b.lidar ? Math.max(1.5, b.lidar[4]) : 4, 0x3b4239];
   if (k === 'hangar') return [base || 7.5, 0xb8bcbf];
   if (k === 'church') return [base || 8, 0xc2a07a];
   if (k === 'hospital') return [base || 6, 0xd9d4c8];
@@ -142,14 +151,39 @@ export function buildNarromine(parent, makeLabel = null) {
     if (w.closed) flatPoly(0x4f88a8, w.pts, 0.01);
     else for (let i = 1; i < w.pts.length; i++) strip(w.kind === 'river' ? 0x4f88a8 : 0x5c94b0, ...w.pts[i - 1], ...w.pts[i], w.kind === 'river' ? 40 : 5, 0.008, 0.02);
   }
-  for (const r of RAIL) for (let i = 1; i < r.pts.length; i++) { strip(0x8c7f72, ...r.pts[i - 1], ...r.pts[i], 3.2, 0.05, 0.25); strip(0x6d6a66, ...r.pts[i - 1], ...r.pts[i], 1.6, 0.22, 0.12); }
+  // Ballast bed only; sleepers and steel rails are built by narromine-trains.js on the same mapped lines.
+  for (const r of RAIL) for (let i = 1; i < r.pts.length; i++) strip(0x8c7f72, ...r.pts[i - 1], ...r.pts[i], 3.2, 0.05, 0.25);
   // The old overlapping strips had coplanar top faces at every intersection
   // and bend; their full-width footpath slabs also intersected the asphalt.
   // Split the mapped ribbons into disjoint polygons before THREE triangulation.
   // This also cuts out the always-visible highway at the Narromine town seam.
-  const roadSurfaces = buildDisjointRoadSurfaces(STREETS, { highway: HIGHWAY });
+  // OSM surface tags: a street that runs along an OSM unpaved way is drawn as a gravel track (no kerb,
+  // no generated footpath).
+  const nearLine = (lines, x, z, m) => lines.some(pts => pts.some((b, i) => { if (!i) return false; const a = pts[i - 1], dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / l)); return Math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < m; }));
+  // Split each street into runs of segments that are wholly paved or wholly unpaved (by segment midpoint).
+  const SURFACE_STREETS = STREETS.flatMap(st => {
+    const runs = []; let cur = null;
+    for (let i = 1; i < st.pts.length; i++) {
+      const [a, b] = [st.pts[i - 1], st.pts[i]], unpaved = nearLine(NARROMINE_FURNITURE.unpaved, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, 3);
+      if (!cur || cur.unpaved !== unpaved) { cur = { unpaved, pts: [a] }; runs.push(cur); }
+      cur.pts.push(b);
+    }
+    return runs.map(r => ({ ...st, kind: r.unpaved ? 'track' : st.kind, pts: r.pts }));
+  });
+  const roadSurfaces = buildDisjointRoadSurfaces(SURFACE_STREETS, { highway: HIGHWAY });
   for (const s of roadSurfaces.footpaths) flatPoly(0xbdb6a8, s.pts, 0.076);
   for (const s of roadSurfaces.asphalt) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.075);
+  // Broken centre line (3 m line, 9 m gap, the Australian standard) only on ways OSM tags with 2+ lanes.
+  for (const pts of NARROMINE_FURNITURE.laned) {
+    let carry = 0;
+    for (let i = 1; i < pts.length; i++) {
+      const [ax, az] = pts[i - 1], [bx, bz] = pts[i], len = Math.hypot(bx - ax, bz - az); if (len < 0.5) continue;
+      const ux = (bx - ax) / len, uz = (bz - az) / len, yaw = -Math.atan2(bz - az, bx - ax);
+      for (let d = carry; d + 3 <= len; d += 12) box(0xf2f0e6, 3, 0.01, 0.1, ax + ux * (d + 1.5), 0.082, az + uz * (d + 1.5), yaw);
+      carry = (carry - len) % 12; if (carry < 0) carry += 12;
+    }
+  }
   // OSM-aligned Dandaloo streetscape: no duplicate road or building geometry.
   // Verge items must not sit inside buildings, detailed lots or other roads/driveways.
   const streetscapeClear = (x, z, r) => !DETAILED.some((d) => inPoly(x, z, d.boundary)) &&
@@ -162,6 +196,16 @@ export function buildNarromine(parent, makeLabel = null) {
   for (const b of BUILDINGS) {
     if (RAILWAY_SUPPRESSED_OSM.has(b.osmIndex)) continue;
     if (Math.abs(b.pts[0][0] - (-4813.8)) < 0.5 && Math.abs(b.pts[0][1] - (-734.3)) < 0.5) continue;
+    // Grain silos mapped in OSM (man_made=silo, ways 451700972-75): round concrete bins drawn as
+    // cylinders from their outline, wall to the LiDAR eave and a conical cap to the LiDAR ridge.
+    if (SILO_CYLINDERS.has(b.osmIndex) && b.lidar) {
+      const cx = b.pts.reduce((s, p) => s + p[0], 0) / b.pts.length, cz = b.pts.reduce((s, p) => s + p[1], 0) / b.pts.length;
+      const r = b.pts.reduce((s, p) => s + Math.hypot(p[0] - cx, p[1] - cz), 0) / b.pts.length, eave = b.lidar[2], ridge = b.lidar[3];
+      const wall = new THREE.CylinderGeometry(r, r, eave, 24); wall.translate(cx, eave / 2, cz); push(0xcfc9bd, wall);
+      const cap = new THREE.ConeGeometry(r * 1.02, Math.max(0.3, ridge - eave), 24); cap.translate(cx, eave + Math.max(0.3, ridge - eave) / 2, cz); push(0xb9b4aa, cap);
+      colliders.push(polyRect(b.pts));
+      continue;
+    }
     const [h, standardColour] = BUILDING_STYLE(b);
     // OSM:186 is a photographed white-render physiotherapy facade, not generic tan.
     const colour = b.osmIndex === PHYSIO_FACADE.osmIndex ? 0xf0eee9 : standardColour;
@@ -234,9 +278,31 @@ export function buildNarromine(parent, makeLabel = null) {
   }
   const HOUSE_WALLS = [0xd8cdb6, 0xc9a98a, 0xbfc4bd, 0xd6c9a4, 0xa98a74], HOUSE_ROOFS = [0x6e3b32, 0x5a5f66, 0x8a8f8c, 0x7a4a3a, 0x4f5a52];
   for (const h of FILL_HOUSES) {
-    placeBox(HOUSE_WALLS[h.tone], h.w, 3.0, h.d, h.x, 1.5, h.z, h.yaw);
-    const r = roofGeo(); r.scale(h.w + 0.8, 2.2, h.d + 0.8); r.rotateY(h.yaw); r.translate(h.x, 4.1, h.z); push(HOUSE_ROOFS[h.tone], r);
+    // Real traced footprint; total height from its measured estimate when known (else a 3 m wall + 2.2 m roof).
+    // LiDAR-measured eave and ridge win (1,265 footprints); else the footprint dataset's height estimate.
+    const wall = h.lidar ? Math.max(2.2, h.lidar[1]) : h.h > 0 ? Math.min(10, Math.max(2.4, h.h * 0.62)) : 3.0;
+    const roofH = h.lidar ? Math.max(0.25, h.lidar[2] - wall) : h.h > 0 ? Math.min(5, Math.max(0.5, h.h - wall)) : 2.2;
+    placeBox(HOUSE_WALLS[h.tone], h.w, wall, h.d, h.x, wall / 2, h.z, h.yaw);
+    const r = roofGeo(); r.scale(h.w + 0.8, roofH, h.d + 0.8); r.rotateY(h.yaw); r.translate(h.x, wall + roofH / 2, h.z); push(HOUSE_ROOFS[h.tone], r);
     colliders.push({ ...h.rect });
+  }
+  // OSM power poles, transmission towers and lines, give-way signs and bus stops.
+  buildNarromineFurniture(town, colliders);
+  // Real trees detected in the 2023 LiDAR (narromine-trees-data.js): one instanced trunk and crown mesh
+  // each, at the measured height and crown radius. Trunks are solid; crowns are not.
+  {
+    const trunkMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.5, 0.7, 1, 6), new THREE.MeshLambertMaterial({ color: 0x5b4a3a }), NARROMINE_TREES.length);
+    const crownMesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0x55703f }), NARROMINE_TREES.length);
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), tint = new THREE.Color();
+    NARROMINE_TREES.forEach(([x, z, h, r], i) => {
+      const trunkH = h * 0.42, trunkR = Math.min(0.45, 0.12 + h * 0.015), crownH = Math.max(1.5, h - trunkH * 0.85);
+      m4.compose(new THREE.Vector3(x, trunkH / 2, z), q, new THREE.Vector3(trunkR, trunkH, trunkR)); trunkMesh.setMatrixAt(i, m4);
+      m4.compose(new THREE.Vector3(x, h - crownH / 2, z), q, new THREE.Vector3(Math.max(1, r), crownH / 2, Math.max(1, r))); crownMesh.setMatrixAt(i, m4);
+      tint.setHSL(0.24 + ((i * 37) % 10) / 200, 0.28, 0.27 + ((i * 53) % 10) / 120); crownMesh.setColorAt(i, tint);
+      colliders.push({ x0: x - trunkR - 0.1, x1: x + trunkR + 0.1, z0: z - trunkR - 0.1, z1: z + trunkR + 0.1 });
+    });
+    trunkMesh.name = 'Narromine LiDAR trees (trunks)'; crownMesh.name = 'Narromine LiDAR trees (crowns)';
+    town.add(trunkMesh, crownMesh);
   }
   // Mapped OSM main-street facades: the EDGE is data-grounded; facade materials,
   // mullions, piers and doors are visual approximations (see facade profiles).

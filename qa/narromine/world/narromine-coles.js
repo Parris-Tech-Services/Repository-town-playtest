@@ -27,6 +27,18 @@ export const NARROMINE_COLES_ENTRANCE=Object.freeze({
 export const nearNarromineColesDoor=pos=>!!pos&&Math.hypot(pos.x-doorX,pos.z-doorZ)<=NARROMINE_COLES_ENTRANCE.radius;
 export const COLES_INTERPRETIVE_PLAN=Object.freeze({
   width:40,depth:52,displayFloorM2:2080,verifiedFloorPlan:false,
+  // Verified shop services, NOT evidence of the simulated aisle plan.
+  serviceEvidence: Object.freeze({
+    observedOn:'2026-11-04',
+    store:'https://www.coles.com.au/find-stores/coles/nsw/narromine-5755',
+    quietHour:'https://www.coles.com.au/about/accessibility-and-inclusion/quiet-hour',
+    regularHours:'Mon–Sat 06:00–21:00, Sunday 07:00–21:00',
+    carryToCar:true,
+    specialityTrolleys:'ask store to confirm availability',
+    reducedSound:'Monday–Friday 10:30–11:30',
+    reducedLightAndSound:'Tuesday 10:30–11:30',
+    limitations:'Hours, store services and holiday arrangements may change; no verified fixture or aisle measurements.'
+  }),
   sources:['Coles store listing: Dandaloo Street, Narromine; published Mon-Sat 06:00–21:00, Sun 07:00–21:00',
     'NSW Spatial Services ground parcel + roof traced in narromine-buildings-data.js',
     'Coles section of historic exterior photograph supplied by Josh (not an interior survey)'],
@@ -39,6 +51,17 @@ export function colesOpen(day,minute){
   if(s.isHoliday)return null; // Unknown real holiday roster: do not invent opening.
   const range=new Date(s.date+'T00:00:00Z').getUTCDay()===0?COLES_HOURS.sunday:COLES_HOURS.weekday;
   return minute>=range[0]&&minute<range[1];
+}
+// Official Coles NSW Quiet Hour roster (viewed 4 Nov 2026): reduced sound on
+// weekdays 10:30–11:30, with reduced lighting ALSO listed for Tuesdays.
+// Holiday arrangements are unverified; null intentionally means "unknown",
+// not that a real service was available or unavailable. No live API is queried.
+export function colesQuietHour(day, minute) {
+  const s = postalState(day, minute);
+  if (s.isHoliday) return null;
+  const weekday = new Date(s.date + 'T00:00:00Z').getUTCDay();
+  const reducedSound = weekday >= 1 && weekday <= 5 && minute >= 630 && minute < 690;
+  return Object.freeze({ reducedSound, reducedLighting: weekday === 2 && reducedSound });
 }
 export function buildNarromineColesInterior(makeLabel, day=1, minute=540) {
   const group=new THREE.Group();group.name='Narromine Coles · interpretive supermarket';
@@ -96,6 +119,12 @@ export function buildNarromineColesInterior(makeLabel, day=1, minute=540) {
     box(.65,.08,.34,-17+(i%4)*.91,.48,22.94-Math.floor(i/4)*.84,0xced6d8);
   }
   label('TROLLEYS · BASKETS',-14.6,2.0,23.3);
+  // This information stand occupies the existing clear customer lobby, adds no
+  // new solid collider and does not imply that a particular trolley is available.
+  label('ACCESSIBILITY · QUIET HOUR INFO',-3.8,2.55,23.1,'interactive');
+  hot('accessibility','Accessibility and Quiet Hour information',
+    'Coles Narromine lists carry-to-car assistance and speciality trolleys (ask the store about availability). Its published Quiet Hour reduces sound Monday to Friday, 10:30–11:30 am; on Tuesdays lighting is also listed as reduced. Hours, holiday arrangements and services can change. The model’s aisle layout is interpretive, not a verified Coles floor plan. Source: Coles official Narromine store and Quiet Hour pages, checked 4 November 2026.',
+    -3.0,21.5);
   // Produce bay: low bins, visible content, aisle wide enough for trolleys.
   const veg=[0x78a447,0xc1b34b,0xcb5939,0x548b57,0xe39e41,0x85493e];
   for(let row=0;row<3;row++)for(let col=0;col<3;col++){

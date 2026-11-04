@@ -17,14 +17,26 @@
   select, input, button, textarea { font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
   button { cursor:pointer; background:var(--accent); color:#fff; border-color:transparent; }
   button.ghost { background:transparent; color:var(--ink); border-color:var(--line); }
+  button:disabled { opacity:.5; cursor:default; }
   #panes { display:grid; grid-template-columns:1fr 1fr; min-height:0; }
+  #panes.three { grid-template-columns:1fr 1fr 1fr; }
   .pane { position:relative; min-height:0; border-right:1px solid var(--line); }
   .pane:last-child { border-right:0; }
+  .pane[hidden] { display:none; }
   .tag { position:absolute; z-index:5; top:8px; left:8px; background:rgba(0,0,0,.6); color:#fff; padding:3px 8px; border-radius:4px; font-size:12px; pointer-events:none; }
   #pano, #game { width:100%; height:100%; border:0; display:block; }
   #nokey { position:absolute; inset:0; display:none; flex-direction:column; justify-content:center; gap:12px; padding:24px; text-align:left; }
   #nokey p { margin:0; max-width:46ch; }
   #nokey a { color:var(--accent); font-weight:600; }
+  #mlyPane { background:#000; }
+  #mlyImg { width:100%; height:100%; object-fit:contain; display:block; }
+  #mlyMsg { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:24px 24px 90px; text-align:center; color:#cfd6dc; }
+  #mlyBar { position:absolute; z-index:6; left:8px; right:8px; bottom:8px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; background:rgba(0,0,0,.65); color:#fff; padding:6px 8px; border-radius:6px; font-size:12px; }
+  #mlyBar button { padding:3px 8px; font-size:12px; }
+  #mlyBar button.ghost { color:#fff; border-color:rgba(255,255,255,.35); }
+  #mlyInfo { font-variant-numeric:tabular-nums; }
+  #mlyAttr { width:100%; font-size:11px; opacity:.85; }
+  #mlyAttr a { color:#fff; }
   footer { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:flex-start; padding:8px 12px; background:var(--panel); border-top:1px solid var(--line); }
   #readout { font-variant-numeric:tabular-nums; color:var(--muted); font-size:12px; min-width:250px; }
   #notes { flex:1 1 320px; min-height:56px; resize:vertical; }
@@ -34,7 +46,7 @@
   #toast { position:fixed; z-index:50; top:58px; left:50%; transform:translateX(-50%); max-width:min(92vw,620px); background:#7a2e0e; color:#fff; padding:10px 14px; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.35); font-size:13px; display:none; }
   #toast.free { background:#2f5a3c; }
   #log { max-height:84px; overflow:auto; font-size:11px; color:var(--muted); min-width:260px; margin:0; padding-left:16px; }
-  @media (max-width:760px) { #panes { grid-template-columns:1fr; grid-template-rows:1fr 1fr; } .pane { border-right:0; border-bottom:1px solid var(--line); } }
+  @media (max-width:760px) { #panes, #panes.three { grid-template-columns:1fr; grid-template-rows:1fr 1fr; } #panes.three { grid-template-rows:1fr 1fr 1fr; } .pane { border-right:0; border-bottom:1px solid var(--line); } }
 </style>
 </head>
 <body>
@@ -48,7 +60,8 @@
   <label title="When you walk in the game, Street View jumps to you once you stop (each jump is one counted load). Turning is free."><input type="checkbox" id="followGame" checked> Street View follows game</label>
   <button class="ghost" id="fromgame" title="Move Street View to where you are standing in the game">Street View ← game</button>
   <button class="ghost" id="keybtn">Maps API key…</button>
-  <div id="meter" title="Every Google call this page makes is counted here and announced on screen.">
+  <label title="Show a third panel with the nearest Mapillary street-level photo. Mapillary's API is free."><input type="checkbox" id="mlyOn"> Mapillary photos</label>
+  <div id="meter" title="Every Google call this page makes, in any browser, is counted here and announced on screen.">
     <span>Google calls this month: <b id="mCalls">0</b></span>
     <span>Billable loads: <b id="mLoads">0</b> / 5,000 free</span>
     <span>Est. charge: <b id="mCost">US$0.00</b></span>
@@ -65,6 +78,20 @@
       <p>Without a key, you can still compare: <a id="extlink" target="_blank" rel="noopener">open this exact spot in Google Street View ↗</a> in another window. It follows the place, heading and tilt shown below.</p>
     </div>
   </section>
+  <section class="pane" id="mlyPane" hidden>
+    <span class="tag">Real Narromine · Mapillary photo</span>
+    <img id="mlyImg" alt="Mapillary street-level photo" crossorigin="anonymous" hidden>
+    <div id="mlyMsg">Looking for Mapillary photos…</div>
+    <div id="mlyBar">
+      <button class="ghost" id="mlyPrev" title="Previous nearby photo">◀</button>
+      <span id="mlyInfo">–</span>
+      <button class="ghost" id="mlyNext" title="Next nearby photo">▶</button>
+      <button id="mlyMatch" title="Put the game (and Street View) where this photo was taken, facing the same way">Game → photo</button>
+      <button id="mlyDlPhoto" title="Download this Mapillary photo">⬇ Photo</button>
+      <button id="mlyDlPair" title="Download one PNG: the Mapillary photo beside the game view">⬇ Photo + game</button>
+      <span id="mlyAttr"></span>
+    </div>
+  </section>
   <section class="pane">
     <span class="tag">Repository Town · same coordinates</span>
     <iframe id="game" src="./index.html" title="Repository Town"></iframe>
@@ -78,7 +105,7 @@
     <button class="ghost" id="addpos">Insert current place</button>
     <button class="ghost" id="export">Download notes</button>
   </div>
-  <p class="small">Every call to Google is announced on screen and counted above. The estimate uses Google's listed price (5,000 free loads a month, then US$14 per 1,000) and counts conservatively; your Google Cloud billing report is the final word. Street View imagery is shown live through Google's official viewer, with Google's attribution. It is not captured, stored or analysed by this page. Game coordinates are converted from the same latitude and longitude, with the heading and tilt matched.</p>
+  <p class="small">Every call to Google is announced on screen and counted above. The estimate uses Google's listed price (5,000 free loads a month, then US$14 per 1,000) and counts conservatively; your Google Cloud billing report is the final word. Street View imagery is shown live through Google's official viewer, with Google's attribution. It is not captured, stored or analysed by this page. Game coordinates are converted from the same latitude and longitude, with the heading and tilt matched. Mapillary photos are © Mapillary and their contributors, licensed CC BY-SA 4.0; downloads keep the photo ID, contributor and licence in the image and file name.</p>
 </footer>
 <script type="module">
 import { geoToWorld, DETAILED, PLACES } from './world/narromine-layout.js';
@@ -101,10 +128,18 @@ function drawMeter() {
   $('mCalls').textContent = meter.calls.toLocaleString(); $('mLoads').textContent = meter.loads.toLocaleString();
   $('mCost').textContent = 'US$' + estCost().toFixed(2); $('mCap').value = capLoads;
 }
+// Shared meter: the monthly totals live on the server (/api/meter), so every browser and session adds
+// to the same count. This browser's copy is only a fallback if the server can't be reached.
+let shared = false;
+const takeShared = (j) => { if (j && Number.isFinite(j.calls)) { shared = true; meter.calls = Math.max(meter.calls, j.calls); meter.loads = Math.max(meter.loads, j.loads); drawMeter(); } };
+fetch('./api/meter', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).then((j) => { if (j) { shared = true; meter.calls = j.calls; meter.loads = j.loads; drawMeter(); } }).catch(() => {});
+setInterval(() => fetch('./api/meter', { cache: 'no-store' }).then((r) => r.ok ? r.json() : null).then(takeShared).catch(() => {}), 30000);
 // Record and announce one Google call. kind: 'load' (billable Dynamic Street View), 'meta' or 'script' (no charge).
 function apiCall(kind, what) {
   meter.calls++; if (kind === 'load') meter.loads++;
   try { localStorage.setItem(mKey, JSON.stringify(meter)); } catch {}
+  fetch('./api/meter', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ calls: 1, loads: kind === 'load' ? 1 : 0 }), keepalive: true })
+    .then((r) => r.ok ? r.json() : null).then(takeShared).catch(() => {});
   const overFree = meter.loads > PRICE.free, each = 'US$' + PRICE.load.toFixed(3);
   const cost = kind !== 'load' ? 'no charge' : overFree ? 'costs ' + each
     : each + ' list price, covered by your 5,000 free loads (' + (PRICE.free - meter.loads).toLocaleString() + ' left this month)';
@@ -124,6 +159,10 @@ function allowLoad() {
   return false;
 }
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+function note(msg, ok = true) {
+  const t = $('toast'); t.textContent = msg; t.className = ok ? 'free' : ''; t.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.display = 'none'; }, 4500);
+}
 
 // geoToWorld is a local equirectangular projection, so its inverse is affine: build it from two probes.
 const o = geoToWorld(-32.23, 148.24), a = geoToWorld(-32.229, 148.24), b = geoToWorld(-32.23, 148.241);
@@ -142,6 +181,158 @@ for (const [i, p] of presets.entries()) $('preset').add(new Option(p.name, i));
 
 let placedAt = null, ourPano = null, pano = null, svService = null, lastGeo = null, pov = { heading: 0, pitch: 0, zoom: 1 }, suppress = false;
 const gameApi = () => { try { return $('game').contentWindow.__town || null; } catch { return null; } };
+
+// ---------- Mapillary (third panel) ----------
+// Mapillary is reached through this site's /api/mapillary endpoint; its token stays in the Vercel
+// environment (MAPILLARY_TOKEN) and never reaches the browser.
+const mly = { on: store.get('mlyOn') !== '0', list: [], i: 0, at: null, seq: 0, timer: null };
+const metres = (lat1, lng1, lat2, lng2) => Math.hypot((lng2 - lng1) * Math.cos(lat1 * Math.PI / 180) * 111320, (lat2 - lat1) * 110540);
+const angDiff = (x, y) => Math.abs(((x - y + 540) % 360) - 180);
+const mlyPhoto = () => mly.list[mly.i] || null;
+
+function mlyMsg(text) {
+  $('mlyMsg').textContent = text; $('mlyMsg').style.display = text ? 'flex' : 'none';
+  if (text) { $('mlyImg').hidden = true; $('mlyInfo').textContent = '–'; $('mlyAttr').textContent = ''; }
+  for (const id of ['mlyPrev', 'mlyNext', 'mlyMatch', 'mlyDlPhoto', 'mlyDlPair']) $(id).disabled = !!text;
+}
+
+function mlyLayout() {
+  $('mlyPane').hidden = !mly.on; $('panes').classList.toggle('three', mly.on);
+  setTimeout(syncGame, 50);   // the game frame changed size
+}
+
+// Debounced: called whenever the place changes.
+function mlyNear(lat, lng) {
+  if (!mly.on || !Number.isFinite(lat) || !Number.isFinite(lng)) return;
+  clearTimeout(mly.timer); mly.timer = setTimeout(() => mlySearch(lat, lng), 500);
+}
+
+async function mlySearch(lat, lng, force = false) {
+  if (!force && mly.at && mly.list.length && metres(mly.at.lat, mly.at.lng, lat, lng) < 8) return;
+  const seq = ++mly.seq; mly.at = { lat, lng };
+  mlyMsg('Looking for Mapillary photos near ' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '…');
+  // Search outwards: ~75 m, ~220 m, ~300 m boxes through the site's Mapillary endpoint.
+  for (const r of [75, 220, 300]) {
+    let j;
+    try {
+      // On a static backup host (no /api), fall back to Mapillary directly with a token kept in this browser.
+      let res = await fetch(`./api/mapillary?kind=images&lat=${lat.toFixed(6)}&lng=${lng.toFixed(6)}&r=${r}`).catch(() => null);
+      if (!res || res.status === 404 || res.status === 405 || !(res.headers.get('content-type') || '').includes('json')) {
+        let tok = store.get('mlyToken');
+        if (!tok) { tok = (prompt('This backup site has no server, so Mapillary needs your client token (starts with MLY|). It is kept only in this browser.') || '').trim(); if (tok) store.set('mlyToken', tok); }
+        if (!tok) { if (seq === mly.seq) mlyMsg('Mapillary needs a client token on this backup site.'); return; }
+        const dLat = r / 111320, dLng = r / (111320 * Math.cos(lat * Math.PI / 180));
+        const bbox = [lng - dLng, lat - dLat, lng + dLng, lat + dLat].map((v) => v.toFixed(6)).join(',');
+        res = await fetch(`https://graph.mapillary.com/images?access_token=${encodeURIComponent(tok)}&fields=id,captured_at,compass_angle,computed_compass_angle,geometry,computed_geometry,thumb_2048_url,creator,is_pano&bbox=${bbox}&limit=200`);
+      }
+      j = await res.json().catch(() => ({}));
+      if (!res.ok) { if (seq === mly.seq) mlyMsg('Mapillary is unavailable (' + res.status + '): ' + (j.error || j.detail || 'try again shortly') + '.'); return; }
+    } catch (e) { if (seq === mly.seq) mlyMsg('Could not reach Mapillary (' + (e.message || 'network error') + ').'); return; }
+    if (seq !== mly.seq) return;   // a newer search started
+    const items = (j.data || []).map((d) => {
+      const c = (d.computed_geometry || d.geometry).coordinates;
+      return { ...d, lat: c[1], lng: c[0], heading: d.computed_compass_angle ?? d.compass_angle ?? 0, dist: metres(lat, lng, c[1], c[0]) };
+    }).filter((d) => d.thumb_2048_url)
+      .sort((p, q) => (p.dist + (p.is_pano ? 25 : 0)) - (q.dist + (q.is_pano ? 25 : 0)));   // prefer flat photos over 360°
+    if (items.length) {
+      mly.list = items.slice(0, 60);
+      // Of the closest photos, start with the one facing most like the current view.
+      const near = mly.list.filter((p) => p.dist <= mly.list[0].dist + 12);
+      mly.i = mly.list.indexOf(near.reduce((best, p) => angDiff(p.heading, pov.heading) < angDiff(best.heading, pov.heading) ? p : best));
+      mlyShow(); return;
+    }
+  }
+  mly.list = []; mlyMsg('No Mapillary photos within about 500 m of here yet.');
+}
+
+function mlyShow() {
+  const p = mlyPhoto(); if (!p) return;
+  mlyMsg('');
+  const img = $('mlyImg'); img.hidden = false;
+  img.onerror = () => mlyMsg('That photo would not load (Mapillary links expire). Try ▶ or move a little.');
+  img.src = p.thumb_2048_url;
+  const date = p.captured_at ? new Date(p.captured_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' }) : 'date unknown';
+  $('mlyInfo').textContent = `${mly.i + 1}/${mly.list.length} · ${p.dist.toFixed(0)} m away · facing ${p.heading.toFixed(0)}°${p.is_pano ? ' · 360°' : ''} · ${date}`;
+  const who = p.creator?.username ? ' by ' + p.creator.username : '';
+  $('mlyAttr').innerHTML = `© <a href="https://www.mapillary.com/app/?pKey=${p.id}" target="_blank" rel="noopener">Mapillary photo ${p.id}</a>${who.replace(/[<>&]/g, '')}, CC BY-SA 4.0`;
+}
+
+function mlyStep(d) { if (!mly.list.length) return; mly.i = (mly.i + d + mly.list.length) % mly.list.length; mlyShow(); }
+
+// Put the game (and Street View) exactly where the photo was taken, looking the same way.
+function mlyMatch() {
+  const p = mlyPhoto(), t = gameApi(); if (!p || !t) return;
+  mly.at = { lat: p.lat, lng: p.lng };                 // keep the current photo list
+  const keep = $('follow').checked; $('follow').checked = false;   // don't let the panorama's road snap move the game
+  pov.pitch = 0; goTo(p.lat, p.lng, p.heading);
+  const [x, z] = geoToWorld(p.lat, p.lng), frame = $('game').getBoundingClientRect();
+  const hfov = (p.is_pano ? 90 : 70) * Math.PI / 180, aspect = frame.width / Math.max(1, frame.height);   // typical phone/action-cam field of view
+  t.place(x, z, yawFromHeading(p.heading)); placedAt = { x, z, yaw: yawFromHeading(p.heading) };
+  t.view?.({ pitch: 0, fov: 2 * Math.atan(Math.tan(hfov / 2) / aspect) * 180 / Math.PI });
+  setTimeout(() => { $('follow').checked = keep; }, 1500);
+}
+
+// Grab the game's WebGL canvas. Reading it inside the game window's next animation frame
+// (queued after the game's own render callback) gets the freshly drawn picture.
+function gameShot() {
+  return new Promise((resolve) => {
+    let w, doc; try { w = $('game').contentWindow; doc = $('game').contentDocument; } catch { return resolve(null); }
+    const c = [...(doc?.querySelectorAll('canvas') || [])].sort((p, q) => q.width * q.height - p.width * p.height)[0];
+    if (!c) return resolve(null);
+    w.requestAnimationFrame(() => {
+      try { const out = document.createElement('canvas'); out.width = c.width; out.height = c.height; out.getContext('2d').drawImage(c, 0, 0); resolve(out); }
+      catch { resolve(null); }
+    });
+  });
+}
+
+async function photoBitmap(p) {
+  const res = await fetch(p.thumb_2048_url, { mode: 'cors' }); if (!res.ok) throw new Error('photo ' + res.status);
+  const blob = await res.blob(); return { blob, bmp: await createImageBitmap(blob) };
+}
+
+const slug = (s) => String(s || 'place').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+function save(blob, name) {
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+const placeName = () => presets[$('preset').value]?.name || 'Narromine';
+
+async function mlyDownloadPhoto() {
+  const p = mlyPhoto(); if (!p) return;
+  try { const { blob } = await photoBitmap(p); save(blob, `mapillary-${slug(placeName())}-${p.id}.jpg`); note('Downloaded Mapillary photo ' + p.id + ' (CC BY-SA 4.0).'); }
+  catch { window.open(p.thumb_2048_url, '_blank', 'noopener'); note('The browser blocked a direct download, so the photo opened in a new tab: save it from there.', false); }
+}
+
+async function mlyDownloadPair() {
+  const p = mlyPhoto(); if (!p) return;
+  $('mlyDlPair').disabled = true;
+  try {
+    const [shot, photo] = await Promise.all([gameShot(), photoBitmap(p).catch(() => null)]);
+    if (!photo && !shot) { note('Could not capture either picture.', false); return; }
+    const H = 1080, cap = 64, gap = 8;
+    const pw = photo ? Math.round(photo.bmp.width * H / photo.bmp.height) : 0;
+    const gw = shot ? Math.round(shot.width * H / shot.height) : 0;
+    const cv = document.createElement('canvas'); cv.width = pw + gw + (photo && shot ? gap : 0); cv.height = H + cap;
+    const g = cv.getContext('2d'); g.fillStyle = '#111'; g.fillRect(0, 0, cv.width, cv.height);
+    if (photo) g.drawImage(photo.bmp, 0, 0, pw, H);
+    if (shot) g.drawImage(shot, pw + (photo ? gap : 0), 0, gw, H);
+    // Labels on each half
+    g.font = '600 26px system-ui, sans-serif'; g.textBaseline = 'top';
+    const tag = (txt, x) => { const w = g.measureText(txt).width + 20; g.fillStyle = 'rgba(0,0,0,.6)'; g.fillRect(x + 12, 12, w, 38); g.fillStyle = '#fff'; g.fillText(txt, x + 22, 18); };
+    if (photo) tag('Real Narromine · Mapillary', 0);
+    if (shot) tag('Repository Town', pw + (photo ? gap : 0));
+    // Caption with place, position and attribution
+    const date = p.captured_at ? new Date(p.captured_at).toISOString().slice(0, 10) : 'date unknown';
+    g.fillStyle = '#ddd'; g.font = '20px system-ui, sans-serif';
+    g.fillText(`${placeName()} · ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)} · facing ${p.heading.toFixed(0)}° · photo ${date}`, 16, H + 8);
+    g.fillStyle = '#aaa'; g.font = '16px system-ui, sans-serif';
+    g.fillText(`Photo: © Mapillary ${p.id}${p.creator?.username ? ' by ' + p.creator.username : ''}, CC BY-SA 4.0 · Game: Repository Town · ${new Date().toISOString().slice(0, 10)}`, 16, H + 36);
+    cv.toBlob((blob) => { save(blob, `narromine-compare-${slug(placeName())}-${p.id}.png`); }, 'image/png');
+    note(!photo ? 'The photo could not be read (blocked by the browser), so only the game half was saved.' : !shot ? 'The game view could not be captured, so only the photo half was saved.' : 'Downloaded the side-by-side comparison.', !!(photo && shot));
+  } finally { $('mlyDlPair').disabled = false; }
+}
+// ---------- end Mapillary ----------
 
 function readout(extra = '') {
   const g = lastGeo ? `${lastGeo.lat.toFixed(6)}, ${lastGeo.lng.toFixed(6)}` : '—';
@@ -163,6 +354,7 @@ function syncGame() {
 function goTo(lat, lng, heading, faceTarget = false) {
   lastGeo = { lat, lng }; if (Number.isFinite(heading)) pov.heading = heading;
   $('lat').value = lat.toFixed(6); $('lng').value = lng.toFixed(6);
+  mlyNear(lat, lng);
   if (pano && svService) {
     if (!allowLoad()) { readout('Street View paused at your monthly limit; the game still moves.'); syncGame(); return; }
     apiCall('meta', 'Street View metadata lookup (find nearest panorama)');
@@ -197,7 +389,7 @@ function loadMaps(key) {
     $('nokey').style.display = 'none';
     pano = new google.maps.StreetViewPanorama($('pano'), { addressControl: true, motionTracking: false, fullscreenControl: false, showRoadLabels: true });
     svService = new google.maps.StreetViewService();
-    pano.addListener('position_changed', () => { const p = pano.getPosition(); if (!p) return; lastGeo = { lat: p.lat(), lng: p.lng() }; $('lat').value = lastGeo.lat.toFixed(6); $('lng').value = lastGeo.lng.toFixed(6); readout(); if (!suppress) syncGame(); });
+    pano.addListener('position_changed', () => { const p = pano.getPosition(); if (!p) return; lastGeo = { lat: p.lat(), lng: p.lng() }; $('lat').value = lastGeo.lat.toFixed(6); $('lng').value = lastGeo.lng.toFixed(6); readout(); mlyNear(lastGeo.lat, lastGeo.lng); if (!suppress) syncGame(); });
     pano.addListener('pov_changed', () => { pov = { ...pov, ...pano.getPov(), zoom: pano.getZoom?.() ?? pov.zoom }; readout(); if (!suppress) syncGame(); });
     pano.addListener('zoom_changed', () => { pov.zoom = pano.getZoom(); readout(); syncGame(); });
     pano.addListener('pano_changed', () => {
@@ -259,11 +451,25 @@ $('keybtn').addEventListener('click', () => {
   const k = prompt('Google Maps JavaScript API key (kept only in this browser). Leave blank to remove it.', store.get('svCompareKey') || '');
   if (k === null) return; store.set('svCompareKey', k.trim()); location.reload();
 });
+
+// Mapillary controls
+$('mlyOn').checked = mly.on;
+$('mlyOn').addEventListener('change', () => {
+  mly.on = $('mlyOn').checked; store.set('mlyOn', mly.on ? '1' : '0'); mlyLayout();
+  if (mly.on && lastGeo) mlySearch(lastGeo.lat, lastGeo.lng, true);
+});
+$('mlyPrev').addEventListener('click', () => mlyStep(-1));
+$('mlyNext').addEventListener('click', () => mlyStep(1));
+$('mlyMatch').addEventListener('click', mlyMatch);
+$('mlyDlPhoto').addEventListener('click', mlyDownloadPhoto);
+$('mlyDlPair').addEventListener('click', mlyDownloadPair);
+mlyLayout();
+
 $('notes').value = store.get('svCompareNotes') || '';
 $('notes').addEventListener('input', () => store.set('svCompareNotes', $('notes').value));
 $('addpos').addEventListener('click', () => {
-  const name = presets[$('preset').value]?.name || 'Place';
-  $('notes').value += `${$('notes').value && !$('notes').value.endsWith('\n') ? '\n' : ''}## ${name} @ ${lastGeo ? lastGeo.lat.toFixed(6) + ', ' + lastGeo.lng.toFixed(6) : '?'} heading ${pov.heading.toFixed(0)}°\n- `;
+  const name = presets[$('preset').value]?.name || 'Place', mp = mly.on ? mlyPhoto() : null;
+  $('notes').value += `${$('notes').value && !$('notes').value.endsWith('\n') ? '\n' : ''}## ${name} @ ${lastGeo ? lastGeo.lat.toFixed(6) + ', ' + lastGeo.lng.toFixed(6) : '?'} heading ${pov.heading.toFixed(0)}°${mp ? ` · Mapillary https://www.mapillary.com/app/?pKey=${mp.id}` : ''}\n- `;
   store.set('svCompareNotes', $('notes').value); $('notes').focus();
 });
 $('export').addEventListener('click', () => {

@@ -14,7 +14,9 @@ export function createAmbience() {
   let music=null,vehicleAudio=null,musicBus=null,ambienceBus=null,effectsBus=null;
   let trackIndex=-1,nextSheep=0,nextCow=0,nextCrossing=0;
   try{const stored=localStorage.getItem('repository-town.music-track');if(stored!==null){const k=Number(stored);if(Number.isInteger(k)&&k>=-1&&k<MUSIC_TRACKS.length)trackIndex=k;}}catch{}
-  let mix={master:.7,music:.35,ambience:.7,effects:.8};
+  let mix={master:.7,music:.35,ambience:.7,effects:.8},radioOn=false;
+  // Background music fades out while the car radio plays, so the two never play over each other.
+  const musicLevel=()=>radioOn?0:mix.music;
   try{const stored=JSON.parse(localStorage.getItem('repository-town.audio-mix')||'{}');for(const k of Object.keys(mix))if(Number.isFinite(stored[k]))mix[k]=Math.max(0,Math.min(1,stored[k]));}catch{}
   let white = null, reverb = null, reverbSend = null, indoorsNow = false;
   let nextBird = 0, nextCricket = 0, nextRoom = 0, nextMagpie = 0, nextDog = 0, nextFrog = 0, nextRooster = 0, nextThunder = 0, nextDrip = 0, nextCrow = 0;
@@ -49,7 +51,7 @@ export function createAmbience() {
     const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
     ctx = new AC(); master = ctx.createGain(); master.gain.value = mix.master*.7; master.connect(ctx.destination);
     ambienceBus=ctx.createGain();effectsBus=ctx.createGain();musicBus=ctx.createGain();
-    ambienceBus.gain.value=mix.ambience;effectsBus.gain.value=mix.effects;musicBus.gain.value=mix.music;
+    ambienceBus.gain.value=mix.ambience;effectsBus.gain.value=mix.effects;musicBus.gain.value=musicLevel();
     ambienceBus.connect(master);effectsBus.connect(master);musicBus.connect(master);music=createSoundtrack(ctx,musicBus);vehicleAudio=createVehicleAudio(ctx,effectsBus);
     const brown = noiseBuffer(ctx);
     white = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const wd = white.getChannelData(0);
@@ -401,7 +403,8 @@ export function createAmbience() {
       debug.track=index<0?'Adaptive venue soundtrack':musicTrackAt(index).name;return true;},
     nextTrack(){trackIndex=(trackIndex+1)%MUSIC_TRACKS.length;try{localStorage.setItem('repository-town.music-track',String(trackIndex));}catch{}return musicTrackAt(trackIndex).name;},
     previousTrack(){trackIndex=(trackIndex+MUSIC_TRACKS.length-1)%MUSIC_TRACKS.length;try{localStorage.setItem('repository-town.music-track',String(trackIndex));}catch{}return musicTrackAt(trackIndex).name;},
-    setMix(key,value){if(!(key in mix)||!Number.isFinite(value))return;mix[key]=Math.max(0,Math.min(1,value));try{localStorage.setItem('repository-town.audio-mix',JSON.stringify(mix));}catch{}if(ctx){master.gain.setTargetAtTime(mix.master*.7,ctx.currentTime,.1);ambienceBus.gain.setTargetAtTime(mix.ambience,ctx.currentTime,.1);effectsBus.gain.setTargetAtTime(mix.effects,ctx.currentTime,.1);musicBus.gain.setTargetAtTime(mix.music,ctx.currentTime,.1);}},
+    setMix(key,value){if(!(key in mix)||!Number.isFinite(value))return;mix[key]=Math.max(0,Math.min(1,value));try{localStorage.setItem('repository-town.audio-mix',JSON.stringify(mix));}catch{}if(ctx){master.gain.setTargetAtTime(mix.master*.7,ctx.currentTime,.1);ambienceBus.gain.setTargetAtTime(mix.ambience,ctx.currentTime,.1);effectsBus.gain.setTargetAtTime(mix.effects,ctx.currentTime,.1);musicBus.gain.setTargetAtTime(musicLevel(),ctx.currentTime,.1);}},
+    setRadioPlaying(playing){playing=!!playing;if(playing===radioOn)return;radioOn=playing;debug.radioDucked=playing;if(ctx)musicBus.gain.setTargetAtTime(musicLevel(),ctx.currentTime,.25);},
     work(kind){if(!ctx||!on)return;switch(kind){case 'grind':burst('bandpass',650,1.5,1.4,.07);break;case 'steam':burst('highpass',4000,.7,2,.045);break;case 'extract':case 'fill':case 'pour':case 'latte-art':burst('bandpass',1600,.8,1.5,.035);break;case 'cook':case 'bake':case 'preheat':burst('highpass',2400,.8,1.6,.035);break;case 'probe':tone(920,.1,.026,'sine');break;case 'success':tone(659,.08,.035,'triangle');tone(880,.13,.025,'sine');break;case 'tamp':thump(110,.12,.06);break;default:roomEvent('clink');}},
     relic: () => { tone(587.33, 0.15, 0.07, 'triangle'); setTimeout(() => tone(880, 0.25, 0.07, 'triangle'), 110); },
     // Woodcutting: a woody thunk per swing, a creak and thud when a tree falls, and a short level-up fanfare.
