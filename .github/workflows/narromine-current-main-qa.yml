@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: d98319e614d11023f997ba4c657b951c10ce9676
+          ref: afb89a40cdacdc65cbf4398b451b52592f579dc0
           path: source
           persist-credentials: false
       - name: Install Node 22
@@ -41,10 +41,11 @@ jobs:
           const cp = require('node:child_process');
           const manifest=JSON.parse(fs.readFileSync('dist/public/release.json'));
           const actual=cp.execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
-          if(manifest.sourceCommit!==actual || actual!=='d98319e614d11023f997ba4c657b951c10ce9676') throw Error('Source revision mismatch');
+          if(manifest.sourceCommit!==actual || actual!=='afb89a40cdacdc65cbf4398b451b52592f579dc0') throw Error('Source revision mismatch');
           if(!/^[0-9a-f]{64}$/.test(manifest.contentHash)) throw Error('Invalid build fingerprint');
           for(const p of ['world/narromine-nw-dandaloo-block.js','world/narromine-mainstreet-physio.js',
-            'world/narromine-roof-lettering.js','world/narromine-nsw-evidence.js']) {
+            'world/narromine-roof-lettering.js','world/narromine-coles.js',
+            'world/narromine-postal-character.js','world/narromine-nsw-evidence.js']) {
             // Only require known runtime assets; NSW evidence may be data-only.
             if(p.endsWith('narromine-nsw-evidence.js')) continue;
             if(!fs.existsSync('dist/public/'+p)) throw Error('Missing Narromine asset: '+p);
@@ -57,6 +58,8 @@ jobs:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
           npx playwright install --with-deps chromium
+          node tests/narromine-postal-resident.mjs
+          node tests/narromine-post-office-browser.mjs
           node tests/narromine-nw-dandaloo-browser.mjs
           node tests/narromine-mainstreet-physio-browser.mjs
       - name: Preserve independent screenshots
@@ -67,6 +70,7 @@ jobs:
           path: |
             source/repository-town/test-results/narromine-nw-dandaloo/
             source/repository-town/test-results/narromine-physio/
+            source/repository-town/test-results/narromine-post-office/
           retention-days: 14
           if-no-files-found: warn
       - name: Checkout existing QA Pages site (keep root and other previews)
@@ -80,7 +84,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          target="site/qa/narromine-20261104"
+          target="site/qa/narromine-rt068-20261104"
           mkdir -p "$target"
           rsync -a --delete source/repository-town/dist/public/ "$target/"
           test -f site/index.html
@@ -90,7 +94,7 @@ jobs:
           printf 'Source: joshualparris/JoshMemory\nCommit: %s\nContentHash: %s\nGates: full release + privacy + desktop/Android browser tests\nPreview only: different origin => separate local saved games\n' "$sha" "$hash" > "$target/QA_BUILD.txt"
           git -C site config user.name 'github-actions[bot]'
           git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git -C site add qa/narromine-20261104
+          git -C site add qa/narromine-rt068-20261104
           if git -C site diff --cached --quiet; then
             echo 'Identical source verified, no publish needed'
           else
@@ -98,4 +102,4 @@ jobs:
             git -C site push origin HEAD:main
           fi
       - name: Published QA URL
-        run: echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/'
+        run: echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-rt068-20261104/'
