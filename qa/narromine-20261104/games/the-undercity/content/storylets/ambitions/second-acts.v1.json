@@ -1,0 +1,4694 @@
+{
+  "schema_version": 1,
+  "content_type": "ambition-support",
+  "id": "three-companion-investigations",
+  "description": "Sixty-six optional investigations which enrich the Tide, Mirror and Ember ambitions without advancing or duplicating their main chains.",
+  "chapters": [
+    {
+      "id": "side-tide-9",
+      "title": "Companion inquiry: An inheritance with wet edges",
+      "description": "A funeral procession carries a coffin full of tide marks. Nobody will admit who died.",
+      "where": [
+        "quays"
+      ],
+      "progress": 8,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 8
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 5,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "tide-proof-9"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The marks match the city's demolished river stairs. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-9"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The marks match the city's demolished river stairs. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-9"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The marks match the city's demolished river stairs. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-10",
+      "title": "Companion inquiry: The ferryman's unsigned oath",
+      "description": "At the quays a ferryman presents a licence valid only for passengers who have been forgotten.",
+      "where": [
+        "ink"
+      ],
+      "progress": 9,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 9
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-10"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "An erased boatload becomes the first witness in your case. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-10"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "An erased boatload becomes the first witness in your case. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-10"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "An erased boatload becomes the first witness in your case. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-11",
+      "title": "Companion inquiry: A cadastral map in salt",
+      "description": "The archive's oldest survey preserves shorelines in salt that dissolves under lamplight.",
+      "where": [
+        "market"
+      ],
+      "progress": 10,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 10
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-11"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You recover the coastline before a clerk can scrape it away. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-11"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You recover the coastline before a clerk can scrape it away. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-11"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You recover the coastline before a clerk can scrape it away. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-12",
+      "title": "Companion inquiry: Rent paid to water",
+      "description": "Merchants have collected rent from houses built on a vanished bank.",
+      "where": [
+        "soot"
+      ],
+      "progress": 11,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 11
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-12"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Their receipts reveal a civic fraud lasting three generations. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-12"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Their receipts reveal a civic fraud lasting three generations. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-12"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Their receipts reveal a civic fraud lasting three generations. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-13",
+      "title": "Companion inquiry: The lock that opens downstream",
+      "description": "The drainage authority maintains a gate whose key turns against the current.",
+      "where": [
+        "choir"
+      ],
+      "progress": 12,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 12
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-13"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The lock shelters a settlement excluded from the will. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-13"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The lock shelters a settlement excluded from the will. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-13"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The lock shelters a settlement excluded from the will. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-14",
+      "title": "Companion inquiry: An injunction sung at dusk",
+      "description": "The Moss Choir remembers a ban on naming a district aloud.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 13,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 13
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-14"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The last verse names the judge who signed the order. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-14"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The last verse names the judge who signed the order. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-14"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The last verse names the judge who signed the order. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-15",
+      "title": "Companion inquiry: The drowned surveyor",
+      "description": "A surveyor's voice arrives through the pipes, still trying to finish their report.",
+      "where": [
+        "edge"
+      ],
+      "progress": 14,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 14
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 6,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "tide-proof-15"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The testimony distinguishes deliberate theft from ordinary flood. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-15"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The testimony distinguishes deliberate theft from ordinary flood. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-15"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The testimony distinguishes deliberate theft from ordinary flood. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-16",
+      "title": "Companion inquiry: The ledger of dry land",
+      "description": "A registrar insists the river cannot own anything and therefore cannot inherit.",
+      "where": [
+        "court"
+      ],
+      "progress": 15,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 15
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-16"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The register contains a precedent written by the registrar's mother. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-16"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The register contains a precedent written by the registrar's mother. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-16"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The register contains a precedent written by the registrar's mother. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-17",
+      "title": "Companion inquiry: A crossing at low bell",
+      "description": "The Siltway withdraws beneath a bridge for exactly three minutes.",
+      "where": [
+        "quays"
+      ],
+      "progress": 16,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 16
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-17"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You cross and discover the people the map has been hiding. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-17"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You cross and discover the people the map has been hiding. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-17"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You cross and discover the people the map has been hiding. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-18",
+      "title": "Companion inquiry: The widow of a lost street",
+      "description": "A woman calls herself the widow of a street demolished before her birth.",
+      "where": [
+        "ink"
+      ],
+      "progress": 17,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 17
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-18"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Her family kept the street's communal ownership deeds. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-18"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Her family kept the street's communal ownership deeds. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-18"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Her family kept the street's communal ownership deeds. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-19",
+      "title": "Companion inquiry: The measure of a current",
+      "description": "A Council engineer offers to establish a permanent water gauge, but only under a false name.",
+      "where": [
+        "market"
+      ],
+      "progress": 18,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 18
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-19"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Independent measurements prove that the river has been diverted. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-19"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Independent measurements prove that the river has been diverted. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-19"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Independent measurements prove that the river has been diverted. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-20",
+      "title": "Companion inquiry: An island made of promises",
+      "description": "At the Listening Edge, a small island appears when witnesses speak in turn.",
+      "where": [
+        "soot"
+      ],
+      "progress": 19,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 19
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-20"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Its boundaries follow promises rather than the shifting water. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-20"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Its boundaries follow promises rather than the shifting water. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-20"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Its boundaries follow promises rather than the shifting water. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-21",
+      "title": "Companion inquiry: The missing solicitor",
+      "description": "The lawyer who delivered the will disappears after refusing a secret amendment.",
+      "where": [
+        "choir"
+      ],
+      "progress": 20,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 20
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 7,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "tide-proof-21"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You find their notes inside a child's waterproof satchel. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-21"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You find their notes inside a child's waterproof satchel. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-21"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You find their notes inside a child's waterproof satchel. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-22",
+      "title": "Companion inquiry: Two incompatible claims",
+      "description": "The Council and the ferrymen each produce a valid deed to the same bank.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 21,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 21
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-22"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "A buried clause requires both to consult the displaced families. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-22"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "A buried clause requires both to consult the displaced families. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-22"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "A buried clause requires both to consult the displaced families. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-23",
+      "title": "Companion inquiry: The public hearing",
+      "description": "Council clerks hold a hearing in a room with no doors for ordinary citizens.",
+      "where": [
+        "edge"
+      ],
+      "progress": 22,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 22
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-23"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You secure a room in which the affected people can attend. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-23"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You secure a room in which the affected people can attend. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-23"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You secure a room in which the affected people can attend. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-24",
+      "title": "Companion inquiry: The flood that was ordered",
+      "description": "A retired sluice-keeper admits the flood began with a signed instruction.",
+      "where": [
+        "court"
+      ],
+      "progress": 23,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 23
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-24"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The responsible office is still receiving the river's payments. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-24"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The responsible office is still receiving the river's payments. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-24"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The responsible office is still receiving the river's payments. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-25",
+      "title": "Companion inquiry: A debt without a debtor",
+      "description": "The original agreement names no person who can be compelled to repay the river.",
+      "where": [
+        "quays"
+      ],
+      "progress": 24,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 24
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-25"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You find that the debt belongs to the city, not any family. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-25"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You find that the debt belongs to the city, not any family. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-25"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You find that the debt belongs to the city, not any family. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-26",
+      "title": "Companion inquiry: The names along the quay",
+      "description": "Children paint erased addresses beneath the quay's lanterns.",
+      "where": [
+        "ink"
+      ],
+      "progress": 25,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 25
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-26"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Their public display makes concealment politically impossible. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-26"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Their public display makes concealment politically impossible. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-26"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Their public display makes concealment politically impossible. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-27",
+      "title": "Companion inquiry: The heir who refuses",
+      "description": "A young claimant declines ownership, fearing the tenants will be evicted.",
+      "where": [
+        "market"
+      ],
+      "progress": 26,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 26
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 8,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "tide-proof-27"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You draft a trust that protects the tenants rather than a single heir. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-27"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You draft a trust that protects the tenants rather than a single heir. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-27"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You draft a trust that protects the tenants rather than a single heir. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-28",
+      "title": "Companion inquiry: The last legal tide",
+      "description": "The water rises for the final reading and demands a witness from each bank.",
+      "where": [
+        "soot"
+      ],
+      "progress": 27,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 27
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-28"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You gather signatures from both sides of the vanished river. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-28"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You gather signatures from both sides of the vanished river. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-28"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You gather signatures from both sides of the vanished river. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-29",
+      "title": "Companion inquiry: A settlement that can be lived in",
+      "description": "The river offers the city one more chance to keep its promises.",
+      "where": [
+        "choir"
+      ],
+      "progress": 28,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 28
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 9,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-29"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The parties agree that a bank is a home before it is property. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-29"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The parties agree that a bank is a home before it is property. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-29"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The parties agree that a bank is a home before it is property. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-tide-30",
+      "title": "Companion inquiry: The quiet bell of the Siltway",
+      "description": "At dawn the solicitors ask whose name will appear on the final declaration.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 29,
+      "unlock": {
+        "path": "tide",
+        "ambition_progress": 29
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through careful research",
+          "stat": "observation",
+          "difficulty": 9,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "tide-proof-30"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Your final choice grants a permanent home to the displaced and resolves the river's testament. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "hands": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "tide-witness-30"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Your final choice grants a permanent home to the displaced and resolves the river's testament. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "tide-oath-30"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Your final choice grants a permanent home to the displaced and resolves the river's testament. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-9",
+      "title": "Companion inquiry: The catalogue of borrowed faces",
+      "description": "An auctioneer offers a childhood memory described in a voice you recognise.",
+      "where": [
+        "market"
+      ],
+      "progress": 8,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 8
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "mirror-proof-9"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You trace the sale to a child still living behind the glass. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-9"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You trace the sale to a child still living behind the glass. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-9"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You trace the sale to a child still living behind the glass. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-10",
+      "title": "Companion inquiry: A school without pupils",
+      "description": "The register lists teachers, lessons and fees but no enrolled children.",
+      "where": [
+        "choir"
+      ],
+      "progress": 9,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 9
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-10"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The missing pupils have been sold into different identities. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-10"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The missing pupils have been sold into different identities. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-10"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The missing pupils have been sold into different identities. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-11",
+      "title": "Companion inquiry: The optician who never blinks",
+      "description": "An optician measures memories as if they were lenses.",
+      "where": [
+        "ink"
+      ],
+      "progress": 10,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 10
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-11"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "A scratched lens reveals the original owner of a stolen year. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-11"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "A scratched lens reveals the original owner of a stolen year. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-11"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "A scratched lens reveals the original owner of a stolen year. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-12",
+      "title": "Companion inquiry: A portrait painted backwards",
+      "description": "A family portrait changes whenever you look away from it.",
+      "where": [
+        "quays"
+      ],
+      "progress": 11,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 11
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-12"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Its reverse shows a sibling erased from the house's inheritance. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-12"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Its reverse shows a sibling erased from the house's inheritance. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-12"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Its reverse shows a sibling erased from the house's inheritance. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-13",
+      "title": "Companion inquiry: The seamstress of identities",
+      "description": "A seamstress stitches borrowed names into respectable coats.",
+      "where": [
+        "soot"
+      ],
+      "progress": 12,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 12
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-13"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "She keeps a spool of every name she has ever sewn. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-13"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "She keeps a spool of every name she has ever sewn. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-13"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "She keeps a spool of every name she has ever sewn. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-14",
+      "title": "Companion inquiry: A lullaby behind a wall",
+      "description": "A forbidden lullaby leaks through the walls of the Glass Arcade.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 13,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 13
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-14"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You discover a hidden nursery where no child ages. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-14"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You discover a hidden nursery where no child ages. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-14"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You discover a hidden nursery where no child ages. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-15",
+      "title": "Companion inquiry: The first counterfeit self",
+      "description": "A double of you insists your childhood was purchased legally.",
+      "where": [
+        "court"
+      ],
+      "progress": 14,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 14
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "mirror-proof-15"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The duplicate is frightened of being destroyed, not eager to replace you. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-15"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The duplicate is frightened of being destroyed, not eager to replace you. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-15"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The duplicate is frightened of being destroyed, not eager to replace you. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-16",
+      "title": "Companion inquiry: An honest broker's condition",
+      "description": "A broker agrees to testify if you protect the apprentices who copied the memories.",
+      "where": [
+        "edge"
+      ],
+      "progress": 15,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 15
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-16"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The apprentices describe an auction built on coercion. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-16"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The apprentices describe an auction built on coercion. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-16"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The apprentices describe an auction built on coercion. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-17",
+      "title": "Companion inquiry: The stolen birthday",
+      "description": "A child remembers the cake but not the people who shared it.",
+      "where": [
+        "market"
+      ],
+      "progress": 16,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 16
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-17"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Her birthday connects three supposedly unrelated victims. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-17"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Her birthday connects three supposedly unrelated victims. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-17"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Her birthday connects three supposedly unrelated victims. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-18",
+      "title": "Companion inquiry: A letter with two signatures",
+      "description": "Your own handwriting answers a letter that you have never received.",
+      "where": [
+        "choir"
+      ],
+      "progress": 17,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 17
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-18"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Someone copied your memories before you entered the city. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-18"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Someone copied your memories before you entered the city. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-18"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Someone copied your memories before you entered the city. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-19",
+      "title": "Companion inquiry: The chamber of unclaimed years",
+      "description": "Shelves of sealed jars contain entire years nobody was allowed to remember.",
+      "where": [
+        "ink"
+      ],
+      "progress": 18,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 18
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-19"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You identify a ledger that can match each jar to its owner. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-19"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You identify a ledger that can match each jar to its owner. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-19"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You identify a ledger that can match each jar to its owner. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-20",
+      "title": "Companion inquiry: The inspector's private collection",
+      "description": "An inspector secretly holds the childhood he was paid to confiscate.",
+      "where": [
+        "quays"
+      ],
+      "progress": 19,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 19
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-20"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "His confession shows the Council knowingly financed the theft. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-20"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "His confession shows the Council knowingly financed the theft. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-20"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "His confession shows the Council knowingly financed the theft. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-21",
+      "title": "Companion inquiry: A city of second chances",
+      "description": "Former buyers offer to return memories, but not the lives built around them.",
+      "where": [
+        "soot"
+      ],
+      "progress": 20,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 20
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "mirror-proof-21"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You devise a process for return without demanding that anyone disappear. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-21"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You devise a process for return without demanding that anyone disappear. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-21"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You devise a process for return without demanding that anyone disappear. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-22",
+      "title": "Companion inquiry: The witness who is not a child",
+      "description": "An elderly witness recalls being traded as a child under a younger name.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 21,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 21
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-22"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Her testimony proves that the practice spans generations. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-22"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Her testimony proves that the practice spans generations. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-22"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Her testimony proves that the practice spans generations. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-23",
+      "title": "Companion inquiry: The first public reunion",
+      "description": "Families assemble in a hall where nobody is promised they will recognise anyone.",
+      "where": [
+        "court"
+      ],
+      "progress": 22,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 22
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-23"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Some recognise each other; others choose to remain strangers. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-23"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Some recognise each other; others choose to remain strangers. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-23"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Some recognise each other; others choose to remain strangers. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-24",
+      "title": "Companion inquiry: A bargain about consent",
+      "description": "The broker offers to restore everyone at once with a dangerous machine.",
+      "where": [
+        "edge"
+      ],
+      "progress": 23,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 23
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-24"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The victims ask for the right to decide whether they receive their past. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-24"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The victims ask for the right to decide whether they receive their past. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-24"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The victims ask for the right to decide whether they receive their past. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-25",
+      "title": "Companion inquiry: An exchange of true names",
+      "description": "Two doubles volunteer to testify about the same memory.",
+      "where": [
+        "market"
+      ],
+      "progress": 24,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 24
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-25"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Their agreement reveals that an identity may belong to more than one life. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-25"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Their agreement reveals that an identity may belong to more than one life. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-25"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Their agreement reveals that an identity may belong to more than one life. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-26",
+      "title": "Companion inquiry: The mirror council",
+      "description": "A council of reflected children disputes the city's right to call them counterfeit.",
+      "where": [
+        "choir"
+      ],
+      "progress": 25,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 25
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-26"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You persuade the judges to consider the lives the doubles have lived. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-26"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You persuade the judges to consider the lives the doubles have lived. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-26"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You persuade the judges to consider the lives the doubles have lived. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-27",
+      "title": "Companion inquiry: The glassworker's proof",
+      "description": "A glassworker can demonstrate the mechanism, but doing so will shatter her family's livelihood.",
+      "where": [
+        "ink"
+      ],
+      "progress": 26,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 26
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "mirror-proof-27"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "She chooses to reveal the truth and requests protection for the workers. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-27"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "She chooses to reveal the truth and requests protection for the workers. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-27"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "She chooses to reveal the truth and requests protection for the workers. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-28",
+      "title": "Companion inquiry: The nursery opens",
+      "description": "The hidden nursery doors open after years of silence.",
+      "where": [
+        "quays"
+      ],
+      "progress": 27,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 27
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-28"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You organise safe passage for every child who chooses to leave. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-28"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You organise safe passage for every child who chooses to leave. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-28"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You organise safe passage for every child who chooses to leave. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-29",
+      "title": "Companion inquiry: An ending without erasure",
+      "description": "The Registry insists each memory have one legal owner.",
+      "where": [
+        "soot"
+      ],
+      "progress": 28,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 28
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 9,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-29"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You devise a record of consent and shared history instead of deletion. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-29"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You devise a record of consent and shared history instead of deletion. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-29"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You devise a record of consent and shared history instead of deletion. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-mirror-30",
+      "title": "Companion inquiry: The key to the second reflection",
+      "description": "At the Arcade, your two possible childhoods wait behind a clear door.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 29,
+      "unlock": {
+        "path": "mirror",
+        "ambition_progress": 29
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through discreet investigation",
+          "stat": "guile",
+          "difficulty": 9,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "mirror-proof-30"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Your decision ends the trade and leaves the living free to keep their own names. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "choir": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "mirror-witness-30"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Your decision ends the trade and leaves the living free to keep their own names. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "mirror-oath-30"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Your decision ends the trade and leaves the living free to keep their own names. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-9",
+      "title": "Companion inquiry: The night shift's confession",
+      "description": "A furnace worker asks why the city's lamp supply is billed as a public secret.",
+      "where": [
+        "soot"
+      ],
+      "progress": 8,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 8
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "ember-proof-9"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "A broken pressure gauge records hours deliberately hidden from workers. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-9"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "A broken pressure gauge records hours deliberately hidden from workers. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-9"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "A broken pressure gauge records hours deliberately hidden from workers. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-10",
+      "title": "Companion inquiry: The coal that is not coal",
+      "description": "Black fuel arrives in crates marked with the names of missing households.",
+      "where": [
+        "market"
+      ],
+      "progress": 9,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 9
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-10"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The furnace burns records of people, not ordinary coal. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-10"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The furnace burns records of people, not ordinary coal. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-10"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The furnace burns records of people, not ordinary coal. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-11",
+      "title": "Companion inquiry: A union behind iron doors",
+      "description": "Workers meet in a toolroom where each clock shows a different time.",
+      "where": [
+        "ink"
+      ],
+      "progress": 10,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 10
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-11"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "They demand representation before allowing the plant to restart. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-11"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "They demand representation before allowing the plant to restart. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-11"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "They demand representation before allowing the plant to restart. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-12",
+      "title": "Companion inquiry: A switch that requires two hands",
+      "description": "A control panel has one switch for the Council and one for the factory crew.",
+      "where": [
+        "choir"
+      ],
+      "progress": 11,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 11
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-12"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Both switches are needed to keep the roof safely lit. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-12"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Both switches are needed to keep the roof safely lit. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-12"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Both switches are needed to keep the roof safely lit. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-13",
+      "title": "Companion inquiry: The inspector's lost report",
+      "description": "An inspector lost her position for documenting soot in the nurseries.",
+      "where": [
+        "quays"
+      ],
+      "progress": 12,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 12
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-13"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Her report ties the plant's profit to preventable illness. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-13"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Her report ties the plant's profit to preventable illness. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-13"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Her report ties the plant's profit to preventable illness. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-14",
+      "title": "Companion inquiry: The choir of exhaust pipes",
+      "description": "The Moss Choir hears voices in the furnace exhaust.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 13,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 13
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-14"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Each voice belongs to someone listed as absent from work. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 5,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-14"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Each voice belongs to someone listed as absent from work. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 6,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-14"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Each voice belongs to someone listed as absent from work. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-15",
+      "title": "Companion inquiry: A demonstration of the burden",
+      "description": "The overseer offers you a tour in exchange for agreeing to his public statement.",
+      "where": [
+        "court"
+      ],
+      "progress": 14,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 14
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "ember-proof-15"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The demonstration reveals a hidden waste channel running beneath homes. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-15"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The demonstration reveals a hidden waste channel running beneath homes. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-15"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The demonstration reveals a hidden waste channel running beneath homes. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-16",
+      "title": "Companion inquiry: The engineer who refused",
+      "description": "A retired engineer designed the emergency shutoff but never signed its acceptance.",
+      "where": [
+        "edge"
+      ],
+      "progress": 15,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 15
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-16"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "He shows you the safe sequence to shut the plant down. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-16"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "He shows you the safe sequence to shut the plant down. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-16"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "He shows you the safe sequence to shut the plant down. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-17",
+      "title": "Companion inquiry: A ledger written in heat",
+      "description": "An account book only reveals its figures when held close to a flame.",
+      "where": [
+        "soot"
+      ],
+      "progress": 16,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 16
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-17"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The Council diverted wage funds to buy silence. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-17"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The Council diverted wage funds to buy silence. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-17"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The Council diverted wage funds to buy silence. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-18",
+      "title": "Companion inquiry: The apprentices' testimony",
+      "description": "Young apprentices assemble a diagram of the furnace from memory.",
+      "where": [
+        "market"
+      ],
+      "progress": 17,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 17
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-18"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Their diagram proves how the machine can be rebuilt without stolen labour. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-18"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Their diagram proves how the machine can be rebuilt without stolen labour. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-18"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Their diagram proves how the machine can be rebuilt without stolen labour. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-19",
+      "title": "Companion inquiry: The weight of a false sky",
+      "description": "A structural engineer reveals that the furnace supports a hanging portion of the roof.",
+      "where": [
+        "ink"
+      ],
+      "progress": 18,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 18
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-19"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "A careless revolution would bring the stone down on the workers. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-19"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "A careless revolution would bring the stone down on the workers. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-19"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "A careless revolution would bring the stone down on the workers. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-20",
+      "title": "Companion inquiry: The private offer",
+      "description": "Council envoys offer you the keys to the furnace if you agree never to disclose its fuel.",
+      "where": [
+        "choir"
+      ],
+      "progress": 19,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 19
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-20"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You learn which officials care more for their contracts than the city's safety. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 6,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-20"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You learn which officials care more for their contracts than the city's safety. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 7,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-20"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You learn which officials care more for their contracts than the city's safety. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-21",
+      "title": "Companion inquiry: A strike at sunrise",
+      "description": "The workers strike when the lamps dim, refusing to start the old system.",
+      "where": [
+        "quays"
+      ],
+      "progress": 20,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 20
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "ember-proof-21"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Residents bring their own lanterns to keep streets safe. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-21"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Residents bring their own lanterns to keep streets safe. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-21"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Residents bring their own lanterns to keep streets safe. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-22",
+      "title": "Companion inquiry: The hidden reservoir",
+      "description": "Beneath the furnaces sits a reservoir of luminous water.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 21,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 21
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-22"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "It can power a safer system without consuming anyone's name. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-22"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "It can power a safer system without consuming anyone's name. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-22"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "It can power a safer system without consuming anyone's name. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-23",
+      "title": "Companion inquiry: The councillor's daughter",
+      "description": "A councillor's daughter agrees to testify against her father's order.",
+      "where": [
+        "court"
+      ],
+      "progress": 22,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 22
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-23"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Her testimony ties the plant to an unlawful succession scheme. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-23"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Her testimony ties the plant to an unlawful succession scheme. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-23"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Her testimony ties the plant to an unlawful succession scheme. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-24",
+      "title": "Companion inquiry: A repaired valve",
+      "description": "The workers make the first replacement valve in their own workshop.",
+      "where": [
+        "edge"
+      ],
+      "progress": 23,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 23
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-24"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The new valve proves there is an alternative to sabotage. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-24"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The new valve proves there is an alternative to sabotage. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-24"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The new valve proves there is an alternative to sabotage. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-25",
+      "title": "Companion inquiry: The argument over ownership",
+      "description": "Union and Council representatives dispute who may operate the new machinery.",
+      "where": [
+        "soot"
+      ],
+      "progress": 24,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 24
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-25"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "A public charter offers oversight instead of monopoly. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-25"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "A public charter offers oversight instead of monopoly. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-25"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "A public charter offers oversight instead of monopoly. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-26",
+      "title": "Companion inquiry: The day of the blackout",
+      "description": "The old furnace stalls and the city prepares for three hours without light.",
+      "where": [
+        "market"
+      ],
+      "progress": 25,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 25
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-26"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "You coordinate a safe transition rather than leave families in the dark. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 7,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-26"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "You coordinate a safe transition rather than leave families in the dark. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 8,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-26"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "You coordinate a safe transition rather than leave families in the dark. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-27",
+      "title": "Companion inquiry: A charter with witnesses",
+      "description": "The workers insist every future shutdown be decided with local residents present.",
+      "where": [
+        "ink"
+      ],
+      "progress": 26,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 26
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 1,
+            "coin": 3,
+            "flag": "ember-proof-27"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The council reluctantly accepts written rights of inspection. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-27"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The council reluctantly accepts written rights of inspection. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 1,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-27"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The council reluctantly accepts written rights of inspection. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-28",
+      "title": "Companion inquiry: The old machinery sleeps",
+      "description": "The last machine fed by erased names falls silent.",
+      "where": [
+        "choir"
+      ],
+      "progress": 27,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 27
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-28"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "The workshop crews prepare a new flame that demands honest fuel. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-28"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "The workshop crews prepare a new flame that demands honest fuel. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-28"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "The workshop crews prepare a new flame that demands honest fuel. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-29",
+      "title": "Companion inquiry: A new public flame",
+      "description": "The first new furnace is lit with the apprentices and nearby households watching.",
+      "where": [
+        "quays"
+      ],
+      "progress": 28,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 28
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 9,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-29"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Its heat belongs to the city and its safe operation to the people trained to maintain it. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-29"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Its heat belongs to the city and its safe operation to the people trained to maintain it. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-29"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Its heat belongs to the city and its safe operation to the people trained to maintain it. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    },
+    {
+      "id": "side-ember-30",
+      "title": "Companion inquiry: The council's last fire",
+      "description": "The Council asks you to sign the permanent charter: retain the old title, or share it with the workers.",
+      "where": [
+        "stairs"
+      ],
+      "progress": 29,
+      "unlock": {
+        "path": "ember",
+        "ambition_progress": 29
+      },
+      "next_storylet": null,
+      "choices": [
+        {
+          "label": "Establish the evidence through public testimony",
+          "stat": "persuasion",
+          "difficulty": 9,
+          "effects": {
+            "clues": 0,
+            "coin": 3,
+            "flag": "ember-proof-30"
+          },
+          "fail": {
+            "suspicion": 1
+          },
+          "success": "Your final signature decides whether the furnace becomes a public trust. A signed public record preserves what you discovered.",
+          "failure": "The evidence is not strong enough yet. A witness promises to keep it safe until your next attempt."
+        },
+        {
+          "label": "Ask the affected people to guide the decision",
+          "stat": "guile",
+          "difficulty": 8,
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "dawn": 2
+            },
+            "quirks": {
+              "generous": 1
+            },
+            "flag": "ember-witness-30"
+          },
+          "fail": {
+            "notoriety": 1
+          },
+          "success": "Your final signature decides whether the furnace becomes a public trust. The witnesses retain a copy and a voice in what happens next.",
+          "failure": "The witnesses do not yet trust the process. They ask for evidence of your good faith."
+        },
+        {
+          "label": "Invoke your old public promise before the Council",
+          "stat": "resolve",
+          "difficulty": 9,
+          "requirement": {
+            "faction": "wardens"
+          },
+          "effects": {
+            "clues": 0,
+            "relation": {
+              "wardens": 1
+            },
+            "flag": "ember-oath-30"
+          },
+          "fail": {
+            "health": -1
+          },
+          "success": "Your final signature decides whether the furnace becomes a public trust. You place your oath on record, binding your own reputation to the outcome.",
+          "failure": "The Council questions your authority, but the proceedings remain open."
+        }
+      ]
+    }
+  ]
+}

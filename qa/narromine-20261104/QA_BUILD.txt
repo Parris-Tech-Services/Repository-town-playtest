@@ -1,0 +1,3 @@
+Source: joshualparris/JoshMemory
+Commit: d98319e614d11023f997ba4c657b951c10ce9676
+QA: full release + privacy + desktop/mobile WebGL
