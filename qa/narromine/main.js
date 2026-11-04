@@ -29,6 +29,7 @@ import { buildMasterplan, PLAN_HOMES } from './world/masterplan-built.js';
 import { RESIDENT_STYLES } from './world/resident-models.js';
 import { buildNarromine } from './world/narromine.js';
 import { createNarromineTrains } from './world/narromine-trains.js';
+import { createTownRailYard } from './world/town-rail-yard.js';
 import { NARROMINE_POST_OFFICE_SAVE_ID, NARROMINE_POST_OFFICE_ENTRANCE, nearNarrominePostOfficeDoor, buildNarrominePostOfficeInterior, createNarrominePostalOutdoorActor } from './world/narromine-post-office.js';
 import { NARROMINE_POSTAL_PERSON, POSTAL_WALK_ROUTE_LOCAL, postalState, postalDayPlan, postalFormatTime } from './world/narromine-postal-character.js';
 import { NARROMINE_COLES_SAVE_ID, NARROMINE_COLES_ENTRANCE, COLES_INTERPRETIVE_PLAN, nearNarromineColesDoor, colesOpen, buildNarromineColesInterior } from './world/narromine-coles.js';
@@ -206,6 +207,9 @@ async function start() {
   // Town life: farms, shops, trucks and 32 villagers with jobs and meals (src/world/life.js).
   const townLife = createTownLife({ scene, town, makeLabel, sky, hemi, sun, fog });
   const life = townLife.life;
+  // Separate fictional shunting siding: never controls Narromine freight or town main-line gates.
+  const yard = createTownRailYard(town.group, life);
+  let yardKeyQ = false, yardKeyR = false;
   // Real existing southern house interiors become ordinary share-homes for fictional
   // care employees. Leave all established villager homes and save IDs untouched.
   const careWorkerList=[...careStaff('bracken-house'),...careStaff('yeoval-aged-care')].sort((a,b)=>a.staffRoleIndex-b.staffRoleIndex||a.role.localeCompare(b.role)||a.facility.localeCompare(b.facility));
@@ -331,6 +335,7 @@ async function start() {
   // rotated-axis AABB for the town's existing 2D collision engine.
   townWorld.dynamic = () => [
     ...trains.colliders(),
+    ...yard.colliders(),
     ...life.trucks.map(tr => {
       const sn = Math.abs(Math.sin(tr.heading)), cs = Math.abs(Math.cos(tr.heading));
       const hx = 1.18*cs + 3.4*sn, hz = 1.18*sn + 3.4*cs;
@@ -357,6 +362,20 @@ async function start() {
   captureButton.onclick = () => { captureButton.blur(); input.toggleMouseCapture(); };
   syncMouseCapture(false);
   if (input.touch) $('touch').hidden = false;
+  // Two accessible touch controls appear only in the shunter; desktop Q/R use
+  // the same actions. They never alter the existing car or Narromine train UI.
+  const yardControls = document.createElement('div');
+  yardControls.setAttribute('role', 'group');
+  yardControls.setAttribute('aria-label', 'Rail yard shunting controls');
+  yardControls.style.cssText = 'position:fixed;right:12px;bottom:120px;z-index:60;gap:8px;display:none;flex-direction:column;max-width:44vw';
+  for (const [label, kind] of [['🔗 Couple / uncouple', 'couple'], ['📦 Load / stage', 'load']]) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.textContent = label;
+    button.style.cssText = 'border:1px solid #d1b565;border-radius:10px;background:#182b38;color:white;padding:10px;min-height:44px;font:600 13px system-ui';
+    button.addEventListener('click', () => { status(yard.action(kind)); button.blur(); });
+    yardControls.appendChild(button);
+  }
+  document.body.appendChild(yardControls);
   loadFurniture().catch(() => {});   // real furniture models; interiors fall back to boxes until they arrive
   const player = new Player(camera);
   let movementSpeed=loadMovementSpeed(localStorage);
@@ -1406,7 +1425,9 @@ async function start() {
   function use() {
     if (carried) { putDown(); return; }
     if(driving.driving){status(driving.exit());return;}
+    if(yard.driving){status(yard.exit(player));return;}
     if(trains.driving){status(trains.exit(player));return;}
+    if(mode==='town'&&!driving.driving&&yard.near(player.pos)){status(yard.board());return;}
     if(mode==='town'&&nearCar){status(driving.enter(nearCar));return;}
     if(mode==='town'&&!driving.driving&&trains.near(player.pos)){status(trains.board());return;}
     if(player.seated){
@@ -1759,6 +1780,17 @@ async function start() {
       // Jump, run and crouch do nothing in a vehicle: show ✋ and 🎥 only, clear of the minimap.
       $('t-view').hidden=!driving.driving; for(const id of ['t-jump','t-run','t-crouch'])$(id).hidden=driving.driving;
       if(mode==='town'&&driving.driving){ driving.update(dt); if(driving.message){ status(driving.message); driving.clearMessage(); } }
+      else if(mode==='town'&&yard.driving){
+        const q = input.keys.has('q'), r = input.keys.has('r');
+        if(q&&!yardKeyQ)status(yard.action('couple'));
+        if(r&&!yardKeyR)status(yard.action('load'));
+        yardKeyQ=q;yardKeyR=r;
+        yard.update(dt,input);
+        if(yard.message){status(yard.message);yard.clearMessage();}
+        const c=yard.cab();
+        player.pos.set(c.x,0,c.z);player.yaw=-c.heading-Math.PI/2;player.pitch=0;
+        camera.position.set(c.x-15,8.5,c.z-14);camera.lookAt(c.x+20,1.5,c.z);
+      }
       else if(mode==='town'&&trains.driving){
         trains.update(dt,input); if(trains.message){ status(trains.message); trains.clearMessage(); }
         // Chase camera behind and above the cab, looking down the line.
@@ -1772,6 +1804,8 @@ async function start() {
         player.update(dt,input,world);
       }
     }
+    if(!yard.driving){yardKeyQ=false;yardKeyR=false;}
+    yardControls.style.display = yard.driving ? 'flex' : 'none';
     drivingDashboard.update(mode==='town'&&!overview?driving.activeVehicle():null);
     ambience.setRadioPlaying(drivingDashboard.getState().station>0);
     trains.tick(dt,{day:life.day,minute:life.minute});   // timetabled freights and level-crossing booms
@@ -1992,9 +2026,11 @@ async function start() {
         }
       }
       const nearRelic = expedition.nearby(player.pos), relicD = away(nearRelic), npcD = away(nearNPC), personD = away(nearPerson);
-      $('prompt').hidden = (!driving.driving && !trains.driving && !(mode==='town'&&trains.near(player.pos)) && !nearCar && !player.seated && !nearTownSeat && !nearNPC && !nearPerson && !nearHouse && !nearRelic) || !!panelOpen || expedition.isOpen() || npcChat.isOpen() || !$('npc-roster').hidden;
+      $('prompt').hidden = (!driving.driving && !trains.driving && !yard.driving && !(mode==='town'&&(trains.near(player.pos)||yard.near(player.pos))) && !nearCar && !player.seated && !nearTownSeat && !nearNPC && !nearPerson && !nearHouse && !nearRelic) || !!panelOpen || expedition.isOpen() || npcChat.isOpen() || !$('npc-roster').hidden;
       if(driving.driving)$('prompt').textContent=`${input.touch?'Tap ✋':'Press E'} — Park and get out (stop first)`;
+      else if(yard.driving){const y=yard.state();$('prompt').textContent=`🚂 Yard shunter ${y.speedKmh} / ${y.limitKmh} km/h · ${y.coupled} wagon(s) · ${input.touch?'Use loading buttons':'Q couple/uncouple · R load/stage · Space brake'} · E exit when stopped`;}
       else if(trains.driving){const t=trains.state();$('prompt').textContent=`🚆 ${t.speedKmh} km/h · limit ${t.limitKmh} · ${t.line} · next junction: ${t.route==='straight'?'straight':t.route} (${input.touch?'joystick ←/→':'A/D'}) · ${input.touch?'✋':'E'} step down when stopped`;}
+      else if(mode==='town'&&yard.near(player.pos))$('prompt').textContent=`${input.touch?'Tap ✋':'Press E'} — 🚂 Operate the Repository Town shunter`;
       else if(mode==='town'&&trains.near(player.pos))$('prompt').textContent=`${input.touch?'Tap ✋':'Press E'} — 🚆 Drive the grain train`;
       else if(nearCar)$('prompt').textContent=`${input.touch?'Tap ✋':'Press E'} — Drive ${nearCar.registration} · ${nearCar.model}`;
       else if (player.seated) $('prompt').textContent = `${input.touch ? 'Tap ✋' : 'Press E'} — Stand up · Move or jump to stand`;
@@ -2254,6 +2290,7 @@ async function start() {
     }),
     vehicles:()=>life.motorReport().owned.map(v=>({...v})),
     enterVehicle:(reg)=>driving.enter(life.motorReport().owned.find(v=>v.registration===reg)),
+    yardTrain:()=>yard.state(), yardBoard:()=>yard.board(), yardExit:()=>yard.exit(player), yardAction:(kind)=>yard.action(kind), yardColliders:()=>yard.colliders(),
     train:()=>trains.state(), probeWithMoving:(x,z,r=.4)=>!!townWorld.hits(x,z,r), trainNear:()=>trains.near(player.pos), trainBoard:()=>trains.board(), trainExit:()=>trains.exit(player), trainRoute:(p)=>trains.setRoute(p), runFreight:(i)=>trains.runFreight(i), trainColliders:()=>trains.colliders(),
     leaveVehicle:()=>driving.exit(),
     // A fixed step behaves like a real frame, including showing the driving message (off-road, braking).

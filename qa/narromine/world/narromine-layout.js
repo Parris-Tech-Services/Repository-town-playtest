@@ -122,7 +122,19 @@ function EXTRA_PLACES() {
 
 // Arrival: the Royal Hotel's footpath on Dandaloo Street (search "Narromine" lands here).
 const royal = PLACES.find((p) => p.name === 'Royal Hotel');
-export const ARRIVAL = Object.freeze(royal ? { x: royal.x + 12, z: royal.z, yaw: 0 } : { x: OFFSET.x - 1900, z: OFFSET.z - 600, yaw: 0 });
+// Arrive on the Dandaloo Street centreline nearest the Royal Hotel, facing north along the street. The
+// centreline is kept free of colliders (tests/narromine-roads-drivable-browser.mjs); the old offset from
+// the hotel's map pin ended up inside the detailed hotel model.
+export const ARRIVAL = Object.freeze((() => {
+  const target = royal ? [royal.x, royal.z] : [OFFSET.x - 1900, OFFSET.z - 600];
+  let best = null;
+  for (const st of STREETS) if (st.name === 'Dandaloo Street') for (let i = 1; i < st.pts.length; i++) {
+    const [a, b] = [st.pts[i - 1], st.pts[i]], dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz || 1;
+    const t = Math.max(0, Math.min(1, ((target[0] - a[0]) * dx + (target[1] - a[1]) * dz) / l)), x = a[0] + t * dx, z = a[1] + t * dz, d = Math.hypot(x - target[0], z - target[1]);
+    if (!best || d < best.d) best = { d, x, z };
+  }
+  return best ? { x: best.x, z: best.z, yaw: 0 } : { x: target[0], z: target[1], yaw: 0 };
+})());
 
 // Invisible fences: the highway corridor and Narromine's region, open only where the road runs.
 export function boundaryColliders() {

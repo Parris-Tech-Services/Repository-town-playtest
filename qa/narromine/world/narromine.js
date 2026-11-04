@@ -34,6 +34,7 @@ import { buildDisjointRoadSurfaces } from './narromine-road-surfaces.js';
 import { createNarromineSurfaceMaterial } from './narromine-surface-materials.js';
 import { buildDandalooStreetscape } from './narromine-dandaloo-streetscape.js';
 import { NARROMINE_POST_OFFICE_ENTRANCE, NARROMINE_POST_OFFICE_ID } from './narromine-post-office.js';
+import { buildNarrominePostOfficeRoof, isPostOfficeRoofPart, POST_OFFICE_EAVE_H } from './narromine-post-office-roof.js';
 import { HIGHWAY, HIGHWAY_Z, REGION, CORRIDOR_HALF, STREETS, BUILDINGS, AREAS, WATER, RAIL, PLACES, FILL_SHOPS, FILL_HOUSES, FRONTAGES, DETAILED, polyRect, inPoly, nearTownStreet, boundaryColliders } from './narromine-layout.js';
 
 const SHOW_WEST_OF = -1300;   // past Repository Town's last houses (x ≈ -1330)
@@ -447,8 +448,10 @@ export function buildNarromine(parent, makeLabel = null) {
       // LiDAR: [year, ground, eave p5, ridge p98, median, n, density]. A hipped/gabled roof's median sits about 30%
       // of the way from eave to ridge, so eave = (median - 0.3 ridge) / 0.7; flat/skillion parts use the median.
       const Ld = p.lidar, pitched = p.roof === 'hip' || p.roof === 'gable';
+      // Post Office wings share one L-shaped roof (narromine-post-office-roof.js); walls stop at its eave.
+      const poRoof = isPostOfficeRoofPart(d.id, p.name);
       // Parts traced straight from a LiDAR profile carry exact wall and ridge heights (p.ridgeH) and skip the estimate.
-      const wallH = p.ridgeH ? guessH : Ld ? Math.max(2.4, pitched ? (Ld[4] - 0.3 * Ld[3]) / 0.7 : Ld[4]) : guessH;
+      const wallH = poRoof ? POST_OFFICE_EAVE_H : p.ridgeH ? guessH : Ld ? Math.max(2.4, pitched ? (Ld[4] - 0.3 * Ld[3]) / 0.7 : Ld[4]) : guessH;
       const ridgeTop = p.ridgeH ?? (Ld ? Ld[3] : null), span = p.roof === 'gable' ? f.W : Math.min(f.L, f.W);
       const pitch = ridgeTop && pitched ? Math.min(0.9, Math.max(0.05, Math.atan(Math.max(0, ridgeTop - wallH) / (span / 2)))) : p.pitch;
       // Upper-floor features were placed for the guessed height; stretch heights above the ground floor to fit.
@@ -466,10 +469,11 @@ export function buildNarromine(parent, makeLabel = null) {
         if (hotel.storeys === 2) feature(p, { kind: 'window', edge, t: bay.t,
           w: Math.min(1.2, bay.width - 0.25), y: [fitY(4.65), fitY(6.15)] });
       }
-      if (p.fascia) box(0xf4f4f0, f.L + 0.5, 0.35, f.W + 0.5, f.cx, wallH - 0.05, f.cz, f.yaw);   // white roof edge
-      if (p.mast) { box(0xb0b2b4, 0.1, 4, 0.1, f.cx, wallH + 2, f.cz); box(0xb0b2b4, 1.4, 0.06, 0.06, f.cx, wallH + 3.4, f.cz); }
+      if (p.fascia && !poRoof) box(0xf4f4f0, f.L + 0.5, 0.35, f.W + 0.5, f.cx, wallH - 0.05, f.cz, f.yaw);   // white roof edge
+      if (p.mast && !poRoof) { box(0xb0b2b4, 0.1, 4, 0.1, f.cx, wallH + 2, f.cz); box(0xb0b2b4, 1.4, 0.06, 0.06, f.cx, wallH + 3.4, f.cz); }
       const RC = p.roofColour ?? ROOF;
-      if (p.roof === 'hip') hipRoof(RC, p.pts, wallH, pitch);
+      if (poRoof) { /* built once for both wings below */ }
+      else if (p.roof === 'hip') hipRoof(RC, p.pts, wallH, pitch);
       else if (p.roof === 'gable') gableRoof(RC, p.pts, wallH, pitch, p.gableColour ?? p.wallColour, p.trim);
       else box(RC, f.L + 0.4, 0.1, f.W + 0.4, f.cx, wallH + 0.1, f.cz, f.yaw);
       if (p.storeys === 2 && !p.features && !landmarkFacadeSpec(d.id, p.name)) for (const side of [-1, 1]) for (let t = -f.L / 2 + 1.5; t < f.L / 2 - 1; t += 3) { // upper-floor windows on the long faces
@@ -649,6 +653,7 @@ export function buildNarromine(parent, makeLabel = null) {
 
   // Main-thread batch-merged geometry; live walkable arcade, retaining Post Office entrance.
   buildNarromineHotel({ push, box, flatPoly, town, colliders });
+  buildNarrominePostOfficeRoof({ push, box });
   buildNarromineRoyalHotel({ push, box, flatPoly, plane, boardTexture, town, colliders });
   buildKieraths({ box, push, strip, flatPoly, plane, boardTexture, colliders, spots });
   buildNarromineRailwayPrecinct({ box, push, strip, flatPoly, plane, boardTexture, colliders, spots });

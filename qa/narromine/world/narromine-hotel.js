@@ -1195,8 +1195,9 @@ export function buildNarromineHotel({ push, box, flatPoly, town, colliders }) {
       );
     }
 
-    // Two street trees in timber tree guards along the northern Dandaloo St kerb (102250–102255)
-    for (const ts of [21.5, 33.8]) {
+    // Suppress s=21.5: not individually located and obstructs verified hotel sightline.
+    // Keep photo-evidenced northern kerb tree at s=33.8 (canopy size approximate).
+    for (const ts of [33.8]) {
       const tw = -5.1;
       localCyl(0x6e5a47, 0.14, 0.18, 3.4, 7, ts, 1.7, tw);
       for (const [ds, dw] of [[-0.45, -0.45], [0.45, -0.45], [0.45, 0.45], [-0.45, 0.45]]) {
