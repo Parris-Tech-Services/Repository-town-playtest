@@ -95,8 +95,21 @@ jobs:
                 await page.screenshot({path:file});
                 assert(fs.statSync(file).size>13000,mode+' '+label+' blank screenshot');
               }
+              // Exercise the live arcade entrance and capture the real *game* interior.
+              const coles=await page.evaluate(()=>window.__town.narromineColesEntrance());
+              await page.evaluate(e=>window.__town.place(e.x,e.z,e.yaw),coles);
+              await page.waitForFunction(()=>window.__town.state().coordinate==='NARROMINE-COLES',null,{timeout:20000});
+              const shopper=await page.evaluate(()=>window.__town.state());
+              assert(shopper.interactables.some(i=>i.key==='narromine-coles:checkout'),mode+' enterable grocery store contains checkout');
+              await page.waitForTimeout(250);
+              const interior='test-results/hosted-narromine/'+mode+'-coles-interior.png';
+              await page.screenshot({path:interior});
+              assert(fs.statSync(interior).size>15000,mode+' Coles interior rendered');
+              assert(await page.evaluate(()=>window.__town.approach('narromine-coles:checkout')),mode+' customer can reach checkout');
+              await page.evaluate(()=>window.__town.place(0,25.1,0));
+              await page.waitForFunction(()=>window.__town.state().mode==='town',null,{timeout:15000});
               assert.deepEqual(errors,[],mode+' hosted 3D browser page errors');
-              console.log('PASS hosted Pages '+mode+': 9 site views, walking, no JS errors');
+              console.log('PASS hosted Pages '+mode+': 9 exterior views + live Coles interior, checkout, exit, no JS errors');
               await page.close();
             }
           }finally{await browser.close()}
