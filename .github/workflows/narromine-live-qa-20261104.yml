@@ -1,0 +1,108 @@
+name: Narromine realism live preview — isolated Pages QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/narromine-live-qa-20261104.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: narromine-live-qa-20261104
+  cancel-in-progress: false
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - name: Checkout exactly the merged Narromine source
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: d98319e614d11023f997ba4c657b951c10ce9676
+          path: source
+          persist-credentials: false
+      - name: Node.js pinned installation
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Build + full release tests + privacy + content integrity
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build:release
+          node tools/verify-release.mjs dist/public
+          node --input-type=module -e "import fs from 'node:fs'; import assert from 'node:assert/strict'; const x=JSON.parse(fs.readFileSync('dist/public/release.json')); assert.equal(x.sourceCommit,'d98319e614d11023f997ba4c657b951c10ce9676'); console.log('Verified exact source',x.sourceCommit,x.contentHash);"
+          test -f dist/public/world/narromine-nw-dandaloo-block.js
+          test -f dist/public/world/narromine-mainstreet-physio.js
+          test -f dist/public/world/narromine-roof-lettering.js
+      - name: Chromium desktop and Android-sized WebGL playtests
+        working-directory: source/repository-town
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          npx playwright install --with-deps chromium
+          node tests/narromine-nw-dandaloo-block.mjs
+          node tests/narromine-mainstreet-physio.mjs
+          node tests/narromine-nw-dandaloo-browser.mjs
+          node tests/narromine-mainstreet-physio-browser.mjs
+          node tools/serve.mjs dist/public 8091 >/tmp/narromine-qa-server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for i in $(seq 1 35); do
+            if curl -fsS http://127.0.0.1:8091/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/narromine-browser.mjs --url http://127.0.0.1:8091/
+      - name: Preserve Narromine visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: narromine-20261104-desktop-mobile
+          path: |
+            source/repository-town/test-results/nw-dandaloo/
+            source/repository-town/test-results/narromine-physio/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Checkout existing Pages playtest, preserve its homepage
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+      - name: Publish separately versioned approved QA path
+        shell: bash
+        run: |
+          set -euo pipefail
+          target=site/qa/narromine-20261104
+          test -f site/index.html
+          grep -q 'Download saved progress' site/index.html
+          test "$(git -C source rev-parse HEAD)" = "d98319e614d11023f997ba4c657b951c10ce9676"
+          test "$(node -p "require('./source/repository-town/dist/public/release.json').sourceCommit")" = "d98319e614d11023f997ba4c657b951c10ce9676"
+          mkdir -p "$target"
+          rsync -a --delete source/repository-town/dist/public/ "$target/"
+          printf 'Source: joshualparris/JoshMemory\nCommit: d98319e614d11023f997ba4c657b951c10ce9676\nQA: full release + privacy + desktop/mobile WebGL\n' > "$target/QA_BUILD.txt"
+          test -f "$target/release.json"
+          test -f "$target/world/narromine-nw-dandaloo-block.js"
+          test -f "$target/world/narromine-mainstreet-physio.js"
+          cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa/narromine-20261104
+          if git diff --cached --quiet; then
+            echo 'QA preview already identical'
+          else
+            git commit -m "qa(narromine): publish source-verified 2026-11-04 Dandaloo rebuild d98319e614d1 [skip ci]"
+            git push origin HEAD:main
+          fi
+      - name: Display isolated live playtest address
+        run: |
+          echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/'
+          echo 'Root Pages site and Vercel production were left unchanged.'
