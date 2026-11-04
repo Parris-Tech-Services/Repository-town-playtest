@@ -1,0 +1,19 @@
+.App {
+  font-family: system-ui, -apple-system, sans-serif;
+  padding: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto;
+  color: #1a202c;
+}
+
+.layer-indicator {
+  font-weight: bold;
+  color: #3182ce;
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumbs {
+  font-size: 0.9rem;
+  color: #718096;
+  margin-bottom: 1.5rem;
+}

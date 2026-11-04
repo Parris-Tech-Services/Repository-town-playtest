@@ -1,0 +1,93 @@
+[
+  {
+    "id": "speak_to_mordecai",
+    "title": "Listen Before Dying",
+    "description": "Talk to Mordecai and learn the first survival rules.",
+    "objectives": [
+      {
+        "id": "talk_once",
+        "description": "Get Mordecai to explain the first rule.",
+        "event_type": "spoke_to_mordecai",
+        "target": 1
+      }
+    ]
+  },
+  {
+    "id": "inspect_inventory",
+    "title": "Inventory Check",
+    "description": "Confirm Carl's jacket is real gear and the lack of pants is real trouble.",
+    "objectives": [
+      {
+        "id": "inspect_once",
+        "description": "Open Carl's inventory.",
+        "event_type": "inspected_inventory",
+        "target": 1
+      }
+    ]
+  },
+  {
+    "id": "open_tutorial_chest",
+    "title": "Questionable Gift",
+    "description": "Open the tutorial chest and recover the first explosive crafting material.",
+    "objectives": [
+      {
+        "id": "open_chest",
+        "description": "Open the tutorial chest.",
+        "event_type": "opened_tutorial_chest",
+        "target": 1
+      }
+    ]
+  },
+  {
+    "id": "craft_first_explosive",
+    "title": "Carl Makes A Problem",
+    "description": "Craft the first crude explosive from dungeon materials.",
+    "objectives": [
+      {
+        "id": "craft_charge",
+        "description": "Craft a crude blast charge.",
+        "event_type": "crafted_first_explosive",
+        "target": 1
+      }
+    ]
+  },
+  {
+    "id": "first_blood",
+    "title": "First Blood",
+    "description": "Defeat the tutorial enemy without pretending this is normal.",
+    "objectives": [
+      {
+        "id": "defeat_enemy",
+        "description": "Defeat one enemy.",
+        "event_type": "defeated_enemy",
+        "target": 1
+      }
+    ]
+  },
+  {
+    "id": "dress_code_violation",
+    "title": "Dress Code Violation",
+    "description": "Find something, anything, that counts as pants.",
+    "objectives": [
+      {
+        "id": "pickup_item",
+        "description": "Pick up one item from the floor.",
+        "event_type": "picked_up_item",
+        "target": 1
+      }
+    ]
+  },
+  {
+    "id": "bad_flooring",
+    "title": "Bad Flooring",
+    "description": "Learn that terrain can hate you too.",
+    "objectives": [
+      {
+        "id": "trigger_hazard",
+        "description": "Trigger one hazard or terrain effect.",
+        "event_type": "triggered_hazard",
+        "target": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Narromine Street View Compare</title>
+<style>
+  :root { --bg:#f4f1ea; --panel:#ffffff; --ink:#1f2328; --muted:#5d6670; --line:#d9d4c8; --accent:#2f5a3c; --warn:#8a5a00; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#161a1e; --panel:#1f252b; --ink:#e8e6e1; --muted:#9aa4ad; --line:#333b43; --accent:#7fbf8f; --warn:#e0b04a; } }
+  :root[data-theme="dark"] { --bg:#161a1e; --panel:#1f252b; --ink:#e8e6e1; --muted:#9aa4ad; --line:#333b43; --accent:#7fbf8f; --warn:#e0b04a; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font:14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  body { display:grid; grid-template-rows:auto 1fr auto; height:100dvh; }
+  header { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:center; padding:8px 12px; background:var(--panel); border-bottom:1px solid var(--line); }
+  header h1 { font-size:15px; margin:0 6px 0 0; }
+  label { color:var(--muted); font-size:12px; display:flex; gap:6px; align-items:center; }
+  select, input, button, textarea { font:inherit; color:var(--ink); background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:5px 8px; }
+  button { cursor:pointer; background:var(--accent); color:#fff; border-color:transparent; }
+  button.ghost { background:transparent; color:var(--ink); border-color:var(--line); }
+  #panes { display:grid; grid-template-columns:1fr 1fr; min-height:0; }
+  .pane { position:relative; min-height:0; border-right:1px solid var(--line); }
+  .pane:last-child { border-right:0; }
+  .tag { position:absolute; z-index:5; top:8px; left:8px; background:rgba(0,0,0,.6); color:#fff; padding:3px 8px; border-radius:4px; font-size:12px; pointer-events:none; }
+  #pano, #game { width:100%; height:100%; border:0; display:block; }
+  #nokey { position:absolute; inset:0; display:none; flex-direction:column; justify-content:center; gap:12px; padding:24px; text-align:left; }
+  #nokey p { margin:0; max-width:46ch; }
+  #nokey a { color:var(--accent); font-weight:600; }
+  footer { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:flex-start; padding:8px 12px; background:var(--panel); border-top:1px solid var(--line); }
+  #readout { font-variant-numeric:tabular-nums; color:var(--muted); font-size:12px; min-width:250px; }
+  #notes { flex:1 1 320px; min-height:56px; resize:vertical; }
+  .small { font-size:11px; color:var(--muted); max-width:60ch; }
+  #meter { margin-left:auto; display:flex; flex-wrap:wrap; gap:10px; align-items:center; font-size:12px; font-variant-numeric:tabular-nums; }
+  #meter b { font-size:13px; }
+  #toast { position:fixed; z-index:50; top:58px; left:50%; transform:translateX(-50%); max-width:min(92vw,620px); background:#7a2e0e; color:#fff; padding:10px 14px; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.35); font-size:13px; display:none; }
+  #toast.free { background:#2f5a3c; }
+  #log { max-height:84px; overflow:auto; font-size:11px; color:var(--muted); min-width:260px; margin:0; padding-left:16px; }
+  @media (max-width:760px) { #panes { grid-template-columns:1fr; grid-template-rows:1fr 1fr; } .pane { border-right:0; border-bottom:1px solid var(--line); } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Narromine: Street View ↔ Repository Town</h1>
+  <label>Place <select id="preset"></select></label>
+  <label>Lat <input id="lat" size="10" inputmode="decimal"></label>
+  <label>Lng <input id="lng" size="10" inputmode="decimal"></label>
+  <button id="go">Go</button>
+  <label><input type="checkbox" id="follow" checked> Game follows Street View</label>
+  <label title="When you walk in the game, Street View jumps to you once you stop (each jump is one counted load). Turning is free."><input type="checkbox" id="followGame" checked> Street View follows game</label>
+  <button class="ghost" id="fromgame" title="Move Street View to where you are standing in the game">Street View ← game</button>
+  <button class="ghost" id="keybtn">Maps API key…</button>
+  <div id="meter" title="Every Google call this page makes is counted here and announced on screen.">
+    <span>Google calls this month: <b id="mCalls">0</b></span>
+    <span>Billable loads: <b id="mLoads">0</b> / 5,000 free</span>
+    <span>Est. charge: <b id="mCost">US$0.00</b></span>
+    <label>Stop at <input id="mCap" size="5" inputmode="numeric"> loads</label>
+  </div>
+</header>
+<div id="toast" role="status" aria-live="polite"></div>
+<main id="panes">
+  <section class="pane">
+    <span class="tag">Real Narromine · Google Street View (live)</span>
+    <div id="pano"></div>
+    <div id="nokey">
+      <p><strong>Add your Google Maps API key to see Street View here.</strong> Use a <em>Maps JavaScript API</em> key, restricted to this website. It is kept only in this browser and never sent anywhere except Google.</p>
+      <p>Without a key, you can still compare: <a id="extlink" target="_blank" rel="noopener">open this exact spot in Google Street View ↗</a> in another window. It follows the place, heading and tilt shown below.</p>
+    </div>
+  </section>
+  <section class="pane">
+    <span class="tag">Repository Town · same coordinates</span>
+    <iframe id="game" src="./index.html" title="Repository Town"></iframe>
+  </section>
+</main>
+<footer>
+  <div id="readout">Loading…</div>
+  <textarea id="notes" placeholder="Differences you notice (roof shape, windows, colours, signs…). Saved in this browser only."></textarea>
+  <ol id="log" reversed aria-label="Google API call log"></ol>
+  <div>
+    <button class="ghost" id="addpos">Insert current place</button>
+    <button class="ghost" id="export">Download notes</button>
+  </div>
+  <p class="small">Every call to Google is announced on screen and counted above. The estimate uses Google's listed price (5,000 free loads a month, then US$14 per 1,000) and counts conservatively; your Google Cloud billing report is the final word. Street View imagery is shown live through Google's official viewer, with Google's attribution. It is not captured, stored or analysed by this page. Game coordinates are converted from the same latitude and longitude, with the heading and tilt matched.</p>
+</footer>
+<script type="module">
+import { geoToWorld, DETAILED, PLACES } from './world/narromine-layout.js';
+
+const $ = (id) => document.getElementById(id);
+
+// Google API cost meter. Prices from Google Maps Platform's global price list (checked 4 Nov 2026):
+// Dynamic Street View is 5,000 free billable events a month, then US$14.00 per 1,000 (US$0.014 each)
+// in the next band. Google does not publish exactly which panorama actions are billable, so this meter
+// is deliberately conservative: every panorama load or jump counts as one billable event, even if Google
+// may not charge for moving within a panorama. Street View metadata lookups are listed as no-charge.
+// Counts are per calendar month in this browser; the Google Cloud billing report is authoritative.
+const PRICE = { load: 0.014, free: 5000 };
+const mKey = 'svCompareMeter:' + new Date().toISOString().slice(0, 7);
+const meter = (() => { try { return JSON.parse(localStorage.getItem(mKey)) || { calls: 0, loads: 0 }; } catch { return { calls: 0, loads: 0 }; } })();
+let capLoads = Number((() => { try { return localStorage.getItem('svCompareCap'); } catch { return null; } })()) || 4500;
+let toastTimer = null;
+const estCost = () => Math.max(0, meter.loads - PRICE.free) * PRICE.load;
+function drawMeter() {
+  $('mCalls').textContent = meter.calls.toLocaleString(); $('mLoads').textContent = meter.loads.toLocaleString();
+  $('mCost').textContent = 'US$' + estCost().toFixed(2); $('mCap').value = capLoads;
+}
+// Record and announce one Google call. kind: 'load' (billable Dynamic Street View), 'meta' or 'script' (no charge).
+function apiCall(kind, what) {
+  meter.calls++; if (kind === 'load') meter.loads++;
+  try { localStorage.setItem(mKey, JSON.stringify(meter)); } catch {}
+  const overFree = meter.loads > PRICE.free, each = 'US$' + PRICE.load.toFixed(3);
+  const cost = kind !== 'load' ? 'no charge' : overFree ? 'costs ' + each
+    : each + ' list price, covered by your 5,000 free loads (' + (PRICE.free - meter.loads).toLocaleString() + ' left this month)';
+  const t = $('toast');
+  t.textContent = 'Google API call #' + meter.calls + ': ' + what + ' - ' + cost + '. Estimated charge this month: US$' + estCost().toFixed(2) + '.';
+  t.className = kind === 'load' && overFree ? '' : 'free'; t.style.display = 'block';
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.style.display = 'none'; }, 4500);
+  const li = document.createElement('li');
+  li.textContent = new Date().toLocaleTimeString() + ' ' + what + ' - ' + (kind === 'load' ? each + (overFree ? '' : ' (free tier)') : 'no charge');
+  $('log').prepend(li); drawMeter();
+}
+// Hard stop: no further billable loads once the monthly limit is reached.
+function allowLoad() {
+  if (meter.loads < capLoads) return true;
+  const t = $('toast'); t.className = ''; t.style.display = 'block';
+  t.textContent = 'Stopped: you have reached your limit of ' + capLoads + ' Street View loads this month. Raise "Stop at" to continue.';
+  return false;
+}
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+
+// geoToWorld is a local equirectangular projection, so its inverse is affine: build it from two probes.
+const o = geoToWorld(-32.23, 148.24), a = geoToWorld(-32.229, 148.24), b = geoToWorld(-32.23, 148.241);
+const zPerLat = (a[1] - o[1]) / 1e-3, xPerLng = (b[0] - o[0]) / 1e-3;
+const worldToGeo = (x, z) => ({ lat: -32.23 + (z - o[1]) / zPerLat, lng: 148.24 + (x - o[0]) / xPerLng });
+// Street View heading: degrees clockwise from north. Game yaw: 0 looks north (-z), +pi/2 looks west (-x).
+const yawFromHeading = (h) => -h * Math.PI / 180;
+const headingFromYaw = (y) => ((-y * 180 / Math.PI) % 360 + 360) % 360;
+
+// Places to jump to: every photo- or LiDAR-modelled building, plus a few landmarks.
+const centre = (pts) => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+const presets = DETAILED.map((d) => ({ name: d.name, at: centre(d.parts.flatMap((p) => p.pts)) }));
+for (const p of PLACES) if (/station|court house|aviation|museum|pharmacy|bakery/i.test(p.name) && !presets.some((q) => q.name === p.name)) presets.push({ name: p.name, at: [p.x, p.z] });
+presets.sort((x, y) => x.name.localeCompare(y.name));
+for (const [i, p] of presets.entries()) $('preset').add(new Option(p.name, i));
+
+let placedAt = null, ourPano = null, pano = null, svService = null, lastGeo = null, pov = { heading: 0, pitch: 0, zoom: 1 }, suppress = false;
+const gameApi = () => { try { return $('game').contentWindow.__town || null; } catch { return null; } };
+
+function readout(extra = '') {
+  const g = lastGeo ? `${lastGeo.lat.toFixed(6)}, ${lastGeo.lng.toFixed(6)}` : '—';
+  const w = lastGeo ? geoToWorld(lastGeo.lat, lastGeo.lng).map((v) => v.toFixed(1)).join(', ') : '—';
+  $('readout').innerHTML = `Lat/Lng ${g}<br>Game x, z ${w}<br>Heading ${pov.heading.toFixed(0)}° · tilt ${pov.pitch.toFixed(0)}° · zoom ${pov.zoom.toFixed(1)}${extra ? '<br>' + extra : ''}`;
+  if (lastGeo) $('extlink').href = `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lastGeo.lat},${lastGeo.lng}&heading=${pov.heading.toFixed(0)}&pitch=${pov.pitch.toFixed(0)}`;
+}
+
+// Street View's horizontal field of view is 180 / 2^zoom; the game camera's fov is vertical.
+function syncGame() {
+  const t = gameApi(); if (!t || !lastGeo || !$('follow').checked) return;
+  const [x, z] = geoToWorld(lastGeo.lat, lastGeo.lng), frame = $('game').getBoundingClientRect();
+  const hfov = Math.min(120, 180 / Math.pow(2, pov.zoom)) * Math.PI / 180, aspect = frame.width / Math.max(1, frame.height);
+  const vfov = 2 * Math.atan(Math.tan(hfov / 2) / aspect) * 180 / Math.PI;
+  t.place(x, z, yawFromHeading(pov.heading)); placedAt = { x, z, yaw: yawFromHeading(pov.heading) };
+  t.view?.({ pitch: pov.pitch * Math.PI / 180, fov: vfov });
+}
+
+function goTo(lat, lng, heading, faceTarget = false) {
+  lastGeo = { lat, lng }; if (Number.isFinite(heading)) pov.heading = heading;
+  $('lat').value = lat.toFixed(6); $('lng').value = lng.toFixed(6);
+  if (pano && svService) {
+    if (!allowLoad()) { readout('Street View paused at your monthly limit; the game still moves.'); syncGame(); return; }
+    apiCall('meta', 'Street View metadata lookup (find nearest panorama)');
+    svService.getPanorama({ location: { lat, lng }, radius: 60, source: google.maps.StreetViewSource.OUTDOOR }, (data, status) => {
+      if (status !== 'OK') { readout('No Street View within 60 m; the game is at the exact spot.'); syncGame(); return; }
+      const ll = data.location.latLng, h = faceTarget ? google.maps.geometry.spherical.computeHeading(ll, new google.maps.LatLng(lat, lng)) : (Number.isFinite(heading) ? heading : pov.heading);
+      ourPano = data.location.pano; apiCall('load', 'Street View panorama loaded (jump to ' + (data.location.description || 'a new place') + ')');
+      suppress = true; pano.setPano(data.location.pano); pano.setPov({ heading: h, pitch: 0 }); suppress = false;
+    });
+  }
+  readout(); syncGame();
+}
+
+function goPreset(i) {
+  const p = presets[i]; if (!p) return;
+  const g = worldToGeo(p.at[0], p.at[1]);
+  // Without Street View the game stands 25 m east of the building on Dandaloo Street side, looking at it.
+  if (!pano) { const s = worldToGeo(p.at[0] + 25, p.at[1]); goTo(s.lat, s.lng, 270); return; }
+  goTo(g.lat, g.lng, 0, true);   // the panorama snaps to the nearest road and faces the building
+}
+
+function fromGame() {
+  const t = gameApi(); if (!t) return;
+  const v = t.view?.() || {}, s = t.state?.() || {}, pos = v.pos || s.pos; if (!pos) return;
+  const g = worldToGeo(pos.x, pos.z); pov.heading = headingFromYaw(v.yaw ?? 0);
+  $('follow').checked = false; goTo(g.lat, g.lng); if (pano) pano.setPov({ heading: pov.heading, pitch: 0 });
+}
+
+function loadMaps(key) {
+  if (!key) { $('nokey').style.display = 'flex'; return; }
+  window.__svReady = () => {
+    $('nokey').style.display = 'none';
+    pano = new google.maps.StreetViewPanorama($('pano'), { addressControl: true, motionTracking: false, fullscreenControl: false, showRoadLabels: true });
+    svService = new google.maps.StreetViewService();
+    pano.addListener('position_changed', () => { const p = pano.getPosition(); if (!p) return; lastGeo = { lat: p.lat(), lng: p.lng() }; $('lat').value = lastGeo.lat.toFixed(6); $('lng').value = lastGeo.lng.toFixed(6); readout(); if (!suppress) syncGame(); });
+    pano.addListener('pov_changed', () => { pov = { ...pov, ...pano.getPov(), zoom: pano.getZoom?.() ?? pov.zoom }; readout(); if (!suppress) syncGame(); });
+    pano.addListener('zoom_changed', () => { pov.zoom = pano.getZoom(); readout(); syncGame(); });
+    pano.addListener('pano_changed', () => {
+      const id = pano.getPano(); if (!id || id === ourPano) return; ourPano = id;
+      if (!allowLoad()) return;
+      apiCall('load', 'Street View panorama loaded (you moved along the street; may not be billed, counted to be safe)');
+    });
+    pano.addListener('status_changed', () => { if (pano.getStatus() !== 'OK') readout('Street View unavailable here.'); });
+    if (fromPlayer) goTo(fromPlayer.lat, fromPlayer.lng, fromPlayer.heading); else goPreset($('preset').value);
+  };
+  // Google reports why a key was refused only in the console ("Google Maps JavaScript API error: XxxMapError").
+  // Catch that code and show the reason and the fix on the page.
+  const FIX = {
+    ApiNotActivatedMapError: 'The Maps JavaScript API is not enabled in this key\'s Google Cloud project. Enable it, wait a minute, then reload.',
+    BillingNotEnabledMapError: 'Billing is not linked to this Google Cloud project. Link a billing account (the 5,000 free loads still apply), then reload.',
+    RefererNotAllowedMapError: 'The key\'s website restriction does not include this page. Add https://repository-town-claude-complete.vercel.app/* under Application restrictions > Websites.',
+    InvalidKeyMapError: 'Google does not recognise this key. Copy it again from Credentials and re-enter it with "Maps API key…".',
+    ApiTargetBlockedMapError: 'The key\'s API restriction does not allow the Maps JavaScript API. Tick Maps JavaScript API under API restrictions.',
+    ExpiredKeyMapError: 'This key has expired or been deleted. Create a new one.',
+  };
+  let authCode = null;
+  const origError = console.error.bind(console);
+  console.error = (...args) => { const m = String(args[0] || '').match(/([A-Za-z]+MapError)/); if (m) { authCode = m[1]; showAuth(); } origError(...args); };
+  const showAuth = () => {
+    $('pano').style.visibility = 'hidden'; $('nokey').style.display = 'flex';
+    $('nokey').querySelector('p').innerHTML = '<strong>Google refused the API key' + (authCode ? ' (' + authCode + ')' : '') + '.</strong> ' +
+      (FIX[authCode] || 'Check that the Maps JavaScript API is enabled, billing is linked and this website is allowed for the key. Changes can take up to 5 minutes.') +
+      ' Google does not charge for refused requests.';
+    readout('Google refused the key' + (authCode ? ': ' + authCode : '') + '.');
+  };
+  window.gm_authFailure = () => setTimeout(showAuth, 50);
+  apiCall('script', 'Maps JavaScript API library loaded');
+  const s = document.createElement('script');
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(key)}&libraries=geometry&callback=__svReady&loading=async`;
+  s.async = true; document.head.append(s);
+}
+
+// The game: collapse its HUD so the scene is visible, and set daytime.
+$('game').addEventListener('load', () => {
+  const tick = setInterval(() => {
+    const doc = $('game').contentDocument, t = gameApi();
+    if (!t || !doc || !doc.getElementById('loading')?.hidden) return;
+    clearInterval(tick);
+    for (const btn of doc.querySelectorAll('button')) if (btn.textContent.trim() === '−') { btn.click(); break; }
+    try { t.closePanel?.(); t.life?.setTime?.(10 * 60); } catch {}
+    syncGame();
+  }, 500);
+});
+
+$('mCap').addEventListener('change', () => { capLoads = Math.max(0, parseInt($('mCap').value, 10) || 0); try { localStorage.setItem('svCompareCap', String(capLoads)); } catch {} drawMeter(); });
+drawMeter();
+// Both sync switches remember their setting in this browser.
+for (const id of ['follow', 'followGame']) { const v = store.get('svSync:' + id); if (v !== null) $(id).checked = v === '1'; $(id).addEventListener('change', () => store.set('svSync:' + id, $(id).checked ? '1' : '0')); }
+$('preset').addEventListener('change', (e) => goPreset(e.target.value));
+$('go').addEventListener('click', () => { const lat = parseFloat($('lat').value), lng = parseFloat($('lng').value); if (Number.isFinite(lat) && Number.isFinite(lng)) goTo(lat, lng); });
+$('fromgame').addEventListener('click', fromGame);
+$('follow').addEventListener('change', syncGame);
+$('keybtn').addEventListener('click', () => {
+  const k = prompt('Google Maps JavaScript API key (kept only in this browser). Leave blank to remove it.', store.get('svCompareKey') || '');
+  if (k === null) return; store.set('svCompareKey', k.trim()); location.reload();
+});
+$('notes').value = store.get('svCompareNotes') || '';
+$('notes').addEventListener('input', () => store.set('svCompareNotes', $('notes').value));
+$('addpos').addEventListener('click', () => {
+  const name = presets[$('preset').value]?.name || 'Place';
+  $('notes').value += `${$('notes').value && !$('notes').value.endsWith('\n') ? '\n' : ''}## ${name} @ ${lastGeo ? lastGeo.lat.toFixed(6) + ', ' + lastGeo.lng.toFixed(6) : '?'} heading ${pov.heading.toFixed(0)}°\n- `;
+  store.set('svCompareNotes', $('notes').value); $('notes').focus();
+});
+$('export').addEventListener('click', () => {
+  const blob = new Blob([`# Narromine Street View comparison notes\n\n${$('notes').value}\n`], { type: 'text/markdown' });
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'narromine-compare-notes.md' }); a.click();
+});
+addEventListener('resize', syncGame);
+
+// Street View follows the game. Watch the player; turning updates Street View's heading at once
+// (no charge: same panorama). Walking jumps Street View only after the player has stopped for
+// 1.2 s and moved 10 m from where Street View last was, so a walk costs one load, not dozens.
+let still = null;
+setInterval(() => {
+  const t = gameApi(); if (!t?.view || !$('followGame').checked || !pano) return;
+  const v = t.view(); if (!v?.pos) return;
+  const ref = placedAt || { x: v.pos.x, z: v.pos.z, yaw: v.yaw };
+  const moved = Math.hypot(v.pos.x - ref.x, v.pos.z - ref.z);
+  const heading = headingFromYaw(v.yaw);
+  if (moved < 10) {
+    still = null;
+    if (Math.abs(((heading - pov.heading + 540) % 360) - 180) > 4) { suppress = true; pano.setPov({ heading, pitch: pov.pitch }); pov.heading = heading; suppress = false; readout(); }
+    return;
+  }
+  if (!still || Math.hypot(v.pos.x - still.x, v.pos.z - still.z) > 0.5) { still = { x: v.pos.x, z: v.pos.z, at: Date.now() }; return; }
+  if (Date.now() - still.at < 1200) return;
+  still = null; placedAt = { x: v.pos.x, z: v.pos.z, yaw: v.yaw };
+  const g = worldToGeo(v.pos.x, v.pos.z), keepGame = $('follow').checked;
+  $('follow').checked = false;                      // don't snap the game to the panorama's road position
+  goTo(g.lat, g.lng, heading);
+  setTimeout(() => { $('follow').checked = keepGame; }, 1500);
+}, 400);
+
+const startAt = Math.max(0, presets.findIndex((p) => /Narromine Hotel/.test(p.name)));
+// Opened from the game's Street View button: start where the player is standing, looking the same way.
+const qs = new URLSearchParams(location.search), qx = parseFloat(qs.get('x')), qz = parseFloat(qs.get('z')), qyaw = parseFloat(qs.get('yaw'));
+const fromPlayer = Number.isFinite(qx) && Number.isFinite(qz) ? { ...worldToGeo(qx, qz), heading: Number.isFinite(qyaw) ? headingFromYaw(qyaw) : 0 } : null;
+$('preset').value = startAt;
+readout();
+// A key typed into this browser wins; otherwise use the site's key from the Vercel environment.
+(async () => {
+  let key = store.get('svCompareKey') || '';
+  if (!key) { try { key = (await (await fetch('./api/maps-key', { cache: 'no-store' })).json()).key || ''; } catch {} }
+  if (fromPlayer) { pov.heading = fromPlayer.heading; lastGeo = { lat: fromPlayer.lat, lng: fromPlayer.lng }; }
+  loadMaps(key);
+  if (!key) { if (fromPlayer) goTo(fromPlayer.lat, fromPlayer.lng, fromPlayer.heading); else goPreset(startAt); }
+})();
+</script>
+</body>
+</html>

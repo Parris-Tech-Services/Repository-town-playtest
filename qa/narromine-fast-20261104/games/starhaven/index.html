@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script>// Injected first into every packed game (tools/pack_games.mjs). Lets games built for a
+// web server run from a folder, including from file:// in the offline zip.
+// The packer fills in the game's small text files (F) and optional images as data URIs (IMG).
+(function () {
+  var F = {"README.md":"# ★ StarHaven ★\n\nA **Star Wars–themed text RPG** that runs entirely in the browser. No build step, no dependencies — a single self-contained `index.html`.\n\nYou play a Rebel operative arriving at StarHaven Station and must choose one of three branching missions, each with multiple paths, consequences, and endings.\n\n## Game concept\n\n- **Three missions**, each a full branching story:\n  - **Rescue** — break a captured Jedi Master out of a detention block.\n  - **Infiltration** — steal stolen fleet coordinates from an Imperial courier.\n  - **Negotiation** — bargain with (or strong-arm) Slugga the Hutt.\n- Choices affect **Health**, **Credits**, and a **Light/Dark alignment** stat.\n- **8 distinct endings** across the three branches.\n\n## Controls\n\n- Click the on-screen **choice buttons** to advance the story.\n- A typewriter effect prints each passage; choices appear when it finishes.\n- Reach an ending, then use **[ Play Again ]** to start over.\n\n## Saved progress\n\nEndings you discover are saved in your browser via **localStorage** and shown as\n`ENDINGS DISCOVERED: N / 8` beneath the game. Clearing site data resets this.\n\n## How to run\n\nJust open `index.html` in any modern browser — double-click it, or serve the folder:\n\n```bash\n# optional local server\npython -m http.server 8000\n# then visit http://localhost:8000\n```\n\n## Status\n\n**Playable and complete.** All three mission branches and 8 endings are implemented.\nLightweight by design — this is a self-contained narrative game, not an engine.\n\n## Possible future improvements\n\n- Mid-mission save/resume (currently only endings are tracked).\n- Sound effects / ambient audio toggle.\n- Additional missions or a station hub between runs.\n","podcasttodo.md":"# Podcast Integration TODO\n\n**Decision:** Add if audio complements the experience.\n**Topic bank:** science fiction/fantasy, worldbuilding, narrative games, indie game design, storytelling.\n\n## TODO\n- [ ] Curate about 25 Spotify episodes relevant to the game's themes and design.\n- [ ] Add a collapsed bottom dock: **🚀 Listen to a different sci-fi/fantasy podcast**.\n- [ ] One tap selects/loads another episode; persist recent choices and avoid immediate repeats.\n- [ ] Use Spotify embed/deep links without assuming autoplay.\n- [ ] Hide/pause whenever game music, narration, TTS or important sound cues are active.\n- [ ] Tag episodes by sci-fi, worldbuilding, story craft and game design.\n- [ ] Keep gameplay primary.\n- [ ] Add mobile/a11y and audio-conflict/persistence tests.\n\n## Shared direction\nUse the reusable **Josh Podcast Dock** and shared game/fantasy catalogue conventions.\n"};
+  var IMG = {};
+  var fileMode = location.protocol === 'file:';
+  var has = function (o, k) { return Object.prototype.hasOwnProperty.call(o, k); };
+
+  // Cross-app integration widgets are stripped; games that call them get a silent stand-in.
+  var noop = function () { return undefined; };
+  var adapter = { init: noop, trigger: noop, getRoutes: function () { return []; }, on: noop, emit: noop, track: noop };
+  if (!window.PortalAdapter) window.PortalAdapter = typeof Proxy === 'function' ? new Proxy(adapter, { get: function (t, k) { return k in t ? t[k] : noop; } }) : adapter;
+
+  // Maps a request URL to a packed file: first relative to the game folder, then, for
+  // root-absolute paths ("/seed/x.md", "/src/data/map.json"), by its longest matching tail.
+  function lookup(map, u) {
+    try {
+      var url = new URL(u, location.href);
+      if (!fileMode && url.origin !== location.origin) return null;
+      var base = new URL('.', location.href).pathname;
+      var p = decodeURIComponent(url.pathname);
+      if (p.indexOf(base) === 0 && has(map, p.slice(base.length))) return p.slice(base.length);
+      var parts = p.split('/').filter(Boolean);
+      for (var i = 0; i < parts.length; i++) { var k = parts.slice(i).join('/'); if (has(map, k)) return k; }
+    } catch (e) { /* not a URL */ }
+    return null;
+  }
+  var typeOf = function (k) { return /\.json$/i.test(k) ? 'application/json' : /\.svg$/i.test(k) ? 'image/svg+xml' : /\.html?$/i.test(k) ? 'text/html' : 'text/plain'; };
+
+  var realFetch = window.fetch && window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    var u = typeof input === 'string' ? input : input && input.url;
+    var k = u && lookup(F, u);
+    // Online the real server answers relative requests; packed copies cover file:// and
+    // root-absolute paths that no longer exist on the host.
+    if (k !== null && k !== undefined && (fileMode || /^\//.test(u) || !realFetch)) return Promise.resolve(new Response(F[k], { status: 200, headers: { 'content-type': typeOf(k) } }));
+    return realFetch ? realFetch(input, init) : Promise.reject(new TypeError('fetch unavailable'));
+  };
+
+  // XMLHttpRequest for packed text files (older games, some loaders).
+  var RealXHR = window.XMLHttpRequest;
+  if (RealXHR) {
+    var open = RealXHR.prototype.open, send = RealXHR.prototype.send;
+    RealXHR.prototype.open = function (method, u) { this.__town = (fileMode || /^\//.test(u)) ? lookup(F, u) : null; return open.apply(this, arguments); };
+    RealXHR.prototype.send = function () {
+      var k = this.__town;
+      if (k === null || k === undefined) return send.apply(this, arguments);
+      var xhr = this, text = F[k];
+      var define = function (n, v) { try { Object.defineProperty(xhr, n, { configurable: true, value: v }); } catch (e) { /* read-only */ } };
+      define('readyState', 4); define('status', 200); define('statusText', 'OK'); define('responseURL', k);
+      define('responseText', text); define('response', xhr.responseType === 'json' ? JSON.parse(text) : text);
+      setTimeout(function () {
+        xhr.dispatchEvent(new Event('readystatechange'));
+        xhr.dispatchEvent(new ProgressEvent('load'));
+        xhr.dispatchEvent(new ProgressEvent('loadend'));
+      }, 0);
+    };
+  }
+
+  // file:// images are cross-origin to the page, so WebGL cannot use them as textures.
+  // Games that need that ship their images as data URIs, swapped in on assignment.
+  if (fileMode && Object.keys(IMG).length) {
+    var desc = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+      configurable: true, enumerable: true, get: function () { return desc.get.call(this); },
+      set: function (v) { var k = typeof v === 'string' && !/^(data|blob):/.test(v) ? lookup(IMG, v) : null; desc.set.call(this, k ? IMG[k] : v); },
+    });
+    var co = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'crossOrigin');
+    Object.defineProperty(HTMLImageElement.prototype, 'crossOrigin', { configurable: true, get: function () { return co.get.call(this); }, set: function (v) { if (!fileMode) co.set.call(this, v); } });
+  }
+
+  // A page opened from a file cannot rewrite its URL; routers that try would crash.
+  if (fileMode) {
+    ['pushState', 'replaceState'].forEach(function (m) {
+      var real = history[m];
+      history[m] = function () { try { return real.apply(history, arguments); } catch (e) { return undefined; } };
+    });
+  }
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StarHaven — A Star Wars Text RPG</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #050a05;
+    color: #00ff41;
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  #game-container {
+    max-width: 780px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  #title-bar {
+    text-align: center;
+    padding: 18px 0 8px;
+  }
+  #title-bar h1 {
+    font-size: 2.4rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #00ff41;
+    text-shadow: 0 0 12px #00ff41, 0 0 30px #00cc33;
+    animation: flicker 4s infinite;
+  }
+  #title-bar p {
+    font-size: 0.75rem;
+    color: #006622;
+    letter-spacing: 0.3em;
+    margin-top: 6px;
+  }
+  @keyframes flicker {
+    0%,95%,100% { opacity: 1; }
+    96% { opacity: 0.7; }
+    97% { opacity: 1; }
+    98% { opacity: 0.5; }
+    99% { opacity: 1; }
+  }
+  #stats-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    background: #030803;
+    border: 1px solid #004d1a;
+    padding: 10px 16px;
+    border-radius: 3px;
+    font-size: 0.82rem;
+  }
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .stat-label { color: #006622; font-size: 0.7rem; letter-spacing: 0.1em; }
+  .stat-value { color: #00ff41; font-weight: bold; }
+  .stat-bar-outer {
+    width: 80px;
+    height: 6px;
+    background: #001a08;
+    border: 1px solid #004d1a;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .stat-bar-inner {
+    height: 100%;
+    background: #00ff41;
+    transition: width 0.4s ease;
+  }
+  #story-box {
+    background: #030803;
+    border: 1px solid #004d1a;
+    border-radius: 3px;
+    padding: 22px;
+    min-height: 200px;
+    font-size: 0.95rem;
+    line-height: 1.75;
+    color: #00e639;
+    position: relative;
+  }
+  #story-text { white-space: pre-wrap; }
+  #cursor {
+    display: inline-block;
+    width: 9px;
+    height: 1.1em;
+    background: #00ff41;
+    vertical-align: text-bottom;
+    animation: blink 0.7s step-end infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  #choices {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .choice-btn {
+    background: #030803;
+    border: 1px solid #00ff41;
+    color: #00ff41;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 12px 18px;
+    cursor: pointer;
+    text-align: left;
+    border-radius: 3px;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    line-height: 1.4;
+  }
+  .choice-btn:hover {
+    background: #00ff41;
+    color: #050a05;
+    box-shadow: 0 0 12px #00ff41;
+  }
+  .choice-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  #message-log {
+    font-size: 0.75rem;
+    color: #004d1a;
+    border-top: 1px solid #003311;
+    padding-top: 8px;
+    min-height: 20px;
+  }
+  .highlight { color: #ffdd00; text-shadow: 0 0 8px #ffaa00; }
+  .dark-side { color: #ff4444; text-shadow: 0 0 8px #aa0000; }
+  .light-side { color: #88ddff; text-shadow: 0 0 8px #0077cc; }
+  @media (max-width: 500px) {
+    #title-bar h1 { font-size: 1.5rem; }
+    #story-box { font-size: 0.85rem; padding: 14px; }
+    .choice-btn { font-size: 0.82rem; padding: 10px 14px; }
+  }
+</style>
+</head>
+<body>
+<div id="game-container">
+  <div id="title-bar">
+    <h1>★ StarHaven ★</h1>
+    <p>A STAR WARS TEXT RPG &nbsp;|&nbsp; OUTER RIM CHRONICLES</p>
+  </div>
+  <div id="stats-bar">
+    <div class="stat">
+      <span class="stat-label">OPERATIVE</span>
+      <span class="stat-value" id="stat-name">—</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">HEALTH</span>
+      <span class="stat-value" id="stat-hp">100</span>
+      <div class="stat-bar-outer"><div class="stat-bar-inner" id="bar-hp" style="width:100%"></div></div>
+    </div>
+    <div class="stat">
+      <span class="stat-label">CREDITS</span>
+      <span class="stat-value" id="stat-credits">500</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">ALIGNMENT</span>
+      <span class="stat-value" id="stat-align">Neutral</span>
+    </div>
+    <div class="stat">
+      <span class="stat-label">MISSION</span>
+      <span class="stat-value" id="stat-mission">—</span>
+    </div>
+  </div>
+  <div id="story-box">
+    <span id="story-text"></span><span id="cursor"></span>
+  </div>
+  <div id="choices"></div>
+  <div id="message-log"></div>
+</div>
+
+<script>
+const state = {
+  name: "Operative",
+  hp: 100,
+  maxHp: 100,
+  credits: 500,
+  alignment: 0, // negative = dark, positive = light
+  mission: "Unknown",
+  flags: {}
+};
+
+let typingTimer = null;
+let currentNode = null;
+
+function updateStats() {
+  document.getElementById('stat-name').textContent = state.name;
+  document.getElementById('stat-hp').textContent = state.hp;
+  document.getElementById('bar-hp').style.width = Math.max(0, (state.hp / state.maxHp * 100)) + '%';
+  document.getElementById('stat-credits').textContent = state.credits;
+  let alignText = 'Neutral';
+  let alignEl = document.getElementById('stat-align');
+  if (state.alignment >= 3) { alignText = 'Light'; alignEl.className = 'stat-value light-side'; }
+  else if (state.alignment <= -3) { alignText = 'Dark'; alignEl.className = 'stat-value dark-side'; }
+  else { alignEl.className = 'stat-value'; }
+  alignEl.textContent = alignText;
+  document.getElementById('stat-mission').textContent = state.mission;
+}
+
+function log(msg) {
+  document.getElementById('message-log').textContent = '> ' + msg;
+}
+
+function typeText(text, callback) {
+  if (typingTimer) clearTimeout(typingTimer);
+  const el = document.getElementById('story-text');
+  el.innerHTML = '';
+  let i = 0;
+  const speed = 22;
+  function tick() {
+    if (i < text.length) {
+      el.textContent += text[i];
+      i++;
+      typingTimer = setTimeout(tick, speed);
+    } else {
+      if (callback) callback();
+    }
+  }
+  tick();
+}
+
+function showChoices(choices) {
+  const box = document.getElementById('choices');
+  box.innerHTML = '';
+  choices.forEach(c => {
+    if (c.condition && !c.condition()) return;
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = c.text;
+    btn.onclick = () => {
+      box.querySelectorAll('button').forEach(b => b.disabled = true);
+      if (c.effect) c.effect();
+      updateStats();
+      goTo(c.next);
+    };
+    box.appendChild(btn);
+  });
+}
+
+function goTo(nodeId) {
+  const node = nodes[nodeId];
+  if (!node) { log('ERROR: node not found — ' + nodeId); return; }
+  currentNode = nodeId;
+  if (node.text && node.text.indexOf('ENDING:') > -1) recordEnding(nodeId);
+  document.getElementById('choices').innerHTML = '';
+  typeText(node.text, () => {
+    if (node.choices && node.choices.length > 0) showChoices(node.choices);
+    if (node.onEnter) node.onEnter();
+  });
+}
+
+// ─── STORY NODES ─────────────────────────────────────────────────────────────
+
+const nodes = {
+
+  start: {
+    text: `The hyperdrive whines down to silence.\n\nYour battered YT-1300 freighter drifts out of lightspeed into the shadow of an asteroid field. Ahead, half-hidden in rock and sensor-baffling debris, glows StarHaven Station — a patchwork of salvaged modules, stolen Imperial steel, and stubborn Rebellion hope.\n\nYour comm crackles. The voice of Rebel Intelligence cuts through the static:\n\n"Welcome to StarHaven, operative. We have three situations demanding immediate attention. The Empire is getting closer every hour. Choose your mission — and choose wisely."\n\nYou patch into the station's encrypted network and pull up the dossiers. The weight of the galaxy rests in your hands.\n\nWhat is your name, operative?`,
+    choices: [
+      { text: '[ Enter name: Kira Voss ]', effect: () => { state.name = 'Kira Voss'; }, next: 'mission_select' },
+      { text: '[ Enter name: Dax Merro ]', effect: () => { state.name = 'Dax Merro'; }, next: 'mission_select' },
+      { text: '[ Enter name: Sera Nox ]', effect: () => { state.name = 'Sera Nox'; }, next: 'mission_select' },
+    ]
+  },
+
+  mission_select: {
+    text: `Three holographic briefings flicker in front of you. Your fingers hover over the controls.\n\nMISSION ALPHA — RESCUE: Master Orin Kael, a captured Jedi Knight, is being held in StarHaven's lower detention block. Imperial Inquisitors are en route. If they take him, he's gone forever.\n\nMISSION BETA — INFILTRATION: An Imperial data courier landed an hour ago. She's carrying stolen Rebel fleet coordinates. If the Empire transmits them, the Rebellion loses a dozen ships before dawn.\n\nMISSION GAMMA — NEGOTIATION: Slugga the Hutt controls the only hyperspace route out of this sector. He's threatening to sell the station's location to the highest bidder — and the Empire is already sending an envoy.\n\nThe holo-display pulses, waiting.`,
+    onEnter: () => { updateStats(); },
+    choices: [
+      { text: '[ALPHA] Rescue Jedi Master Orin Kael from the detention block.', effect: () => { state.mission = 'Rescue'; }, next: 'rescue_start' },
+      { text: '[BETA] Steal the Imperial data core before it can be transmitted.', effect: () => { state.mission = 'Infiltration'; }, next: 'infiltrate_start' },
+      { text: '[GAMMA] Negotiate — or strong-arm — Slugga the Hutt.', effect: () => { state.mission = 'Negotiation'; }, next: 'hutt_start' },
+    ]
+  },
+
+  // ── RESCUE BRANCH ──────────────────────────────────────────────────────────
+
+  rescue_start: {
+    text: `You descend into the guts of StarHaven. The lower decks smell of recycled air and old fear. Emergency lighting paints everything in crimson.\n\nA Rebel guard — young, nervous — meets you at the blast door.\n\n"Glad you're here. Master Kael is two levels down. Problem is, the Inquisitor's advance scout — a red-armored ISB agent — arrived twenty minutes ago. She's already in the detention corridor. She doesn't know exactly which cell he's in yet. We have a window, but it's closing fast."\n\nHe hands you a keycard and a floor map. You study the routes.\n\nThere's a direct path — fast, but through the main corridor where the ISB agent is prowling. Or a maintenance shaft that winds around — slower, but unseen. There's also a third option: a station intercom override that could create a diversion, but it'll alert everyone on the level.`,
+    choices: [
+      { text: 'Take the direct route. Speed is everything.', effect: () => { state.hp -= 15; log('You took a blaster graze from the ISB scout. -15 HP'); }, next: 'rescue_direct' },
+      { text: 'Crawl through the maintenance shaft. Stay invisible.', next: 'rescue_stealth' },
+      { text: 'Trigger the intercom diversion — chaos can be a weapon.', effect: () => { state.flags.diversion = true; }, next: 'rescue_diversion' },
+    ]
+  },
+
+  rescue_direct: {
+    text: `You move fast, head low, trusting speed over caution.\n\nThe ISB agent spots you at twenty meters. Red armor, cold eyes. She reaches for her comlink — you're faster. A stunning blast catches her mid-reach. She crumples.\n\nYou're bleeding from a ricochet that grazed your shoulder, but you're moving. Cell block D. Third door on the left.\n\nThe man inside looks worse than you expected. Orin Kael — once a formidable Jedi Knight — sits against the wall, wrists in Force-suppressor cuffs, eyes sunken but sharp. He looks up at you.\n\n"Rebel Intelligence sent one person?" A dry, tired smile. "They must be desperate. Or they trust you a great deal."\n\nThe suppressor cuffs are magnetically sealed. You have the keycard — but the panel is damaged. You'll need to improvise.`,
+    choices: [
+      { text: 'Short-circuit the panel with your field kit. Technical approach.', next: 'rescue_free_tech' },
+      { text: 'Shoot the cuffs off. Messy, but fast.', effect: () => { state.hp -= 10; log('Blowback from the cuffs. -10 HP'); }, next: 'rescue_free_force' },
+    ]
+  },
+
+  rescue_stealth: {
+    text: `The maintenance shaft is barely a meter wide. You move in the dark, palms against cold metal, navigating by memory of the floor map.\n\nYou hear the ISB agent's footsteps directly below you. She's methodical. Professional. You hold your breath for a full thirty seconds as she pauses beneath the grate.\n\nThen she moves on.\n\nYou drop into cell block D without a sound.\n\nOrin Kael is sitting cross-legged in the center of his cell, eyes closed. He doesn't look up when you approach, but he speaks:\n\n"The one who moves in silence. Good. The Inquisitors teach their scouts to listen for running feet. You were wise to crawl."\n\nHis eyes open. They hold a quiet intensity — a Jedi who has not lost himself, despite everything.\n\n"The cuffs suppress the Force but not patience. I've been studying the panel. Third contact array — it's corroded. One clean spark will trip the release."`,
+    choices: [
+      { text: 'Follow his instructions. Precise spark to the panel.', next: 'rescue_free_tech' },
+      { text: '"Can you fight if I free you, Master Kael?"', next: 'rescue_kael_talk' },
+    ]
+  },
+
+  rescue_diversion: {
+    text: `You splice into the intercom override. A few seconds of work, and then — every alarm on the level screams at once. Fire suppression activates. Emergency bulkheads begin to cycle.\n\nBeautiful, controlled chaos.\n\nThe ISB agent sprints toward the emergency board. You sprint toward cell block D.\n\nOrin Kael is already standing when you arrive, as though he expected you at this exact moment.\n\n"A diversion," he says. Not a question. "Bold. The Force flows through improvisation as readily as discipline." He tilts his head toward the control panel. "I've had time to study the lock. Shall we?"\n\nThe two of you work in efficient silence. He narrates the circuitry from memory; you execute.`,
+    choices: [
+      { text: 'Free him and move immediately — the window is closing.', next: 'rescue_free_tech' },
+    ]
+  },
+
+  rescue_kael_talk: {
+    text: `"Can I fight?" Kael repeats the question, and something lights in his eyes — not anger, something older and quieter.\n\n"I was a Jedi Knight during the Clone Wars. I trained under Master Shaak Ti. I have faced Sith Lords and survived." He pauses. "But the honest answer is: not at full strength. These cuffs have held me for three days. I am tired, hungry, and the Force feels... distant. Like hearing music through a wall."\n\nHe meets your eyes.\n\n"But I will not leave you to face the Empire alone. Free me. Whatever strength I have is yours."\n\nThe moment costs you thirty seconds you can't afford. But something about his honesty steadies you.`,
+    choices: [
+      { text: 'Proceed to free him.', effect: () => { state.alignment++; }, next: 'rescue_free_tech' },
+    ]
+  },
+
+  rescue_free_tech: {
+    text: `The panel sparks, clicks, and the suppressor cuffs fall open with a satisfying clunk.\n\nOrin Kael rises slowly. He flexes his hands. Breathes. Then the air around him shifts — barely perceptible, like a change in air pressure before a storm.\n\n"The Force returns," he murmurs. "Like an old friend."\n\nAlarms are intensifying. The main Inquisitor's shuttle has just docked — the guard's voice crackles over your earpiece: "They're here. You have maybe four minutes before they reach the detention block."\n\nKael looks at you. "You've done what needed doing. Now: how do we get out?"`,
+    choices: [
+      { text: 'Fight through to the docking bay. Blasters and lightsaber.', effect: () => { state.alignment--; state.hp -= 20; log('Firefight. -20 HP'); }, next: 'rescue_fight_out' },
+      { text: 'Sneak through the cargo tunnels. Trust stealth over force.', effect: () => { state.alignment++; }, next: 'rescue_sneak_out' },
+    ]
+  },
+
+  rescue_free_force: {
+    text: `The blast shears the cuff housing. Kael yanks his hands free, hissing through his teeth.\n\n"Effective," he says, examining his singed wrists. "Inelegant. But effective."\n\nHe stands. The cell feels smaller with him upright. Something about Orin Kael takes up more space than his physical form should allow.\n\nAlarms outside. Time is evaporating.`,
+    choices: [
+      { text: 'Fight through to the docking bay — Kael can use the Force.', effect: () => { state.alignment--; state.hp -= 20; log('Firefight. -20 HP'); }, next: 'rescue_fight_out' },
+      { text: 'Move quietly. Kael\'s Force sense can guide you around patrols.', effect: () => { state.alignment++; }, next: 'rescue_sneak_out' },
+    ]
+  },
+
+  rescue_fight_out: {
+    text: `You burst into the corridor side by side. Kael doesn't have a lightsaber — they took it when they captured him — but he doesn't need one.\n\nA stormtrooper squad rounds the corner. Kael raises his hand. Three of them fly backward into the bulkhead like they weighed nothing. Your blaster handles the rest.\n\nThe Inquisitor appears at the far end — tall, black-armored, double-bladed saber igniting with a crimson hiss. Kael steps forward, calm as stone water.\n\n"Take the operative and run," he tells you. "I will hold her."\n\nYou want to argue. His look stops you.\n\nYou run.`,
+    choices: [
+      { text: 'Trust him. Get to the ship.', next: 'rescue_ending_escape' },
+      { text: 'I\'m not leaving without him. Stand and fight.', effect: () => { state.hp -= 30; state.alignment--; log('You take heavy wounds in the fight. -30 HP'); }, next: 'rescue_ending_fight' },
+    ]
+  },
+
+  rescue_sneak_out: {
+    text: `Kael closes his eyes. Breathes. When he opens them, he moves with quiet certainty.\n\n"Three guards — left corridor. Two more by the cargo lift. One Inquisitor scout approaching from the east." He looks at you. "Follow my lead."\n\nFor the next six minutes, Orin Kael navigates StarHaven's underbelly as if he built it himself. He senses threats before they materialize, redirects your path without a word, pauses when you must pause.\n\nNot a single shot fired.\n\nYou emerge at the docking bay through a recycling hatch, covered in grime, breathing hard — but whole.`,
+    choices: [
+      { text: 'Get to your ship and jump to hyperspace.', next: 'rescue_ending_clean' },
+    ]
+  },
+
+  rescue_ending_escape: {
+    text: `Your ship lifts off from the docking bay as alarms scream across the station. You punch the engines to full — just as a green blade and a red blade clash in a display window below.\n\nThen starlines. Hyperspace.\n\nSilence.\n\nThree hours later, you receive a coded transmission — Orin Kael's frequency. Static. Then his voice, tired but steady:\n\n"The Inquisitor will trouble no one further. I've borrowed a transport from the station's emergency reserve. I'll find my way to the fleet."\n\nA pause.\n\n"You freed me. I won't forget that. May the Force be with you, operative."\n\nThe transmission ends. You lean back in your seat. The galaxy feels, for just a moment, slightly less dark.\n\n══════════════════════════════\nENDING: The Jedi's Debt\nMission Status: SUCCESS\nAlignment: Light Side\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  rescue_ending_fight: {
+    text: `You stand beside Kael and face the Inquisitor together.\n\nIt is the hardest fight of your life. She is fast — inhumanly fast — and her twin blades are everywhere at once. You take burns to your side, your arm. Kael fights with raw will, channeling the Force without a blade, throwing debris, pushing her off-balance.\n\nIn the end, she retreats. Wounded. Not defeated — but gone.\n\nKael looks at you. His face is unreadable.\n\n"You stayed."\n\n"You needed backup."\n\n"Jedi do not need—" He stops himself. Something softens. "...Thank you."\n\nYou get off the station by the skin of your teeth. The jump to hyperspace feels earned.\n\n══════════════════════════════\nENDING: No Jedi Left Behind\nMission Status: COSTLY VICTORY\nAlignment: Grey\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  rescue_ending_clean: {
+    text: `Your ship lifts cleanly from the bay. No pursuit — they don't even know which direction you went.\n\nOrin Kael sits in the co-pilot chair, watching the stars. He seems to be relearning them, one by one.\n\n"You didn't have to save me," he says quietly. "The mission risked more than one life for one person."\n\n"The Rebellion doesn't leave Jedi behind."\n\nHe nods, slowly. "Then perhaps the Rebellion deserves to win."\n\nHe closes his eyes. The Force hums around him like a quiet engine coming back to life. You set the coordinates for Rebel Command and push the hyperdrive lever forward.\n\nThe stars stretch into light.\n\n══════════════════════════════\nENDING: Shadow and Starlight\nMission Status: PERFECT EXTRACTION\nAlignment: Light Side\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  // ── INFILTRATION BRANCH ────────────────────────────────────────────────────
+
+  infiltrate_start: {
+    text: `The Imperial courier's ship is berthed in Bay 7 — a sleek Lambda-class shuttle, too clean, too official for a station like this. She's posing as a merchant. Nobody's buying it.\n\nRebel Intelligence has ID'd her: Lieutenant Cass Veylen, ISB courier corps. She has a data chip implanted subcutaneously — standard ISB protocol for sensitive cargo. The chip holds the stolen fleet coordinates.\n\nYou have three approaches.\n\nThe station's cantina is where she's waiting out a "mechanical delay." Social engineering — charm, lies, a drink — might get you close enough to lift the chip without a fight. But she's trained.\n\nAlternatively, the station's medical bay has a long-range scanner that can pinpoint the chip's location on her body. But accessing it means going through the head medic, who has his own agenda.\n\nOr you break into Bay 7 directly. Find her ship's manifest. Maybe there's a backup copy she hasn't sent yet.`,
+    choices: [
+      { text: 'Hit the cantina. Get close to her. Work the social angle.', next: 'infiltrate_cantina' },
+      { text: 'Go through the medical bay. Get the scanner data.', next: 'infiltrate_medbay' },
+      { text: 'Slice into her ship directly. Find the backup data.', next: 'infiltrate_ship' },
+    ]
+  },
+
+  infiltrate_cantina: {
+    text: `The cantina is dim and warm with the sound of a jizz band that's seen better decades. You spot Veylen immediately — she's good at looking relaxed, but her eyes never stop moving.\n\nYou slide onto the stool beside her and order two drinks. She glances at you with professional wariness.\n\n"You're not from this station," she says.\n\n"Neither are you." You push the second drink toward her.\n\nFor twenty minutes, you trade lies with each other — and both of you know it. The dance is almost enjoyable. She's sharp, funny, and utterly lethal. She's also, you notice, unconsciously rubbing the inside of her left forearm. The chip location.\n\nShe excuses herself to make a call. She leaves her drink. You have thirty seconds at her seat.`,
+    choices: [
+      { text: 'Search her jacket she left on the stool. Quick hands.', next: 'infiltrate_pickpocket' },
+      { text: 'Slip a scanner micro-patch onto her drink glass.', next: 'infiltrate_scan_glass' },
+      { text: 'Follow her to the comm booth. Listen in.', next: 'infiltrate_eavesdrop' },
+    ]
+  },
+
+  infiltrate_medbay: {
+    text: `Dr. Fenra is a Twi'lek physician of approximately sixty years and infinite suspicion. She looks up from a data pad as you enter and does not smile.\n\n"Medical bay is for the sick and the broken. You look neither."\n\n"I need the long-range tissue scanner. There's an ISB agent on the station carrying a subcutaneous data chip. I need to know its exact location before I can extract it."\n\nSilence. Dr. Fenra sets down her data pad.\n\n"And if I help you... what happens to the agent?"\n\nHere it is. The medic's question that cuts to the bone.`,
+    choices: [
+      { text: '"She lives. I just need the chip. I\'m not an assassin."', effect: () => { state.alignment += 2; }, next: 'infiltrate_medbay_yes' },
+      { text: '"What happens to her isn\'t your concern, Doctor."', effect: () => { state.alignment -= 2; }, next: 'infiltrate_medbay_dark' },
+    ]
+  },
+
+  infiltrate_ship: {
+    text: `Bay 7's security is a standard Imperial cipher — challenging, not impossible. It takes you eleven minutes crouched beneath the landing strut with a slicer kit.\n\nInside the shuttle, everything is meticulously clean. ISB standard. But couriers are creatures of habit, and Veylen is no exception — she's backed up the coordinate data to the ship's secondary nav core. A copy she probably forgot she made, or doesn't think anyone can reach.\n\nYou're reaching it.\n\nThen boots on the deck behind you. She came back early.\n\nVeylen stands in the hatchway, blaster leveled. She's fast — but so are you. A heartbeat of standoff.`,
+    choices: [
+      { text: 'Raise your hands. Talk your way out. The data is already transmitted.', effect: () => { state.flags.dataSecured = true; }, next: 'infiltrate_ship_bluff' },
+      { text: 'Dive for cover. This turns into a firefight.', effect: () => { state.hp -= 25; log('Blaster exchange. -25 HP'); }, next: 'infiltrate_ship_fight' },
+    ]
+  },
+
+  infiltrate_pickpocket: {
+    text: `Her jacket yields a secondary data chip — a dummy copy, scrambled. She was carrying decoys. Smart.\n\nBut you also find a note, handwritten on Imperial flimsi: coordinates, handwritten. She didn't trust the chip alone.\n\nYou're back on your stool when she returns. She looks at you. Looks at her jacket. Something shifts behind her eyes.`,
+    choices: [
+      { text: '"Looking for this?" Hold up the note. Offer a trade.', next: 'infiltrate_trade' },
+      { text: 'Play innocent. You have what you need. Disappear.', effect: () => { state.flags.dataSecured = true; }, next: 'infiltrate_end_ghost' },
+    ]
+  },
+
+  infiltrate_scan_glass: {
+    text: `The micro-patch adheres to the glass, invisible. When Veylen returns and drinks, it maps her subcutaneous architecture via residual contact — not perfect, but enough.\n\nLeft forearm. 4.3 centimeters below the median cubital vein.\n\nYou now know exactly where the chip is. Getting it out is the next problem.`,
+    choices: [
+      { text: 'Arrange a "medical emergency" to get her to the medbay.', effect: () => { state.alignment--; }, next: 'infiltrate_medbay_trick' },
+      { text: 'Confront her directly. The data or her freedom — her choice.', next: 'infiltrate_trade' },
+    ]
+  },
+
+  infiltrate_eavesdrop: {
+    text: `She's reporting in. Her handler is growing impatient — the coordinates need to reach Sector Command within two hours or the window closes.\n\nShe hasn't transmitted yet. She's waiting for a relay code.\n\nYou also hear something else: she's nervous. The relay code is late. Something went wrong on their end.\n\nThis changes the calculus entirely. She's isolated, unsupported, and working against a ticking clock of her own.`,
+    choices: [
+      { text: 'Approach her with what you know. Offer her a way out.', effect: () => { state.alignment += 2; }, next: 'infiltrate_trade' },
+      { text: 'Jam the relay frequencies. She can\'t transmit, and the window closes.', effect: () => { state.flags.dataSecured = true; }, next: 'infiltrate_end_jam' },
+    ]
+  },
+
+  infiltrate_medbay_yes: {
+    text: `Dr. Fenra studies you for a long moment. Then she nods.\n\n"The scanner. Use it. When you're done, the agent receives the same standard of care as anyone else on this station. Agreed?"\n\n"Agreed."\n\nThe scanner gives you a clean map: left forearm, shallow implant, easy extraction with the right tool — which the medbay has.\n\nDr. Fenra hands you a micro-extractor without being asked. "I've done this before," she says simply. "For both sides. I keep score by survivors, not allegiances."`,
+    choices: [
+      { text: 'Go find Veylen with the extractor. Approach diplomatically.', next: 'infiltrate_trade' },
+    ]
+  },
+
+  infiltrate_medbay_dark: {
+    text: `Dr. Fenra's eyes go cold.\n\n"Then you'll find no help here. Get out of my medbay."\n\nShe means it. You leave empty-handed, and you feel her eyes on your back.\n\nYou'll have to find another way. Time is bleeding out.`,
+    choices: [
+      { text: 'Go to Bay 7 and break into her ship directly.', next: 'infiltrate_ship' },
+      { text: 'Head to the cantina — she\'s still there.', next: 'infiltrate_cantina' },
+    ]
+  },
+
+  infiltrate_medbay_trick: {
+    text: `You pull the station's emergency system — a false chemical alert near the cantina. Veylen, per ISB protocol, is escorted to the medbay for "decontamination screening."\n\nDr. Fenra figures out what you've done within two minutes. She assists anyway — because the alternative is the Empire getting those coordinates — but she doesn't look at you while she works.\n\nThe chip comes out clean. The coordinates are secured. Veylen is sedated, will wake in an hour, and will find herself with a fascinating gap in her memory and a neat bandage on her forearm.`,
+    choices: [
+      { text: 'Get the data to Rebel Intelligence immediately.', effect: () => { state.flags.dataSecured = true; }, next: 'infiltrate_end_ghost' },
+    ]
+  },
+
+  infiltrate_trade: {
+    text: `You find Veylen — or let her find you. The conversation is short and precise.\n\n"I know what you're carrying and where it is. I can take it, or we can make a deal. You walk away from this station. The data stays here. Your choice."\n\nShe evaluates you. The math is simple: she's alone, her support is compromised, and she knows a professional when she sees one.\n\n"You'll never get my extraction code," she says. "The chip is biometric."\n\n"I don't need your code. I need your cooperation. Say yes, and I get a medic to remove it cleanly. Say no, and this gets significantly less comfortable for both of us."\n\nA long pause. Then:\n\n"Fine."`,
+    choices: [
+      { text: 'Bring her to the medbay. Keep your word.', effect: () => { state.alignment += 2; state.flags.dataSecured = true; }, next: 'infiltrate_end_deal' },
+    ]
+  },
+
+  infiltrate_ship_bluff: {
+    text: `"Already transmitted," you tell her. Steady voice. Total lie.\n\nShe reads you. She's good at it. The blaster doesn't waver.\n\nThen her own comm chirps — her handler's frequency. She glances down for half a second.\n\nYou dive left. She fires. The bolt scorches the seat you were in.\n\nBy the time she re-acquires you, you're out the hatch and running.`,
+    choices: [
+      { text: 'You have the data. Get it to Intelligence and get off the station.', next: 'infiltrate_end_ghost' },
+    ]
+  },
+
+  infiltrate_ship_fight: {
+    text: `The shuttle's interior becomes a nightmare of bouncing blaster bolts and overturning equipment. She's trained in close quarters — you take hits, she takes hits. A console explodes. Emergency lighting drops.\n\nIn the chaos, you get to the nav core. The data is there. You yank the module.\n\nVeylen is on the floor, injured but alive, blaster still in hand. She looks at you. You look at her.\n\n"The coordinates," you say. "That's all I need."\n\nShe doesn't answer. But she doesn't shoot.`,
+    choices: [
+      { text: 'Leave her. Get the data out. Don\'t look back.', effect: () => { state.alignment--; state.flags.dataSecured = true; }, next: 'infiltrate_end_ghost' },
+      { text: 'Get her medical help before you go. She fought fair.', effect: () => { state.alignment++; }, next: 'infiltrate_end_deal' },
+    ]
+  },
+
+  infiltrate_end_ghost: {
+    text: `You're a ghost by the time Rebel Intelligence has the data. No name. No record. Just a blank space in the station's security log where something happened that the Empire will never quite be able to explain.\n\nThe fleet coordinates are scrubbed and replaced. Twelve Rebel ships that would have flown into an Imperial ambush will now fly to safety.\n\nYou don't get a medal for this. You don't get a thank-you. You get a new set of orders and the quiet knowledge that the Rebellion is still breathing because of what you did today.\n\nThat's enough.\n\n══════════════════════════════\nENDING: The Ghost Operative\nMission Status: CLEAN SUCCESS\nAlignment: Professional\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  infiltrate_end_deal: {
+    text: `Veylen walks out of the medbay with a bandage and a look that's hard to categorize. Not gratitude — she's ISB, gratitude is a foreign language. But something adjacent. Acknowledgment, maybe.\n\n"The Rebellion doesn't take prisoners," she says.\n\n"We take them. We just don't keep them when there's a better option."\n\nShe boards a transit shuttle with a false ID you've provided. Whether she defects, disappears, or eventually comes after you — you'll deal with that later.\n\nThe coordinates are secured. The fleet is safe. And somewhere in the Empire's vast bureaucracy, Lieutenant Cass Veylen has stopped existing.\n\n══════════════════════════════\nENDING: The Merciful Operative\nMission Status: SUCCESS + ASSET\nAlignment: Light Side\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  infiltrate_end_jam: {
+    text: `The relay frequencies go dark. Veylen spends forty frantic minutes trying to re-establish contact — and when she does, the window has closed. Her handler, furious, orders her off-station immediately.\n\nShe leaves with the chip still in her arm. The coordinates it holds are now a ghost — the Rebellion's navigators have already rotated the fleet positions. By the time the Empire acts on the data, it'll be worthless.\n\nNot a perfect solution. Not a clean one. But effective.\n\nSometimes the best move is to take away the other player's pieces without ever picking up the board.\n\n══════════════════════════════\nENDING: The Patient Operative\nMission Status: INDIRECT SUCCESS\nAlignment: Neutral\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  // ── HUTT BRANCH ───────────────────────────────────────────────────────────
+
+  hutt_start: {
+    text: `Slugga the Hutt's private module is the largest compartment on StarHaven — which means he built it that way, at considerable expense, just to remind everyone who holds the real power here.\n\nHe reclines on a repulsorcraft, draped in a fur that probably belonged to something rare and endangered, flanked by six Weequay guards with the look of professionals who've stopped counting the bodies.\n\nA Twi'lek translator stands to his left. Slugga speaks slowly, letting each syllable have its own room.\n\n"The Rebel operative," the translator says. "Slugga says: you have come to beg. He respects that. He respects it very little, but he respects it."\n\nThe Hutt's eyes — small, ancient, patient — fix on you.\n\nThe Imperial envoy is already here. A human officer, polished and cold, stands near the far wall with an offer case that almost certainly contains a great deal of money.`,
+    choices: [
+      { text: 'Open with respect. Speak to Slugga directly, bypass the translator.', effect: () => { state.alignment++; }, next: 'hutt_respect' },
+      { text: 'Open with money. Lay out what the Rebellion can offer.', effect: () => { state.credits -= 200; log('You spend 200 credits to open the bid. -200 Credits'); }, next: 'hutt_money' },
+      { text: 'Open with leverage. You have dirt on Slugga\'s operation.', effect: () => { state.alignment--; }, next: 'hutt_leverage' },
+    ]
+  },
+
+  hutt_respect: {
+    text: `You step forward and address Slugga directly in Huttese — halting, but real.\n\n"Dobra, Slugga. Chuba Jeedai... bargon."  (Good health, Slugga. Your reputation precedes you.)\n\nSlugg stares at you. Then, slowly, the massive jaw opens and a sound emerges that takes you a moment to identify as laughter.\n\nHe speaks. The translator doesn't translate — Slugga waves him off and answers you directly in accented Basic:\n\n"You speak terrible Huttese. Terrible. But you tried." Another roll of laughter. "Sit down, Rebel. Slugga will listen. This is already more interesting than the Imperial's presentation, which was," he gestures dismissively, "numbers and threats. Boring."\n\nThe Imperial envoy's jaw tightens. You've bought time and goodwill with nothing but gall.\n\nNow make the most of it.`,
+    choices: [
+      { text: 'Offer trade route exclusivity through Rebel-friendly sectors.', next: 'hutt_deal_good' },
+      { text: 'Appeal to his independence. The Empire will eventually absorb him.', next: 'hutt_deal_independence' },
+    ]
+  },
+
+  hutt_money: {
+    text: `You slide the credit chip across the table without ceremony. "A gesture of good faith. Three times that if we leave here with an agreement."\n\nSlugg examines the chip with one enormous eye. The translator says something in Huttese. Slugga replies.\n\n"He says: the Imperials offered more."\n\n"The Imperials will take everything Slugga owns the moment they don't need him. They did it to every Hutt clan in the Core." You let that sit. "I'm offering a partner who actually needs Slugga to stay independent and profitable."\n\nSlugg tilts his enormous head. He's listening.`,
+    choices: [
+      { text: 'Sweeten the deal with trade concessions.', next: 'hutt_deal_good' },
+      { text: 'Make the anti-Empire argument more explicit.', next: 'hutt_deal_independence' },
+    ]
+  },
+
+  hutt_leverage: {
+    text: `"Before we start," you say, "I thought Slugga should know that Rebel Intelligence has a complete record of the third moon operation. The one with the stolen bacta contracts. And the spice route through Kessel that he reported to the Empire as 'ceased.'"\n\nThe room temperature drops approximately ten degrees.\n\nThe Weequay guards shift. Slugga's eyes narrow to slits.\n\nThen the translator speaks, voice careful: "Slugga says: blackmail is the language of those who have no true value to offer. He also says: he is curious what you want badly enough to walk into his presence and attempt it."\n\nDangerous ground. But you're still alive, which means he's still calculating.`,
+    choices: [
+      { text: 'Pull back. Offer a genuine deal instead. "I needed your attention."', effect: () => { state.alignment++; }, next: 'hutt_deal_good' },
+      { text: 'Press the advantage. The information is leverage — use it fully.', effect: () => { state.alignment -= 2; }, next: 'hutt_dark_leverage' },
+    ]
+  },
+
+  hutt_deal_good: {
+    text: `You lay out the Rebellion's offer in full: safe passage guarantees through three sectors, preferential treatment at any Rebel-affiliated port, and — the centerpiece — access to pre-Imperial trade ledgers that show which routes the Empire has secretly taxed into profitability.\n\nSlugga listens. His eyes go through several distinct phases of calculation.\n\nThe Imperial envoy steps forward. "Slugga, the Empire guarantees—"\n\n"Guarantees." Slugga's voice is a slow rumble, like tectonic plates. "The Empire guaranteed the Desilijic clan protection on Nar Shaddaa. My cousins." He pauses. "I visited their holdings recently. Very quiet. Very empty."\n\nHe looks at you.`,
+    choices: [
+      { text: '"The Empire eats what it conquers. We fight to stop that."', next: 'hutt_end_deal' },
+    ]
+  },
+
+  hutt_deal_independence: {
+    text: `"Slugga," you say, "how many Hutt clans were operating freely in the Core twenty years ago? How many are operating freely now?"\n\nThe translator begins to interpret. Slugga stops him with a gesture — he understood.\n\n"The Empire doesn't make partnerships," you continue. "It makes acquisitions. You're not an ally to them. You're a resource they haven't processed yet. The moment they don't need this station as a waypoint—"\n\n"They will come," Slugga says, in Basic. Flat. Without drama. "Yes. Slugga knows this."\n\nThe Imperial envoy looks alarmed. The Hutt's enormous eyes settle on you with something that might be respect.\n\n"You make the honest argument. Most Rebels make the noble argument. Slugga prefers honest."`,
+    choices: [
+      { text: 'Close the deal. Practical terms, fair exchange.', next: 'hutt_end_deal' },
+    ]
+  },
+
+  hutt_dark_leverage: {
+    text: `You don't pull back.\n\n"The information goes to the Empire's Sector Governor in six hours unless I send a cancellation code. The price of that code is Slugga's word that StarHaven's location stays private. No sale to the highest bidder. No deal with the Imperial envoy."\n\nThe room holds its breath.\n\nSlugg studies you for a very long time.\n\n"You would burn Slugga to protect your Rebellion," he says finally. "Slugga respects this. It is a thing a Hutt would do."\n\nHe waves the Imperial envoy away. The man sputters. The Weequay escorts him out.\n\n"The station's location stays private," Slugga says. "This time. Come back with better terms next time, Rebel. And better Huttese."`,
+    choices: [
+      { text: 'Accept the terms and leave quickly.', next: 'hutt_end_dark' },
+    ]
+  },
+
+  hutt_end_deal: {
+    text: `Slugga extends one enormous hand — a gesture borrowed, he says, from a human merchant he once ate. You shake it.\n\nThe deal is done. StarHaven's location stays hidden. The hyperspace route through Slugga's territory opens to Rebel ships. The Imperial envoy is escorted off the station — confused, empty-handed, and quietly furious.\n\nAs you leave, Slugga's translator catches your arm.\n\n"He says one more thing," the Twi'lek murmurs. "He says: the Empire will come anyway, eventually. But maybe not today. Maybe not for a year. For a Hutt, a year is enough."\n\nYou walk back through StarHaven feeling the particular satisfaction of a battle won without a single shot fired.\n\n══════════════════════════════\nENDING: The Diplomat's Victory\nMission Status: FULL SUCCESS\nAlignment: Light Side\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+
+  hutt_end_dark: {
+    text: `You transmit the cancellation code from a dark corner of the station's comm room. The leverage is spent. The deal holds — for now — because Slugga believes you were capable of following through.\n\nWere you?\n\nYou sit with that question for a moment, and don't have a clean answer.\n\nStarHaven is safe. The Rebellion lives to fight another day. And you've made an enemy of every Imperial officer in the sector, and perhaps left a Hutt crime lord with a reason to remember your face for all the wrong reasons.\n\nBut the station is safe. That has to be enough.\n\n══════════════════════════════\nENDING: The Hard Bargain\nMission Status: SUCCESS (at a cost)\nAlignment: Dark Side\n══════════════════════════════`,
+    choices: [{ text: '[ Play Again ]', effect: () => resetGame(), next: 'start' }]
+  },
+};
+
+// ─── GAME RESET ──────────────────────────────────────────────────────────────
+
+function resetGame() {
+  state.name = "Operative";
+  state.hp = 100;
+  state.maxHp = 100;
+  state.credits = 500;
+  state.alignment = 0;
+  state.mission = "Unknown";
+  state.flags = {};
+  updateStats();
+}
+
+// ─── SAVED PROGRESS (localStorage) ────────────────────────────────────────────
+
+const SAVE_KEY = 'starhaven_endings';
+const TOTAL_ENDINGS = 8;
+
+function loadEndings() {
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY)) || []; }
+  catch (e) { return []; }
+}
+
+function recordEnding(id) {
+  const found = loadEndings();
+  if (!found.includes(id)) {
+    found.push(id);
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(found)); } catch (e) {}
+  }
+  renderProgress();
+}
+
+function renderProgress() {
+  let el = document.getElementById('progress-bar');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'progress-bar';
+    el.style.cssText = 'font-size:0.72rem;color:#006622;letter-spacing:0.12em;text-align:center;padding-top:6px;';
+    document.getElementById('game-container').appendChild(el);
+  }
+  el.textContent = 'ENDINGS DISCOVERED: ' + loadEndings().length + ' / ' + TOTAL_ENDINGS + ' (saved on this device)';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+
+updateStats();
+renderProgress();
+goTo('start');
+</script>
+  
+</body>
+</html>
