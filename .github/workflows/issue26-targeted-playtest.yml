@@ -1,0 +1,61 @@
+name: Issue 26 hosted town house gameplay — read-only desktop and Android touch
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/issue26-targeted-playtest.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  sampled-real-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - name: Checkout the exact source revision published on Pages
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: afb89a40cdacdc65cbf4398b451b52592f579dc0
+          path: source
+          persist-credentials: false
+      - name: Install testing runtime
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Browser dependencies
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify production-equivalent hosted SHA before any gameplay
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 3 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-rt068-20261104/release.json' -o /tmp/issue26-hosted-release.json
+          node - <<'NODE'
+          const x=require('/tmp/issue26-hosted-release.json');
+          if(x.sourceCommit!=='afb89a40cdacdc65cbf4398b451b52592f579dc0') throw Error('Hosted release diverged from test source: '+x.sourceCommit);
+          if(!/^[0-9a-f]{64}$/.test(x.contentHash)) throw Error('Bad content fingerprint');
+          console.log('Pinned read-only browser target:',x.sourceCommit,x.contentHash);
+          NODE
+      - name: Exercise A1 and M5 actual entrance, fixtures, exit, save on desktop and emulated Android
+        working-directory: source/repository-town
+        run: |
+          set -euo pipefail
+          mkdir -p test-results/issue26-sample-shots
+          node tests/e2e.mjs --url 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-rt068-20261104/' --only A1,M5 --shots test-results/issue26-sample-shots --out test-results/issue26-sample-result.json
+      - name: Preserve full evidence including partial failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue26-hosted-2-houses-desktop-android
+          path: |
+            source/repository-town/test-results/issue26-sample-result.json
+            source/repository-town/test-results/issue26-sample-shots/
+          if-no-files-found: warn
+          retention-days: 30
