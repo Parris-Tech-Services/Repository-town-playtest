@@ -1,0 +1,90 @@
+name: Narromine immediate preview with privacy and WebGL checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/narromine-fast-preview-20261104.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: narromine-fast-preview-20261104
+  cancel-in-progress: false
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: d98319e614d11023f997ba4c657b951c10ce9676
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Fast build, privacy and exact release verification
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          node tests/narromine-nw-dandaloo-block.mjs
+          node tests/narromine-mainstreet-physio.mjs
+          node tools/build.mjs
+          node tools/check_privacy.mjs
+          node tools/verify-release.mjs dist/public
+          node --input-type=module -e "import fs from 'node:fs'; import assert from 'node:assert/strict'; const x=JSON.parse(fs.readFileSync('dist/public/release.json')); assert.equal(x.sourceCommit,'d98319e614d11023f997ba4c657b951c10ce9676'); console.log('MATCH',x.sourceCommit,x.contentHash);"
+          test -f dist/public/world/narromine-nw-dandaloo-block.js
+          test -f dist/public/world/narromine-mainstreet-physio.js
+      - name: Desktop and Android-size WebGL screenshots and footpath playtest
+        working-directory: source/repository-town
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          npx playwright install --with-deps chromium
+          node tests/narromine-nw-dandaloo-browser.mjs
+          node tests/narromine-mainstreet-physio-browser.mjs
+      - name: Preserve screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: narromine-fast-20261104-screenshots
+          path: |
+            source/repository-town/test-results/nw-dandaloo/
+            source/repository-town/test-results/narromine-physio/
+          retention-days: 14
+          if-no-files-found: warn
+      - uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+      - name: Publish isolated non-production playable site
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C source rev-parse HEAD)" = "d98319e614d11023f997ba4c657b951c10ce9676"
+          test "$(node -p "require('./source/repository-town/dist/public/release.json').sourceCommit")" = "d98319e614d11023f997ba4c657b951c10ce9676"
+          test -f site/index.html
+          grep -q 'Download saved progress' site/index.html
+          target="site/qa/narromine-fast-20261104"
+          mkdir -p "$target"
+          rsync -a --delete source/repository-town/dist/public/ "$target/"
+          printf 'Source: joshualparris/JoshMemory\nCommit: d98319e614d11023f997ba4c657b951c10ce9676\nTests: build, privacy, geometry, desktop/mobile WebGL\n' > "$target/QA_BUILD.txt"
+          cd site
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add qa/narromine-fast-20261104
+          if ! git diff --cached --quiet; then
+            git commit -m "qa(narromine): publish privacy-tested fast Dandaloo preview d98319e614d1 [skip ci]"
+            git push origin HEAD:main
+          fi
+      - name: Print live address
+        run: echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-fast-20261104/'
