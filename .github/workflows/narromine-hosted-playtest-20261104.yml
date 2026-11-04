@@ -1,4 +1,4 @@
-name: Narromine hosted Pages desktop/mobile playtest
+name: Narromine hosted Pages facade-facing desktop/mobile playtest
 
 on:
   push:
@@ -56,15 +56,15 @@ jobs:
           import fs from 'node:fs';
           const url=process.env.HOSTED_NARROMINE_URL;
           const places=[
-            ['68-heritage-bank',-4764.4,-974.0],
-            ['60-clothing',-4762.5,-991.5],
-            ['56-mens-shed',-4760.2,-1010.8],
-            ['58-services-club',-4754.2,-1054.8],
-            ['52-cottage',-4751.8,-1072.5],
-            ['44-baptist',-4747.8,-1096.5],
-            ['42-battlers',-4745.8,-1110.5],
-            ['38-aqua-west',-4742.5,-1131.5],
-            ['50-physiotherapy',-4751.3,-1078.2]
+            ['68-heritage-bank',-4764.4,-974.0,306],
+            ['60-clothing',-4762.5,-991.5,306],
+            ['56-mens-shed',-4760.2,-1010.8,306],
+            ['58-services-club',-4754.2,-1054.8,306],
+            ['52-cottage',-4751.8,-1072.5,306],
+            ['44-baptist',-4747.8,-1096.5,300],
+            ['42-battlers',-4745.8,-1110.5,300],
+            ['38-aqua-west',-4742.5,-1131.5,298],
+            ['50-physiotherapy',-4751.3,-1078.2,300]
           ];
           const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
           try{
@@ -78,13 +78,13 @@ jobs:
               await page.route('**/api/npc-chat',r=>r.abort('connectionrefused'));
               await page.goto(url,{waitUntil:'domcontentloaded'});
               await page.waitForFunction(()=>!!window.__town && document.getElementById('loading')?.hidden,null,{timeout:90000});
-              await page.evaluate(()=>window.__town.life.setTime(10.5*60));
+              await page.evaluate(()=>{ window.__town.life.setTime(10.5*60); const h=document.getElementById('btn-hud-toggle'); if(h && h.getAttribute('aria-expanded')==='true')h.click(); });
               await page.evaluate(()=>window.__town.place(-4770,-980,0));
               await page.waitForFunction(()=>window.__town.narromineVisible(),null,{timeout:20000});
               await page.evaluate(()=>window.__town.walkTo(-4768,-996));
               await page.waitForFunction(()=>!window.__town.autoWalk(),null,{timeout:25000});
-              for(const [label,x,z] of places){
-                await page.evaluate(([x,z])=>window.__town.place(x,z,0),[x,z]);
+              for(const [label,x,z,heading] of places){
+                await page.evaluate(([x,z,heading])=>window.__town.place(x,z,-heading*Math.PI/180),[x,z,heading]);
                 await page.waitForTimeout(200);
                 const file='test-results/hosted-narromine/'+mode+'-'+label+'.png';
                 await page.screenshot({path:file});
