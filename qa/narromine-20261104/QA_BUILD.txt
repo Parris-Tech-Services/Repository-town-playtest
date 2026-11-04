@@ -1,3 +1,5 @@
 Source: joshualparris/JoshMemory
 Commit: d98319e614d11023f997ba4c657b951c10ce9676
-QA: full release + privacy + desktop/mobile WebGL
+ContentHash: f569b27d77654df3203362cefde3978ee1e2fbb2cdede11016ec19c9f81d67ce
+Gates: full release + privacy + desktop/Android browser tests
+Preview only: different origin => separate local saved games
