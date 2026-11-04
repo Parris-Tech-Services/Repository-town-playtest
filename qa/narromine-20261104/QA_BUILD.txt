@@ -1,5 +1,1 @@
-Source: joshualparris/JoshMemory
-Commit: d98319e614d11023f997ba4c657b951c10ce9676
-ContentHash: f569b27d77654df3203362cefde3978ee1e2fbb2cdede11016ec19c9f81d67ce
-Gates: full release + privacy + desktop/Android browser tests
-Preview only: different origin => separate local saved games
+Source afb89a40cdacdc65cbf4398b451b52592f579dc0 (JoshMemory main), Narromine QA 2026-11-04. Open in a private window: shared origin with other QA builds.
