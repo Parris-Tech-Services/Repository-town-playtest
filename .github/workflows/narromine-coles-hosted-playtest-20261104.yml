@@ -1,0 +1,111 @@
+name: Narromine RTD-068 hosted Coles and facade desktop/mobile playtest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/narromine-coles-hosted-playtest-20261104.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hosted-webgl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Pin test helpers to exact published source SHA
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: afb89a40cdacdc65cbf4398b451b52592f579dc0
+          path: source
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Install Playwright and headless Chrome
+        working-directory: source/repository-town
+        run: |
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
+      - name: Verify hosted CDN build fingerprint, not just checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL --retry 4 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/release.json' -o /tmp/narromine-live-release.json
+          node -e "const r=require('/tmp/narromine-live-release.json'); if(r.sourceCommit!=='afb89a40cdacdc65cbf4398b451b52592f579dc0'||!/^[a-f0-9]{64}$/.test(r.contentHash))throw Error('Host version differs from reviewed main'); console.log('VERIFIED LIVE',r.sourceCommit,r.contentHash)"
+          curl -fsSL --retry 4 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/world/narromine-nw-dandaloo-block.js' -o /tmp/narromine-live-nw.js
+          curl -fsSL --retry 4 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/world/narromine-mainstreet-physio.js' -o /tmp/narromine-live-physio.js
+          test -s /tmp/narromine-live-nw.js && test -s /tmp/narromine-live-physio.js
+          node -e "const r=require('/tmp/narromine-live-release.json'); if(r.contentHash!=='4e3f056c7d1cf33a3ee54aef30b779bd5a12f7b310e5f7d05eca7f04f49619a6')throw Error('Hosted source hash changed during testing')"
+          curl -fsSL --retry 4 'https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/world/narromine-coles.js' -o /tmp/narromine-live-coles.js
+          test -s /tmp/narromine-live-coles.js
+      - name: Run actual hosted-game WebGL desktop/mobile navigation and screenshot test
+        working-directory: source/repository-town
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+          HOSTED_NARROMINE_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-20261104/
+        shell: bash
+        run: |
+          mkdir -p test-results/hosted-narromine
+          node tests/narromine-postal-resident.mjs
+          node tests/narromine-post-office-browser.mjs --url "${HOSTED_NARROMINE_URL}"
+          node --input-type=module <<'NODE'
+          import { chromium } from 'playwright';
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const url=process.env.HOSTED_NARROMINE_URL;
+          const places=[
+            ['68-heritage-bank',-4764.4,-974.0,306],
+            ['60-clothing',-4762.5,-991.5,306],
+            ['56-mens-shed',-4760.2,-1010.8,306],
+            ['58-services-club',-4754.2,-1054.8,306],
+            ['52-cottage',-4751.8,-1072.5,306],
+            ['44-baptist',-4747.8,-1096.5,300],
+            ['42-battlers',-4745.8,-1110.5,300],
+            ['38-aqua-west',-4742.5,-1131.5,298],
+            ['50-physiotherapy',-4751.3,-1078.2,300]
+          ];
+          const browser=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+          try{
+            for(const [mode,opts] of [
+              ['desktop',{viewport:{width:1280,height:800},deviceScaleFactor:1}],
+              ['android-size',{viewport:{width:393,height:852},deviceScaleFactor:1,isMobile:true,hasTouch:true}]
+            ]){
+              const page=await browser.newPage(opts),errors=[];
+              page.on('pageerror',e=>errors.push(e.message));
+              await page.addInitScript(()=>sessionStorage.setItem('town-cheats','1'));
+              await page.route('**/api/npc-chat',r=>r.abort('connectionrefused'));
+              await page.goto(url,{waitUntil:'domcontentloaded'});
+              await page.waitForFunction(()=>!!window.__town && document.getElementById('loading')?.hidden,null,{timeout:90000});
+              await page.evaluate(()=>{ window.__town.life.setTime(10.5*60); const h=document.getElementById('btn-hud-toggle'); if(h && h.getAttribute('aria-expanded')==='true')h.click(); });
+              await page.evaluate(()=>window.__town.place(-4770,-980,0));
+              await page.waitForFunction(()=>window.__town.narromineVisible(),null,{timeout:20000});
+              await page.evaluate(()=>window.__town.walkTo(-4768,-996));
+              await page.waitForFunction(()=>!window.__town.autoWalk(),null,{timeout:25000});
+              for(const [label,x,z,heading] of places){
+                await page.evaluate(([x,z,heading])=>window.__town.place(x,z,-heading*Math.PI/180),[x,z,heading]);
+                await page.waitForTimeout(200);
+                const file='test-results/hosted-narromine/'+mode+'-'+label+'.png';
+                await page.screenshot({path:file});
+                assert(fs.statSync(file).size>13000,mode+' '+label+' blank screenshot');
+              }
+              assert.deepEqual(errors,[],mode+' hosted 3D browser page errors');
+              console.log('PASS hosted Pages '+mode+': 9 site views, walking, no JS errors');
+              await page.close();
+            }
+          }finally{await browser.close()}
+          NODE
+      - name: Save hosted proof screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: narromine-rt068-hosted-desktop-android
+          path: source/repository-town/test-results/hosted-narromine/
+          retention-days: 14
+          if-no-files-found: warn
