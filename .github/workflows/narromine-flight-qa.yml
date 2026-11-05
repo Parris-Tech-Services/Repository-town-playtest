@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: 78e5acdd137464a239ecc5b41dfac28d3b72e438
+          ref: 3eb6733ab5b0a91c2cc1832843559579637b6ca3
           path: source
           persist-credentials: false
       - uses: actions/setup-node@v4
@@ -36,7 +36,7 @@ jobs:
           npm ci --no-audit --no-fund
           npm run build:release
           node tools/verify-release.mjs dist/public
-          node -e "const r=require('./dist/public/release.json');if(r.sourceCommit!=='78e5acdd137464a239ecc5b41dfac28d3b72e438')throw Error('Wrong source SHA');console.log(r.sourceCommit,r.contentHash)"
+          node -e "const r=require('./dist/public/release.json');if(r.sourceCommit!=='3eb6733ab5b0a91c2cc1832843559579637b6ca3')throw Error('Wrong source SHA');console.log(r.sourceCommit,r.contentHash)"
       - name: Desktop and touch flight through landing and exit
         working-directory: source/repository-town
         run: |
@@ -56,8 +56,8 @@ jobs:
           git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git -C site add qa/narromine-flight-20261105
           if ! git -C site diff --cached --quiet; then
-            git -C site commit -m "qa: publish tested YNRM flight 78e5acdd137464a239ecc5b41dfac28d3b72e438 [skip ci]"
-            git -C site pull --rebase origin main
+            git -C site commit -m "qa: publish tested YNRM flight 3eb6733ab5b0a91c2cc1832843559579637b6ca3 [skip ci]"
+            git -C site pull --no-rebase origin main
             git -C site push origin HEAD:main
           fi
       - uses: actions/upload-pages-artifact@v3
@@ -71,7 +71,7 @@ jobs:
           TOWN_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/narromine-flight-20261105/
           FLIGHT_SCREENSHOT_DIR: test-results/narromine-flight-live
         run: |
-          node --input-type=module -e "const r=await fetch(process.env.TOWN_URL+'release.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()});if(r.sourceCommit!=='78e5acdd137464a239ecc5b41dfac28d3b72e438')throw Error('Live SHA mismatch');console.log(JSON.stringify(r))"
+          node --input-type=module -e "const r=await fetch(process.env.TOWN_URL+'release.json').then(r=>{if(!r.ok)throw Error(r.status);return r.json()});if(r.sourceCommit!=='3eb6733ab5b0a91c2cc1832843559579637b6ca3')throw Error('Live SHA mismatch');console.log(JSON.stringify(r))"
           node tests/narromine-flight-browser.mjs
       - uses: actions/upload-artifact@v4
         if: always()
