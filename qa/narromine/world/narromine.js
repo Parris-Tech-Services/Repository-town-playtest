@@ -327,9 +327,25 @@ export function buildNarromine(parent, makeLabel = null) {
       plane(tex, Math.min(len - 0.6, 10), 0.37, x, 3.52, z, Math.atan2(nx, nz));
     }
   };
+  const HOUSE_WALLS = [0xd8cdb6, 0xc9a98a, 0xbfc4bd, 0xd6c9a4, 0xa98a74], HOUSE_ROOFS = [0x6e3b32, 0x5a5f66, 0x8a8f8c, 0x7a4a3a, 0x4f5a52];
+  // Wall and roof heights for a traced footprint: LiDAR eave/ridge when measured, else the dataset's estimate.
+  const footprintHeights = (h) => {
+    const wall = h.lidar ? Math.max(2.2, h.lidar[1]) : h.h > 0 ? Math.min(10, Math.max(2.4, h.h * 0.62)) : 3.0;
+    return { wall, roofH: h.lidar ? Math.max(0.25, h.lidar[2] - wall) : h.h > 0 ? Math.min(5, Math.max(0.5, h.h - wall)) : 2.2 };
+  };
+  const NOT_SHOPFRONT = new Set(['place_of_worship', 'guest_house']);
   for (const f of FILL_SHOPS) {
     if (NW_DANDALOO_SUPPRESSED_FILL.has(f.name)) continue;
     const profile = estimatedShopfrontProfile({ name: f.name, kind: f.kind });
+    if (!f.generic) {
+      // Named place on its real traced footprint. No verandah: nothing evidences one.
+      const { wall, roofH } = footprintHeights(f);
+      placeBox(NOT_SHOPFRONT.has(f.kind) ? HOUSE_WALLS[0] : profile.wall, f.w, wall, f.d, f.x, wall / 2, f.z, f.yaw);
+      const r = roofGeo(); r.scale(f.w + 0.8, roofH, f.d + 0.8); r.rotateY(f.yaw); r.translate(f.x, wall + roofH / 2, f.z); push(HOUSE_ROOFS[2], r);
+      if (!NOT_SHOPFRONT.has(f.kind)) storefront({ ...f.frontEdge, name: f.name, profile, wallHeight: wall });
+      colliders.push(rotatedBoxCollider(f, 'poi-footprint'));
+      continue;
+    }
     placeBox(profile.wall, f.w, 4.6, f.d, f.x, 2.3, f.z, f.yaw);
     placeBox(profile.trim, f.w + 0.3, 0.7, f.d + 0.3, f.x, 4.95, f.z, f.yaw);
     // Verandah over the footpath, between the shop front and the kerb.
@@ -342,12 +358,10 @@ export function buildNarromine(parent, makeLabel = null) {
       toward: direction, name: f.name, profile, wallHeight: 4.6 });
     colliders.push(rotatedBoxCollider(f, 'poi-shop'));
   }
-  const HOUSE_WALLS = [0xd8cdb6, 0xc9a98a, 0xbfc4bd, 0xd6c9a4, 0xa98a74], HOUSE_ROOFS = [0x6e3b32, 0x5a5f66, 0x8a8f8c, 0x7a4a3a, 0x4f5a52];
   for (const h of FILL_HOUSES) {
     // Real traced footprint; total height from its measured estimate when known (else a 3 m wall + 2.2 m roof).
     // LiDAR-measured eave and ridge win (1,265 footprints); else the footprint dataset's height estimate.
-    const wall = h.lidar ? Math.max(2.2, h.lidar[1]) : h.h > 0 ? Math.min(10, Math.max(2.4, h.h * 0.62)) : 3.0;
-    const roofH = h.lidar ? Math.max(0.25, h.lidar[2] - wall) : h.h > 0 ? Math.min(5, Math.max(0.5, h.h - wall)) : 2.2;
+    const { wall, roofH } = footprintHeights(h);
     placeBox(HOUSE_WALLS[h.tone], h.w, wall, h.d, h.x, wall / 2, h.z, h.yaw);
     const r = roofGeo(); r.scale(h.w + 0.8, roofH, h.d + 0.8); r.rotateY(h.yaw); r.translate(h.x, wall + roofH / 2, h.z); push(HOUSE_ROOFS[h.tone], r);
     colliders.push(rotatedBoxCollider(h, 'microsoft-footprint'));

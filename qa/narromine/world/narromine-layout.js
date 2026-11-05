@@ -16,6 +16,7 @@ import { NARROMINE_BUILDINGS } from './narromine-buildings-data.js';
 import { NARROMINE_LIDAR } from './narromine-lidar-data.js';
 import { NARROMINE_COURTHOUSE_CADASTRAL_LOTS } from './narromine-courthouse-evidence.js';
 import { NARROMINE_AVIATION_CADASTRAL_LOTS } from './narromine-aviation-evidence.js';
+import { NARROMINE_NW_DANDALOO_INTEGRATION_SPEC } from './narromine-nw-dandaloo-evidence.js';
 const LIDAR = NARROMINE_LIDAR.heights;
 
 export const HIGHWAY_Z = -7;                 // continues Repository Town's Street 4
@@ -172,6 +173,8 @@ export function nearestSegment(x, z) {
 }
 // Box with centre, size along/across the street, rotation (yaw about y), and its world AABB.
 const placed = [];
+const SHOP_FOOTPRINTS = [];
+const NW_DANDALOO_FILL = new Set(NARROMINE_NW_DANDALOO_INTEGRATION_SPEC.suppressedFillShopNames);
 const footprint = (cx, cz, w, d, yaw) => { const c = Math.cos(yaw), s = Math.sin(yaw), hx = Math.abs(c) * w / 2 + Math.abs(s) * d / 2, hz = Math.abs(s) * w / 2 + Math.abs(c) * d / 2;
   // Corners of the rotated box (local x along (cos, -sin), local z along (sin, cos), as placeBox rotates).
   const poly = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([a, b]) => [cx + a * c * w / 2 + b * s * d / 2, cz - a * s * w / 2 + b * c * d / 2]);
@@ -184,21 +187,6 @@ const nearRail = (x, z, m) => RAIL_SEGMENTS.some(([a, b]) => { const dx = b[0] -
   const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / l)); return Math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < m; });
 const clearOfRail = (r) => !(r.poly || [[r.x0, r.z0], [r.x1, r.z0], [r.x1, r.z1], [r.x0, r.z1]]).some(([x, z]) => nearRail(x, z, 6)) && !nearRail((r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2, 6);
 
-export const FILL_SHOPS = Object.freeze(PLACES.flatMap((p) => {
-  if (DETAILED.some((d) => d.name === p.name) || BUILDING_CENTRES.some((b) => inPoly(p.x, p.z, b.pts)) || nearMapped(p.x, p.z, 4) || inArea(p.x, p.z)) return [];
-  const n = nearestSegment(p.x, p.z); if (!n || n.d > 45) return [];
-  // Front on the property line: half the road, a 3 m footpath, then the shop 14 deep behind it.
-  const nx = (p.x - n.px) / (n.d || 1), nz = (p.z - n.pz) / (n.d || 1), set = n.s.width / 2 + 3 + 7;
-  const cx = n.px + nx * set, cz = n.pz + nz * set, yaw = -n.angle, r = footprint(cx, cz, 10, 14, yaw);
-  if (overlapsPlaced(r) || !clearOfStreets(r) || !clearOfRail(r)) return [];
-  placed.push(r);
-  return [Object.freeze({ generic: true, name: p.name, kind: p.kind, x: cx, z: cz, w: 10, d: 14, yaw, front: Object.freeze([n.px + nx * (n.s.width / 2 + 1.5), n.pz + nz * (n.s.width / 2 + 1.5)]), rect: Object.freeze(r) })];
-}));
-
-// Every other building in town, from real traced footprints (Microsoft Global ML Building
-// Footprints, ODbL; tools/narromine-footprints.mjs). These replace the invented stand-in houses that
-// used to be generated along residential streets. Outlines already drawn from OSM or a detailed
-// landmark site are skipped so nothing is doubled. Name kept for existing callers.
 // Street centreline samples every 2 m in an 8 m grid, so a footprint that a mapped road runs through
 // (a carport over a driveway, or a small misalignment between the two sources) is left out and the
 // road stays drivable.
@@ -215,12 +203,53 @@ export const ROAD_LANE_SOURCE_CLEARANCE = 3.1;
 const crossesStreet = (r) => { const margin = ROAD_LANE_SOURCE_CLEARANCE;
   for (let gx = Math.floor((r.x0 - margin) / 8); gx <= Math.floor((r.x1 + margin) / 8); gx++) for (let gz = Math.floor((r.z0 - margin) / 8); gz <= Math.floor((r.z1 + margin) / 8); gz++)
   for (const [x, z] of STREET_SAMPLES.get(gx + ',' + gz) || []) if (inPoly(x, z, r.poly) || r.poly.some((p, i) => { const q = r.poly[(i + 1) % r.poly.length], dx = q[0] - p[0], dz = q[1] - p[1], l = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - p[0]) * dx + (z - p[1]) * dz) / l)); return Math.hypot(x - p[0] - t * dx, z - p[1] - t * dz) < margin; })) return true; return false; };
+const wallOnCarriageway = (r) => STREETS.some((s) => s.pts.some((q, i) => { if (!i) return false;
+  const [ax, az] = s.pts[i - 1], [bx, bz] = q, n = Math.ceil(Math.hypot(bx - ax, bz - az) / 1);
+  for (let k = 0; k <= n; k++) { const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n;
+    if (x < r.x0 - 12 || x > r.x1 + 12 || z < r.z0 - 12 || z > r.z1 + 12) continue;
+    if (inPoly(x, z, r.poly) || r.poly.some((p, j) => { const o = r.poly[(j + 1) % r.poly.length], dx = o[0] - p[0], dz = o[1] - p[1], l = dx * dx + dz * dz || 1,
+      t = Math.max(0, Math.min(1, ((x - p[0]) * dx + (z - p[1]) * dz) / l)); return Math.hypot(x - p[0] - t * dx, z - p[1] - t * dz) < s.width / 2 + 0.25; })) return true; }
+  return false; }));
+export const FILL_SHOPS = Object.freeze(PLACES.flatMap((p) => {
+  if (DETAILED.some((d) => d.name === p.name) || BUILDING_CENTRES.some((b) => inPoly(p.x, p.z, b.pts)) || nearMapped(p.x, p.z, 4) || inArea(p.x, p.z)) return [];
+  const n = nearestSegment(p.x, p.z); if (!n || n.d > 45) return [];
+  // Front on the property line: half the road, a 3 m footpath, then the shop 14 deep behind it.
+  const nx = (p.x - n.px) / (n.d || 1), nz = (p.z - n.pz) / (n.d || 1), set = n.s.width / 2 + 3 + 7;
+  const cx = n.px + nx * set, cz = n.pz + nz * set, yaw = -n.angle, r = footprint(cx, cz, 10, 14, yaw);
+  if (overlapsPlaced(r) || !clearOfStreets(r) || !clearOfRail(r)) return [];
+  // A place that sits inside a traced building footprint is that building: draw its real outline and
+  // height instead of the 10 x 14 m stand-in (which also hid the outline from FILL_HOUSES). The named
+  // place corroborates the outline, so a service lane beside it is fine, but not a road on or inside it.
+  // Places drawn by the NW Dandaloo block keep the stand-in, which that module replaces.
+  const fp = !NW_DANDALOO_FILL.has(p.name) && NARROMINE_FOOTPRINTS.find(([x, z, w, d, fy]) => inPoly(p.x, p.z, footprint(x, z, w, d, fy).poly));
+  const fr = fp && footprint(fp[0], fp[1], fp[2], fp[3], fp[4]);
+  if (fr && !overlapsPlaced(fr) && clearOfRail(fr) && !wallOnCarriageway(fr)) {
+    // Kept out of the box list: FILL_HOUSES skips by exact outline, so neighbours are not lost to its bounding box.
+    SHOP_FOOTPRINTS.push(fr.poly);
+    const [x, z, w, d, fy, h] = fp;
+    // Shop front: the outline edge whose midpoint is closest to a mapped street.
+    let front = null;
+    for (let i = 0; i < 4; i++) { const a = fr.poly[i], b = fr.poly[(i + 1) % 4], m = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2], s = nearestSegment(m[0], m[1]);
+      if (s && (!front || s.d < front.d)) front = { a, b, d: s.d, toward: [s.px - m[0], s.pz - m[1]] }; }
+    const lidar = NARROMINE_FOOTPRINT_LIDAR[x.toFixed(1) + ',' + z.toFixed(1)] || null;
+    return [Object.freeze({ generic: false, source: 'microsoft-footprint', name: p.name, kind: p.kind, x, z, w, d, yaw: fy, h, lidar,
+      frontEdge: Object.freeze({ a: front.a, b: front.b, toward: front.toward }), rect: Object.freeze(fr) })];
+  }
+  placed.push(r);
+  return [Object.freeze({ generic: true, name: p.name, kind: p.kind, x: cx, z: cz, w: 10, d: 14, yaw, front: Object.freeze([n.px + nx * (n.s.width / 2 + 1.5), n.pz + nz * (n.s.width / 2 + 1.5)]), rect: Object.freeze(r) })];
+}));
+
+// Every other building in town, from real traced footprints (Microsoft Global ML Building
+// Footprints, ODbL; tools/narromine-footprints.mjs). These replace the invented stand-in houses that
+// used to be generated along residential streets. Outlines already drawn from OSM or a detailed
+// landmark site are skipped so nothing is doubled. Name kept for existing callers.
 const FOOTPRINT_ROAD_OMISSIONS = [];
 export const FILL_HOUSES = Object.freeze(NARROMINE_FOOTPRINTS.flatMap(([x, z, w, d, yaw, h]) => {
   if (x < REGION.x0 + 5 || x > REGION.x1 - 5 || z < REGION.z0 + 5 || z > REGION.z1 - 5) return [];
   const r = footprint(x, z, w, d, yaw);
   // Already modelled: centre inside a mapped OSM outline or detailed site, or a mapped outline's centre inside this one.
   if (BUILDING_CENTRES.some((b) => inPoly(x, z, b.pts) || inPoly(b.c[0], b.c[1], r.poly)) || inDetailed(x, z) || overlapsPlaced(r)) return [];
+  if (SHOP_FOOTPRINTS.some((q) => inPoly(x, z, q))) return [];   // drawn as a named place
   if (!clearOfRail(r)) return [];
   if (crossesStreet(r)) {
     FOOTPRINT_ROAD_OMISSIONS.push(Object.freeze({ x, z, w, d, yaw,
