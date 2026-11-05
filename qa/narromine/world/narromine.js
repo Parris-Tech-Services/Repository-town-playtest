@@ -175,6 +175,8 @@ export function buildNarromine(parent, makeLabel = null) {
   const roadSurfaces = buildDisjointRoadSurfaces(SURFACE_STREETS, { highway: HIGHWAY });
   for (const s of roadSurfaces.footpaths) flatPoly(0xbdb6a8, s.pts, 0.076);
   for (const s of roadSurfaces.asphalt) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.075);
+  // Curved kerb returns at junctions, 3 mm under the carriageway so overlaps never flicker.
+  for (const s of roadSurfaces.fillets) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.072);
   // Broken centre line (3 m line, 9 m gap, the Australian standard) only on ways OSM tags with 2+ lanes.
   for (const pts of NARROMINE_FURNITURE.laned) {
     let carry = 0;
