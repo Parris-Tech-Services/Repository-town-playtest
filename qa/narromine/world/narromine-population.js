@@ -215,7 +215,25 @@ function quietDay(p, weekday, hash) {
   const wake = (p.age > 65 ? 6 * 60 : p.age < 5 ? 6 * 60 + 30 : 7 * 60 + 30) + Math.round((hash(p.id + 'q' + weekday) - 0.5) * 60);
   const plan = [{ from: 0, to: wake, at: 'home', kind: 'sleep' }, { from: wake, to: wake + 45, at: 'home', kind: 'breakfast' }];
   let t = wake + 45;
-  if (p.age >= 18 && hash(p.household + 'shop' + weekday) < 0.45) { const s = Math.max(t, 9 * 60 + Math.round(hash(p.id + 'sh') * 240)); plan.push({ from: t, to: s, at: 'home', kind: 'home' }, { from: s, to: s + 40, at: 'coles', kind: 'shop' }); t = s + 40; }
+  // One household member does the shop (about two shops a week), spread from 8 am to 6 pm.
+  if (p.age >= 18 && hash(p.household + 'shop' + weekday) < 0.28 && hash(p.household + 'who' + weekday) * 3 < 1 + (p.role === 'partner' || p.role === 'parent' || p.role === 'adult' ? 1 : 0)) { const s = Math.max(t, 8 * 60 + Math.round(hash(p.household + 'sh' + weekday) * 600)); plan.push({ from: t, to: s, at: 'home', kind: 'home' }, { from: s, to: s + 40, at: 'coles', kind: 'shop' }); t = s + 40; }
   plan.push({ from: t, to: 18 * 60, at: 'home', kind: 'home' }, { from: 18 * 60, to: 18 * 60 + 45, at: 'home', kind: 'dinner' }, { from: 18 * 60 + 45, to: 1440, at: 'home', kind: 'sleep' });
   return plan;
+}
+
+// Residents at a place right now: staff on shift there ('work') and visitors ('shop' at Coles).
+// `place` is a workplace id or 'coles'. weekday 0-6; minute 0-1439.
+export function whoIsAt(pop, place, weekday, minute) {
+  const coles = pop.workplaces.find((w) => w.kind === 'supermarket');
+  const out = { staff: [], visitors: [] };
+  for (const p of pop.people) {
+    const worksHere = p.workplace === place || (place === 'coles' && p.workplace === coles?.id);
+    if (!worksHere && !(place === 'coles' && p.age >= 18)) continue;
+    const hh = pop.households[+p.household.slice(3)];
+    const step = dayPlan(p, hh, weekday, pop.workplaces).find((s) => minute >= s.from && minute < s.to);
+    if (!step) continue;
+    if (step.kind === 'work' && (step.at === place || (place === 'coles' && step.at === coles?.id))) out.staff.push(p);
+    else if (step.kind === 'shop' && place === 'coles') out.visitors.push(p);
+  }
+  return out;
 }

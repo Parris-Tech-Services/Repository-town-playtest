@@ -2,6 +2,7 @@
 // Exact inside floor plan, stock planograms, customer/staff identities and tenancy
 // records were not available. The real site is Coles Narromine, 76–82 Dandaloo St.
 // 40 x 52 m = 2080 m² display/supply simulation, not a measured floor plan.
+import { makePerson } from './npcs.js';
 import * as THREE from 'three';
 import { geoToWorld } from './narromine-layout.js';
 import { siteToGeo } from './narromine-kieraths-data.js';
@@ -63,7 +64,8 @@ export function colesQuietHour(day, minute) {
   const reducedSound = weekday >= 1 && weekday <= 5 && minute >= 630 && minute < 690;
   return Object.freeze({ reducedSound, reducedLighting: weekday === 2 && reducedSound });
 }
-export function buildNarromineColesInterior(makeLabel, day=1, minute=540) {
+// people: {staff, visitors} residents (narromine-population.js whoIsAt) shown at checkouts, in the aisles and shopping.
+export function buildNarromineColesInterior(makeLabel, day=1, minute=540, people=null) {
   const group=new THREE.Group();group.name='Narromine Coles · interpretive supermarket';
   const colliders=[],interactables=[],sceneObjects=[],windows=[];
   const materials=new Map(),geos=new Map();
@@ -199,6 +201,17 @@ export function buildNarromineColesInterior(makeLabel, day=1, minute=540) {
   leah.group.position.set(-8.4,0,16.2);leah.group.rotation.y=1.1;
   group.add(leah.group);
   leah.group.visible=postalState(day,minute).atColes;
+  // Residents on shift: the first four staff run the checkouts (standing behind them), the rest fill
+  // shelves in the aisles. Shoppers walk the aisles and queue at the registers.
+  if(people){
+    const SH=[0x3f6fb5,0xb5473f,0x4f8a4b,0xd9a441,0x6a4c93,0x2f7f86,0xc96b8a,0x8a6a4f];
+    const put=(p,x,z,yaw,shirt)=>{const seed=+p.id.slice(3),f=makePerson(seed*13+5,shirt,0x2f3440).group;
+      if(p.age<12)f.scale.setScalar(.72);else if(p.age<16)f.scale.setScalar(.88);
+      f.position.set(x,0,z);f.rotation.y=yaw;f.name=p.name;group.add(f);
+      const l=makeLabel?.(p.first+' '+p.surname);if(l){l.position.set(x,2.25,z);group.add(l);}};
+    people.staff.forEach((p,i)=>i<4?put(p,5.7+i*3.35,16.0,0,0xc8202a):put(p,-12+((i*7)%24),-14+((i*5)%26),i%2?Math.PI/2:-Math.PI/2,0xc8202a));
+    people.visitors.forEach((p,i)=>i<4?put(p,5.7+i*3.35,19.6,Math.PI,SH[+p.id.slice(3)%SH.length]):put(p,-15+((i*11)%30),-18+((i*7)%30),(i%4)*Math.PI/2,SH[+p.id.slice(3)%SH.length]));
+  }
   label('EXIT',0,3.5,25.45);
   return {group,colliders,interactables,sceneObjects,placedProps:[],seats:[],windows,rooms:[
     {name:'Coles Narromine · interpretive retail',x0:-20,x1:20,z0:-26,z1:26,w:40,d:52,parent:-1}
