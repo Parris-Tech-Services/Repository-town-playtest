@@ -84,7 +84,7 @@
 </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Boundary Road Panos</title>
+  <title>Home Panos</title>
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   <style>
     :root {
@@ -117,7 +117,7 @@
 
 <body>
   <aside>
-    <h1>Boundary Road Panos</h1>
+    <h1>Home Panos</h1>
     <p>Explore the key rooms with the Panolens viewer.</p>
     <label>
       <span class="meta">Choose a room</span>
@@ -171,7 +171,7 @@
           const res = await fetch(url, { method: 'HEAD' });
           if(res.ok) return url;
         }catch(e){}
-        return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1024"><rect width="100%" height="100%" fill="#161922"/><text x="50%" y="50%" fill="#7cd2ff" font-family="sans-serif" font-size="48" text-anchor="middle">Boundary Road Panorama</text></svg>');
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="1024"><rect width="100%" height="100%" fill="#161922"/><text x="50%" y="50%" fill="#7cd2ff" font-family="sans-serif" font-size="48" text-anchor="middle">Home Panorama</text></svg>');
       }
 
       const scenes = await Promise.all(panos.map(async (p) => {
