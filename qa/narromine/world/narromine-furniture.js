@@ -55,5 +55,30 @@ export function buildNarromineFurniture(parent, colliders) {
     add(new THREE.CylinderGeometry(0.04, 0.04, 2.4, 6), post, x, 1.2, z);
     add(new THREE.BoxGeometry(0.45, 0.6, 0.03), new THREE.MeshLambertMaterial({ color: 0x1f6f3a }), x, 2.3, z);
   }
+  // Station footbridge over the line (OSM way 465612627, bridge=yes footway): a steel truss deck at
+  // about 6.5 m (typical clearance over rail; not measured) with a stair down at each end along the
+  // footway. Drawn without collision so it can never block the road or track below.
+  {
+    const A = [-4807.9, -782.2], B = [-4801.3, -793.2], len = Math.hypot(B[0] - A[0], B[1] - A[1]);
+    const ux = (B[0] - A[0]) / len, uz = (B[1] - A[1]) / len, nx = -uz, nz = ux, yaw = -Math.atan2(uz, ux), H = 6.5, steelM = new THREE.MeshLambertMaterial({ color: 0xd9dcd8 });
+    const at = (t, o, y) => [A[0] + ux * t + nx * o, y, A[1] + uz * t + nz * o];
+    const beam = (p, q, r = 0.06) => { const dx = q[0] - p[0], dy = q[1] - p[1], dz = q[2] - p[2], l = Math.hypot(dx, dy, dz);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, l, 5), steelM); m.position.set((p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2);
+      m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), new THREE.Vector3(dx / l, dy / l, dz / l)); parent.add(m); };
+    add(new THREE.BoxGeometry(len, 0.18, 2.0), new THREE.MeshLambertMaterial({ color: 0x8e8a82 }), (A[0] + B[0]) / 2, H, (A[1] + B[1]) / 2, yaw);   // deck
+    const bays = 6;
+    for (const o of [-1.05, 1.05]) {
+      beam(at(0, o, H), at(len, o, H)); beam(at(0, o, H + 1.6), at(len, o, H + 1.6));                                      // bottom and top chords
+      for (let k = 0; k <= bays; k++) { const t = len * k / bays; beam(at(t, o, H), at(t, o, H + 1.6)); if (k < bays) beam(at(t, o, H), at(t + len / bays, o, H + 1.6)); }
+    }
+    for (const t of [0, len]) for (const o of [-1.05, 1.05]) beam(at(t, o, 0), at(t, o, H), 0.12);                        // columns
+    // Stairs: flights continuing along the footway from each end down to the ground.
+    for (const [t0, dir] of [[0, -1], [len, 1]]) {
+      const steps = 20, run = 11;
+      for (let k = 0; k < steps; k++) { const t = t0 + dir * (k + 0.5) * run / steps, y = H - (k + 1) * H / steps;
+        const [x, , z] = at(t, 0, 0); add(new THREE.BoxGeometry(run / steps + 0.02, 0.12, 1.6), new THREE.MeshLambertMaterial({ color: 0x8e8a82 }), x, y + 0.06, z, yaw); }
+      for (const o of [-0.85, 0.85]) beam(at(t0, o, H + 1.0), at(t0 + dir * run, o, 1.0), 0.04);                           // handrails
+    }
+  }
   return { poles: F.poles.length, towers: F.towers.length, spans: v.length / 6, giveway: F.giveway.length, bus: F.bus.length };
 }

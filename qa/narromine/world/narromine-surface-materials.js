@@ -39,6 +39,14 @@ float nrNoise(vec2 p) {
   return mix(mix(nrHash(i), nrHash(i + vec2(1.0, 0.0)), f.x),
              mix(nrHash(i + vec2(0.0, 1.0)), nrHash(i + vec2(1.0)), f.x), f.y);
 }
+// Procedural detail finer than one fragment pixel aliases as the camera moves.
+// Fade towards the noise's mean (0.5), rather than introducing a distance
+// cutoff or geometry overlay that would produce visible transitions.
+float nrFilteredNoise(vec2 p) {
+  float pixelFootprint = max(fwidth(p.x), fwidth(p.y));
+  float weight = 1.0 - smoothstep(0.45, 1.0, pixelFootprint);
+  return mix(0.5, nrNoise(p), weight);
+}
 vec2 nrPlaneUV() {
   vec3 n = abs(normalize(vNarromineSurfaceNormal));
   return n.y > max(n.x, n.z) ? vNarromineSurfacePos.xz :
@@ -55,36 +63,38 @@ float nrGridLine(vec2 uv, float width) {
 const PATTERNS = Object.freeze({
   asphalt: `
     vec2 p = vNarromineSurfacePos.xz;
-    float fine = nrNoise(p * 3.6);
-    float broad = nrNoise(p * 0.43);
+    float fine = nrFilteredNoise(p * 3.6);
+    float broad = nrFilteredNoise(p * 0.43);
     return vec3(0.94 + 0.045 * fine + 0.025 * broad);`,
   concrete: `
     vec2 p = vNarromineSurfacePos.xz;
     float joints = nrGridLine(p / 1.65, 0.006);
-    float fleck = nrNoise(p * 2.1);
+    float fleck = nrFilteredNoise(p * 2.1);
     return vec3((0.975 + 0.035 * fleck) * (1.0 - 0.08 * joints));`,
   brick: `
     vec2 p = nrPlaneUV();
     float course = floor(p.y / 0.076);
     vec2 bond = vec2(p.x / 0.23 + mod(course, 2.0) * 0.5, p.y / 0.076);
     float joint = nrGridLine(bond, 0.055);
-    float brickVariation = nrHash(vec2(floor(bond.x), course));
+    float brickPixelFootprint = max(fwidth(bond.x), fwidth(bond.y));
+    float brickWeight = 1.0 - smoothstep(0.45, 1.0, brickPixelFootprint);
+    float brickVariation = mix(0.5, nrHash(vec2(floor(bond.x), course)), brickWeight);
     return vec3((0.90 + 0.17 * brickVariation) * (1.0 - 0.24 * joint));`,
   render: `
     vec2 p = nrPlaneUV();
-    float variation = nrNoise(p * 0.84);
-    float fine = nrNoise(p * 4.3);
+    float variation = nrFilteredNoise(p * 0.84);
+    float fine = nrFilteredNoise(p * 4.3);
     return vec3(0.962 + variation * 0.047 + fine * 0.018);`,
   metalRoof: `
     vec2 p = vNarromineSurfacePos.xz;
     float phase = p.x / 0.195;
     float visible = 1.0 - smoothstep(0.26, 0.60, fwidth(phase));
     float rib = 0.5 + 0.5 * cos(phase * 6.2831853);
-    float oxidisation = nrNoise(p * 0.62);
+    float oxidisation = nrFilteredNoise(p * 0.62);
     return vec3(0.95 + visible * 0.085 * rib + 0.025 * oxidisation);`,
   glass: `
     vec2 p = nrPlaneUV();
-    float variation = nrNoise(p * 0.3);
+    float variation = nrFilteredNoise(p * 0.3);
     return vec3(0.96 + variation * 0.05);`,
 });
 
@@ -105,7 +115,7 @@ export function createNarromineSurfaceMaterial(colour, side = THREE.FrontSide) {
     color: colour, side, ...SURFACE_SETTINGS[kind],
   });
   material.userData.narromineSurfaceKind = kind;
-  material.customProgramCacheKey = () => 'narromine-world-surface-v1:' + kind;
+  material.customProgramCacheKey = () => 'narromine-world-surface-v2:' + kind;
   material.onBeforeCompile = (shader) => {
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vNarromineSurfacePos;\nvarying vec3 vNarromineSurfaceNormal;')

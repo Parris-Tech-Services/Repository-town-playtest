@@ -29,6 +29,7 @@ import { buildMasterplan, PLAN_HOMES } from './world/masterplan-built.js';
 import { RESIDENT_STYLES } from './world/resident-models.js';
 import { buildNarromine } from './world/narromine.js';
 import { createNarromineTrains } from './world/narromine-trains.js';
+import { createNarromineTraffic } from './world/narromine-traffic.js';
 import { createTownRailYard } from './world/town-rail-yard.js';
 import { NARROMINE_POST_OFFICE_SAVE_ID, NARROMINE_POST_OFFICE_ENTRANCE, nearNarrominePostOfficeDoor, buildNarrominePostOfficeInterior, createNarrominePostalOutdoorActor } from './world/narromine-post-office.js';
 import { NARROMINE_POSTAL_PERSON, POSTAL_WALK_ROUTE_LOCAL, postalState, postalDayPlan, postalFormatTime } from './world/narromine-postal-character.js';
@@ -235,6 +236,8 @@ async function start() {
   const narromine = buildNarromine(town.group, makeLabel);
   // Narromine railway: sleepers and rails on the mapped lines and a drivable grain train in the yard.
   const trains = createNarromineTrains(narromine.group);
+  // Road traffic at the levels the NSW crossing register records (Dandaloo St 7,000 vehicles a day).
+  const narromineTraffic = createNarromineTraffic(narromine.group, { blocked: (x, z) => trains.crossingClosedNear(x, z) });
   const narrominePostalOutdoor=createNarrominePostalOutdoorActor(narromine.group,makeLabel);
   const [postalHomeX,postalHomeZ]=toWorld(POSTAL_WALK_ROUTE_LOCAL[0]);
   narromine.spots.push({key:'narromine:leah-home',label:'Leah Bennett’s fictional home',
@@ -335,6 +338,7 @@ async function start() {
   // rotated-axis AABB for the town's existing 2D collision engine.
   townWorld.dynamic = () => [
     ...trains.colliders(),
+    ...(player.pos.x < -2640 ? narromineTraffic.colliders(player.pos) : []),
     ...yard.colliders(),
     ...life.trucks.map(tr => {
       const sn = Math.abs(Math.sin(tr.heading)), cs = Math.abs(Math.cos(tr.heading));
@@ -1809,6 +1813,7 @@ async function start() {
     drivingDashboard.update(mode==='town'&&!overview?driving.activeVehicle():null);
     ambience.setRadioPlaying(drivingDashboard.getState().station>0);
     trains.tick(dt,{day:life.day,minute:life.minute});   // timetabled freights and level-crossing booms
+    if(mode==='town'&&player.pos.x<-2640) narromineTraffic.update(dt,player.pos,life.minute);
     market.update(life.day, life.minute);
     frameItems();
     carryFrame();
@@ -2291,7 +2296,7 @@ async function start() {
     vehicles:()=>life.motorReport().owned.map(v=>({...v})),
     enterVehicle:(reg)=>driving.enter(life.motorReport().owned.find(v=>v.registration===reg)),
     yardTrain:()=>yard.state(), yardBoard:()=>yard.board(), yardExit:()=>yard.exit(player), yardAction:(kind)=>yard.action(kind), yardColliders:()=>yard.colliders(),
-    train:()=>trains.state(), probeWithMoving:(x,z,r=.4)=>!!townWorld.hits(x,z,r), trainNear:()=>trains.near(player.pos), trainBoard:()=>trains.board(), trainExit:()=>trains.exit(player), trainRoute:(p)=>trains.setRoute(p), runFreight:(i)=>trains.runFreight(i), trainColliders:()=>trains.colliders(),
+    train:()=>trains.state(), traffic:()=>({count:narromineTraffic.count,models:narromineTraffic.modelsLoaded,cars:narromineTraffic.cars.map(c=>({x:c.x,z:c.z,v:c.v,yaw:c.yaw,model:c.model}))}), probeWithMoving:(x,z,r=.4)=>!!townWorld.hits(x,z,r), trainNear:()=>trains.near(player.pos), trainBoard:()=>trains.board(), trainExit:()=>trains.exit(player), trainRoute:(p)=>trains.setRoute(p), runFreight:(i)=>trains.runFreight(i), trainColliders:()=>trains.colliders(),
     leaveVehicle:()=>driving.exit(),
     // A fixed step behaves like a real frame, including showing the driving message (off-road, braking).
     narromineVisible:()=>narromine.group.visible,

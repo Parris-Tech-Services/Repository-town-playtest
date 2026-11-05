@@ -231,7 +231,16 @@ export function createNarromineTrains(parent) {
     if (!freight) return;
     const h = freight.path.pointAt(freight.path.s);
     // Signal protection: hold short while the player's train is within 250 m ahead or across the line.
-    const blocked = placed.some(p => Math.hypot(p.x - h.x, p.z - h.z) < SIGNAL_GAP);
+    // Signal protection: hold only if the player's train is actually on this train's track within
+    // 250 m ahead (sampled along the path), not merely nearby on the yard loop or a siding.
+    const ahead = [h], P = freight.path.path; let prev = P[P.length - 2], cur = P[P.length - 1], walked = 0, last = h;
+    while (walked < SIGNAL_GAP && cur != null) {
+      const n = net.nodes[cur], seg = Math.hypot(n.x - last.x, n.z - last.z);
+      for (let d = 8; d < seg; d += 8) ahead.push({ x: last.x + (n.x - last.x) * d / seg, z: last.z + (n.z - last.z) * d / seg });
+      ahead.push(n); walked += seg; last = n;
+      const nx = net.next(prev, cur, 'straight'); prev = cur; cur = nx;
+    }
+    const blocked = placed.some(p => ahead.some(a => Math.hypot(p.x - a.x, p.z - a.z) < p.L / 2 + 3));
     freight.held = blocked;
     const limit = Math.min(FREIGHT_RUN_KMH, net.limitKmh(h.a, h.b)) / 3.6, target = blocked ? 0 : limit;
     freight.speed += Math.max(-SERVICE_BRAKE * 2 * dt, Math.min(ACCEL * dt, target - freight.speed));
@@ -321,6 +330,8 @@ export function createNarromineTrains(parent) {
   }
   return {
     update, tick, board, exit, near, cab, colliders, setRoute, state,
+    // True when a closed crossing's road is within 12 m of (x, z): road traffic waits there.
+    crossingClosedNear(x, z) { return crossings.some(c => c.closed && Math.hypot(c.x - x, c.z - z) < 12); },
     runFreight(i = 0) { if (freight) despawnFreight(); spawnFreight(FREIGHT_TIMETABLE[i]); return FREIGHT_TIMETABLE[i].id; },
     sound() { horn = 1.2; return 'Horn: two long blasts.'; },
     get driving() { return driving; }, get message() { return message; }, clearMessage() { message = ''; },

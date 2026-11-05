@@ -18,6 +18,26 @@ export function vehicleAudioParameters(vehicle){
    wind:clamp(kmh/175,0,1),road:clamp(kmh/120,0,1),redline:spec.redline,idle:spec.idle,
    load:clamp(Number(vehicle.throttle)||0,0,1)};
 }
+// Schedule a real WebAudio-clock run-down; render-thread frame stalls must not
+// turn a 1.2 s engine shutdown into an abrupt cut. AudioParam automation keeps
+// running independently of requestAnimationFrame / the Three.js renderer.
+export function scheduleVehicleRundown({ tones, gains }, at, seconds = 1.2) {
+ if(!Number.isFinite(at)||!Number.isFinite(seconds)||seconds<=0)throw new RangeError('invalid vehicle run-down clock');
+ const end=at+seconds;
+ for(const param of tones){
+   const initial=Math.max(6,Number(param.value)||6);
+   param.cancelScheduledValues(at);
+   param.setValueAtTime(initial,at);
+   param.exponentialRampToValueAtTime(Math.max(6,initial*.22),end);
+ }
+ for(const param of gains){
+   const initial=Math.max(0,Number(param.value)||0);
+   param.cancelScheduledValues(at);
+   param.setValueAtTime(initial,at);
+   param.linearRampToValueAtTime(0,end);
+ }
+ return { start:at, end, toneRamps:tones.length, gainRamps:gains.length };
+}
 export function createVehicleAudio(ctx,output){
  const bus=ctx.createGain();bus.gain.value=.0;bus.connect(output);
  const filter=ctx.createBiquadFilter();filter.type='lowpass';filter.frequency.value=480;
@@ -49,14 +69,36 @@ export function createVehicleAudio(ctx,output){
    const target=(node,v,t=.09)=>node.gain.setTargetAtTime(v,at,t);
    // Engine start/stop sequence on the audio clock: crank (diesels longer), catch with a rev flare,
    // run; leaving the car runs the engine down instead of cutting it.
-   if(vehicle&&vehicle.registration!==lastReg){phase='cranking';phaseStart=at;lastReg=vehicle.registration;}
-   if(!vehicle&&lastReg){phase=last?'stopping':'off';phaseStart=at;lastReg=null;}
+   if(vehicle&&vehicle.registration!==lastReg){
+     if(phase==='stopping'){
+       // Re-entering a car before the fade finishes must cancel the future
+       // sound-stop ramps, or they would silence the newly started engine.
+       for(const param of [exhaust.frequency,undertone.frequency,harmonic.frequency,
+         bus.gain,windGain.gain,tyreGain.gain,intake.g.gain,clatter.g.gain,starterGain.gain])
+         param.cancelScheduledValues(at);
+     }
+     phase='cranking';phaseStart=at;lastReg=vehicle.registration;
+   }
+   if(!vehicle&&lastReg){
+     phase=last?'stopping':'off';phaseStart=at;lastReg=null;
+     if(last)scheduleVehicleRundown({
+       tones:[exhaust.frequency,undertone.frequency,harmonic.frequency],
+       gains:[bus.gain,windGain.gain,tyreGain.gain,intake.g.gain,clatter.g.gain,starterGain.gain],
+     },at);
+   }
    const age=at-phaseStart,diesel=p.tone==='diesel'||last?.tone==='diesel';
    if(phase==='cranking'&&age>(diesel?.9:.6)){phase='catch';phaseStart=at;}
    else if(phase==='catch'&&age>.8)phase='running';
    else if(phase==='stopping'&&age>1.2)phase='off';
    target(starterGain,phase==='cranking'?.2:0,.03);
-   if(phase==='stopping'&&last){p={...last,rpm:last.idle*Math.max(0,1-age/1.2),frequency:last.frequency/last.rpm*last.idle*Math.max(.05,1-age/1.2),volume:last.volume*(1-age/1.2),wind:0,road:0,load:0};}
+   if(phase==='stopping'&&last){
+     const fraction=Math.max(0,1-age/1.2);
+     // Reporting the current simulated RPM is useful, but actual WebAudio
+     // frequency and gain already have their complete timed ramps queued.
+     // Do NOT overwrite the automation with per-frame setTargetAtTime calls.
+     p={...last,rpm:last.idle*fraction,frequency:last.frequency/last.rpm*last.idle*fraction,volume:last.volume*fraction,wind:0,road:0,load:0};
+     return {...p,phase,active:true,shutdownScheduled:true};
+   }
    if(!p.active||phase==='off'||phase==='cranking'){target(bus,0,.12);target(windGain,0);target(tyreGain,0);target(intake.g,0);target(clatter.g,0);lastActive=false;
      return {...p,phase,active:p.active&&phase!=='off'};}
    if(phase==='catch'){const flare=1+.7*Math.sin(Math.min(1,age/.8)*Math.PI);p={...p,rpm:p.idle*flare,frequency:p.frequency/p.rpm*p.idle*flare};}

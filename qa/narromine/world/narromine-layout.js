@@ -205,17 +205,34 @@ export const FILL_SHOPS = Object.freeze(PLACES.flatMap((p) => {
 const STREET_SAMPLES = (() => { const g = new Map(); for (const s of STREETS) for (let i = 1; i < s.pts.length; i++) {
   const [ax, az] = s.pts[i - 1], [bx, bz] = s.pts[i], n = Math.ceil(Math.hypot(bx - ax, bz - az) / 2);
   for (let k = 0; k <= n; k++) { const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n, key = Math.floor(x / 8) + ',' + Math.floor(z / 8); if (!g.has(key)) g.set(key, []); g.get(key).push([x, z]); } } return g; })();
-const crossesStreet = (r) => { for (let gx = Math.floor((r.x0 - 1.2) / 8); gx <= Math.floor((r.x1 + 1.2) / 8); gx++) for (let gz = Math.floor((r.z0 - 1.2) / 8); gz <= Math.floor((r.z1 + 1.2) / 8); gz++)
-  for (const [x, z] of STREET_SAMPLES.get(gx + ',' + gz) || []) if (inPoly(x, z, r.poly) || r.poly.some((p, i) => { const q = r.poly[(i + 1) % r.poly.length], dx = q[0] - p[0], dz = q[1] - p[1], l = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - p[0]) * dx + (z - p[1]) * dz) / l)); return Math.hypot(x - p[0] - t * dx, z - p[1] - t * dz) < 1.1; })) return true; return false; };
+// Existing road probes use lateral ±1.6 m with a 1.12 m body radius.
+// Street centreline points are sampled every <=2 m: include the extra <=1 m
+// longitudinal uncertainty in the source-conflict envelope (3.1 m).
+// We omit uncertain ML stand-in buildings where this narrow DRIVING envelope
+// conflicts with mapped public streets. This does NOT establish absence of a
+// building at its real-world location; it flags conflicting source geometry.
+export const ROAD_LANE_SOURCE_CLEARANCE = 3.1;
+const crossesStreet = (r) => { const margin = ROAD_LANE_SOURCE_CLEARANCE;
+  for (let gx = Math.floor((r.x0 - margin) / 8); gx <= Math.floor((r.x1 + margin) / 8); gx++) for (let gz = Math.floor((r.z0 - margin) / 8); gz <= Math.floor((r.z1 + margin) / 8); gz++)
+  for (const [x, z] of STREET_SAMPLES.get(gx + ',' + gz) || []) if (inPoly(x, z, r.poly) || r.poly.some((p, i) => { const q = r.poly[(i + 1) % r.poly.length], dx = q[0] - p[0], dz = q[1] - p[1], l = dx * dx + dz * dz || 1, t = Math.max(0, Math.min(1, ((x - p[0]) * dx + (z - p[1]) * dz) / l)); return Math.hypot(x - p[0] - t * dx, z - p[1] - t * dz) < margin; })) return true; return false; };
+const FOOTPRINT_ROAD_OMISSIONS = [];
 export const FILL_HOUSES = Object.freeze(NARROMINE_FOOTPRINTS.flatMap(([x, z, w, d, yaw, h]) => {
   if (x < REGION.x0 + 5 || x > REGION.x1 - 5 || z < REGION.z0 + 5 || z > REGION.z1 - 5) return [];
   const r = footprint(x, z, w, d, yaw);
   // Already modelled: centre inside a mapped OSM outline or detailed site, or a mapped outline's centre inside this one.
   if (BUILDING_CENTRES.some((b) => inPoly(x, z, b.pts) || inPoly(b.c[0], b.c[1], r.poly)) || inDetailed(x, z) || overlapsPlaced(r)) return [];
-  if (!clearOfRail(r) || crossesStreet(r)) return [];
+  if (!clearOfRail(r)) return [];
+  if (crossesStreet(r)) {
+    FOOTPRINT_ROAD_OMISSIONS.push(Object.freeze({ x, z, w, d, yaw,
+      source: 'Microsoft Global ML Building Footprints', reason: 'mapped-road-driving-envelope-source-conflict' }));
+    return [];
+  }
   const lidar = NARROMINE_FOOTPRINT_LIDAR[x.toFixed(1) + ',' + z.toFixed(1)] || null;
   return [Object.freeze({ generic: false, source: 'footprint', x, z, w, d, yaw, h, lidar, rect: Object.freeze(r), tone: (Math.abs(Math.round(x * 7 + z * 13)) % 5) })];
 }));
+
+// Source-conflict omissions are audit candidates, not proof of actual vacant land.
+export const FOOTPRINT_ROAD_CONFLICTS = Object.freeze(FOOTPRINT_ROAD_OMISSIONS);
 
 // Main-street frontages of mapped buildings: the outline edge facing a through street within
 // 14 m gets a veranda; a named place inside the outline names it. Map-derived, not surveyed.
