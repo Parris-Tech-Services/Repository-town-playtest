@@ -30,8 +30,16 @@ export function apportion(total, weights) {
   return out;
 }
 
-const FIRST = { male: ['Jack', 'Noah', 'Oliver', 'William', 'Lachlan', 'Thomas', 'James', 'Cooper', 'Riley', 'Harrison', 'Ethan', 'Mason', 'Liam', 'Hamish', 'Angus', 'Tom', 'Matt', 'Ben', 'Sam', 'Luke', 'Daniel', 'Josh', 'Adam', 'Brett', 'Craig', 'Darren', 'Glenn', 'Scott', 'Shane', 'Wayne', 'Peter', 'Graham', 'Kevin', 'Ross', 'Bruce', 'Ian', 'Keith', 'Barry', 'Neville', 'Ken', 'Colin', 'Reg'],
-  female: ['Charlotte', 'Olivia', 'Amelia', 'Isla', 'Mia', 'Ava', 'Grace', 'Matilda', 'Ruby', 'Chloe', 'Emily', 'Sophie', 'Jessica', 'Hannah', 'Sarah', 'Kate', 'Emma', 'Lauren', 'Rebecca', 'Megan', 'Kylie', 'Nicole', 'Lisa', 'Michelle', 'Tracey', 'Donna', 'Karen', 'Leanne', 'Julie', 'Debbie', 'Sharon', 'Wendy', 'Helen', 'Robyn', 'Jenny', 'Margaret', 'Judith', 'Lorraine', 'Beverley', 'Dorothy', 'Joan', 'Shirley'] };
+// First names popular in NSW in the decade each person was born (people born in 2010s get 2010s names).
+const FIRST = {
+  male: { young: ['Jack', 'Noah', 'Oliver', 'William', 'Lachlan', 'Thomas', 'Cooper', 'Riley', 'Harrison', 'Ethan', 'Mason', 'Liam', 'Hamish', 'Angus', 'Lucas', 'Charlie', 'Archie', 'Hudson', 'Henry', 'Leo'],
+    adult: ['Matthew', 'Daniel', 'Josh', 'Luke', 'Ben', 'Sam', 'Adam', 'Michael', 'Andrew', 'Chris', 'Nathan', 'Jason', 'Mark', 'Brett', 'Craig', 'Scott', 'Shane', 'Ryan', 'Tim', 'Aaron'],
+    older: ['Darren', 'Glenn', 'Wayne', 'Peter', 'Graham', 'Kevin', 'Ross', 'Bruce', 'Ian', 'Keith', 'Barry', 'Neville', 'Ken', 'Colin', 'Reg', 'Gary', 'Robert', 'John', 'Brian', 'Allan'] },
+  female: { young: ['Charlotte', 'Olivia', 'Amelia', 'Isla', 'Mia', 'Ava', 'Grace', 'Matilda', 'Ruby', 'Chloe', 'Harper', 'Willow', 'Ella', 'Zoe', 'Evie', 'Sienna', 'Lily', 'Ivy', 'Sophie', 'Emily'],
+    adult: ['Jessica', 'Sarah', 'Rebecca', 'Emma', 'Lauren', 'Megan', 'Kate', 'Hannah', 'Amy', 'Rachel', 'Kylie', 'Nicole', 'Lisa', 'Michelle', 'Melissa', 'Natalie', 'Kristy', 'Belinda', 'Renee', 'Danielle'],
+    older: ['Tracey', 'Donna', 'Karen', 'Leanne', 'Julie', 'Debbie', 'Sharon', 'Wendy', 'Helen', 'Robyn', 'Jenny', 'Margaret', 'Judith', 'Lorraine', 'Beverley', 'Dorothy', 'Joan', 'Shirley', 'Pamela', 'Carol'] },
+};
+const era = (age) => age < 22 ? 'young' : age < 48 ? 'adult' : 'older';
 const SURNAMES = ['Smith', 'Jones', 'Williams', 'Brown', 'Wilson', 'Taylor', 'Johnson', 'White', 'Martin', 'Anderson', 'Thompson', 'Walker', 'Harris', 'Lee', 'Ryan', 'Robinson', 'Kelly', 'King', 'Campbell', 'Clarke', 'Mitchell', 'Young', 'Hughes', 'Wright', "O'Brien", 'Murphy', 'Cooper', 'Ward', 'Morris', 'Edwards', 'Turner', 'Stewart', 'Hall', 'Wood', 'Baker', 'Green', 'Russell', 'Watson', 'Hill', 'Lewis', 'Bell', 'Kennedy', 'Moore', 'Scott', 'Graham', 'Bennett', 'Fraser', 'Reid', 'Hamilton', 'McDonald', 'Gordon', 'Sullivan', 'Mason', 'Hunter', 'Payne', 'Doyle', 'Byrne', 'Quinn', 'Nolan', 'Dwyer', 'Ferguson', 'Gibson', 'Lawson', 'Hayes', 'Carey', 'Barnes', 'Fisher', 'Webb', 'Kent', 'Dunn'];
 
 // Staff estimates per mapped workplace kind: [staff, opens, closes, weekend?]. Hours are typical for the kind.
@@ -59,7 +67,7 @@ export const AWAY_WORK = Object.freeze([
   { id: 'graincorp', name: 'grain receival site and rail yard', share: 0.04, opens: 6 * 60, closes: 15 * 60, weekend: false, direction: 'local' },
 ]);
 
-const segNearest = (x, z) => {
+export const segNearest = (x, z) => {
   let best = null, bd = Infinity;
   for (const s of STREETS) {
     if (!['residential', 'tertiary', 'unclassified', 'secondary', 'living_street'].includes(s.kind) || !s.name) continue;
@@ -117,7 +125,9 @@ export function createNarrominePopulation(seed = 20211810) {
   const typeOrder = [...types].sort((a, b) => ['coupleKids', 'oneParent', 'other', 'group', 'coupleNoKids', 'lone'].indexOf(a) - ['coupleKids', 'oneParent', 'other', 'group', 'coupleNoKids', 'lone'].indexOf(b));
   const person = (hh, age, role, gender) => {
     gender ??= r() < 0.489 ? 'male' : 'female';
-    const p = { id: 'nr-' + people.length, first: pick(FIRST[gender]), surname: hh.surname, gender, age, role, home: hh.id, household: hh.id, job: null, workplace: null, school: null, drives: false, car: null };
+    let first = pick(FIRST[gender][era(age)]);
+    for (let k = 0; k < 12 && hh.members.some((id) => people[+id.slice(3)].first === first); k++) first = pick(FIRST[gender][era(age)]);   // no two in a home share a name
+    const p = { id: 'nr-' + people.length, first, surname: hh.surname, gender, age, role, home: hh.id, household: hh.id, job: null, workplace: null, school: null, drives: false, car: null };
     p.name = p.first + ' ' + p.surname; people.push(p); hh.members.push(p.id); return p;
   };
   order.forEach((homeIndex, k) => {
@@ -169,11 +179,43 @@ export function createNarrominePopulation(seed = 20211810) {
     const n = carsFor[i] ?? 1;
     const drivers = hh.members.map((id) => people[+id.slice(3)]).filter((p) => p.age >= 18 && p.age < 90).sort((a, b) => (b.workplace ? 1 : 0) - (a.workplace ? 1 : 0));
     for (let k = 0; k < n; k++) {
-      const car = { id: 'car-' + cars.length, household: hh.id, home: hh.home, model: null, colour: null, driver: drivers[k]?.id || drivers[0]?.id || null };
+      const car = { id: 'car-' + cars.length, household: hh.id, home: hh.home, model: null, colour: null, driver: drivers[k]?.id || null };          // a spare car (more cars than drivers) stays parked at home
       cars.push(car); hh.cars.push(car.id);
       if (drivers[k]) { drivers[k].drives = true; drivers[k].car = car.id; }
     }
   });
+  // Between the towns (the Mitchell Highway links them):
+  //  - Narromine residents whose job is in Repository Town are given a real workplace there.
+  //  - Repository Town residents take some staffed jobs in Narromine and drive in each shift. They live in
+  //    Repository Town houses (lot coordinates), so they have no Narromine home; their car comes in from the
+  //    east and goes home the same way. The Narromine residents who held those jobs drive to Dubbo instead.
+  const RT_WORK = [['cafe', 'Commit Café'], ['bakery', 'Bakery'], ['store', 'General Store'], ['bank', 'Community Bank'], ['hotel', 'Railway Hotel'], ['pub', 'The Merged Branch'],
+    ['post', 'Post Office'], ['school', 'School'], ['clinic', 'Clinic'], ['depot', 'Rail Depot'], ['mill', 'Flour Mill'], ['foundry', 'Foundry & Workshop'], ['hall', 'Town Hall'],
+    ['hardware', 'Central West Hardware & Timber'], ['power', 'Power Station'], ['waterworks', 'Water Works'], ['tafe', 'Town TAFE Trades Campus'], ['mechanic', 'Town Motor Workshop']];
+  const inTown = people.filter((p) => p.workplace && workplaces.some((w) => w.id === p.workplace && w.kind !== 'school' && w.kind !== 'hospital'));
+  const swap = inTown.filter((_, i) => i % 14 === 7).slice(0, 30);
+  for (const p of swap) {
+    const job = p.workplace;
+    const hh = { id: 'hh-' + households.length, home: null, livesIn: 'repotown', street: 'Lot ' + String.fromCharCode(65 + Math.floor(r() * 26)) + (1 + Math.floor(r() * 7)) + ', Repository Town', type: 'lone', surname: pick(SURNAMES), members: [], cars: [], fridge: null, lastShop: -1 };
+    households.push(hh);
+    const c = person(hh, 22 + Math.floor(r() * 40), 'adult');
+    c.workplace = job; c.livesIn = 'repotown'; c.drives = true;
+    const car = { id: 'car-' + cars.length, household: hh.id, home: null, livesIn: 'repotown', model: null, colour: null, driver: c.id };
+    cars.push(car); hh.cars.push(car.id); c.car = car.id;
+    p.workplace = 'dubbo';                    // the Narromine resident who held the job works in Dubbo instead
+  }
+  for (const p of people) if (p.workplace === 'repotown') { const [id, name] = RT_WORK[+p.id.slice(3) % RT_WORK.length]; p.repoTownJob = { id, name }; }
+  // School run: primary-school children (5-11) are driven by one parent who drives and either stays home
+  // (drops off and picks up) or starts work at 8:30 or later in town (drops off on the way). Teenagers walk.
+  for (const hh of households) {
+    const kids = hh.members.map((id) => people[+id.slice(3)]).filter((p) => p.age >= 5 && p.age <= 11 && p.school);
+    if (!kids.length) continue;
+    const adults = hh.members.map((id) => people[+id.slice(3)]).filter((p) => p.drives && p.age >= 18);
+    const wpOf = (p) => workplaces.find((w) => w.id === p.workplace);
+    const home = adults.find((p) => !p.workplace), late = adults.find((p) => wpOf(p) && wpOf(p).opens >= 8 * 60 + 30 && wpOf(p).closes - wpOf(p).opens <= 11 * 60);
+    const driver = home || late;
+    if (driver) hh.schoolRun = { driver: driver.id, school: kids[0].school, kids: kids.filter((k) => k.school === kids[0].school).map((k) => k.id), pickup: driver === home };
+  }
   return { census: C, homes: usable, allHomes: homes.length, households, people, workplaces, cars, scale, workers: workers.length };
 }
 
@@ -188,12 +230,24 @@ export function dayPlan(p, hh, weekday, workplaces) {
   if (wp && (!weekend || wp.weekend)) {
     const commute = wp.direction === 'east' ? 45 : wp.direction === 'west' ? 25 : 10;
     const long = wp.closes - wp.opens > 11 * 60;                       // hospital, police, pubs: shifts
-    let start = long ? (hash(p.id + 'shift') < 0.5 ? 7 * 60 : 14 * 60 + 30) : wp.opens + j('s', 20);
+    // 24-hour workplaces (hospital, police) run day, evening and night shifts; pubs and clubs day and evening.
+    const shiftRoll = hash(p.id + 'shift'), allNight = wp.opens === 0 && wp.closes === 1440;
+    if (long && allNight && shiftRoll >= 0.85 && !(weekend && hash(p.id + 'wk' + weekday) < 0.5)) {
+      // Night shift: finishes at 7 am, sleeps through the day, drives back for 10:15 pm.
+      return [{ from: 0, to: 7 * 60, at: p.workplace, kind: 'work' }, { from: 7 * 60, to: 7 * 60 + commute, at: 'home', kind: 'home' }, { from: 7 * 60 + commute, to: 14 * 60 + 30, at: 'home', kind: 'sleep' },
+        { from: 14 * 60 + 30, to: 18 * 60, at: 'home', kind: 'home' }, { from: 18 * 60, to: 18 * 60 + 45, at: 'home', kind: 'dinner' }, { from: 18 * 60 + 45, to: 22 * 60 + 15 - commute, at: 'home', kind: 'evening' },
+        { from: 22 * 60 + 15 - commute, to: 22 * 60 + 15, at: p.workplace, kind: 'travel' }, { from: 22 * 60 + 15, to: 1440, at: p.workplace, kind: 'work' }];
+    }
+    let start = long ? (shiftRoll < (allNight ? 0.5 : 0.5) ? 7 * 60 : 14 * 60 + 30) : wp.opens + j('s', 20);
     let end = long ? start + 8 * 60 + 30 : Math.min(wp.closes + 15, start + (p.partTime ? 5 * 60 : 8 * 60 + 30));
-    if (weekend && hash(p.id + 'wk' + weekday) < 0.5) return quietDay(p, weekday, hash);   // rostered off
-    wake = Math.max(4 * 60 + 30, start - commute - 60 + j('b', 20));
-    plan.push({ from: 0, to: wake, at: 'home', kind: 'sleep' }, { from: wake, to: start - commute, at: 'home', kind: 'breakfast' });
-    plan.push({ from: start - commute, to: start, at: p.workplace, kind: 'travel' }, { from: start, to: end, at: p.workplace, kind: 'work' });
+    if (weekend && hash(p.id + 'wk' + weekday) < 0.5) return quietDay(p, weekday, hash, hh);   // rostered off
+    const run = !weekend && hh.schoolRun?.driver === p.id && !long ? hh.schoolRun : null;
+    if (run) { start = Math.max(start, 8 * 60 + 40 + commute); end = Math.max(end, start + (p.partTime ? 5 * 60 : 8 * 60)); }
+    wake = Math.max(4 * 60 + 30, (run ? 8 * 60 + 25 : start - commute) - 60 + j('b', 20));
+    if (run) plan.push({ from: 0, to: wake, at: 'home', kind: 'sleep' }, { from: wake, to: 8 * 60 + 25, at: 'home', kind: 'breakfast' },
+      { from: 8 * 60 + 25, to: 8 * 60 + 40, at: run.school, kind: 'dropoff' }, { from: 8 * 60 + 40, to: start, at: p.workplace, kind: 'travel' });
+    else plan.push({ from: 0, to: wake, at: 'home', kind: 'sleep' }, { from: wake, to: start - commute, at: 'home', kind: 'breakfast' }, { from: start - commute, to: start, at: p.workplace, kind: 'travel' });
+    plan.push({ from: start, to: end, at: p.workplace, kind: 'work' });
     let t = end;
     if (hash(hh.id + 'shop' + weekday) < 0.3 && end < 19 * 60) { plan.push({ from: t, to: t + 35, at: 'coles', kind: 'shop' }); t += 35; }
     plan.push({ from: t, to: 18 * 60 + 30 + j('d', 40), at: 'home', kind: 'home' });
@@ -206,18 +260,26 @@ export function dayPlan(p, hh, weekday, workplaces) {
     const up = 7 * 60 + j('w', 30);
     plan.push({ from: 0, to: up, at: 'home', kind: 'sleep' }, { from: up, to: 8 * 60 + 25, at: 'home', kind: 'breakfast' },
       { from: 8 * 60 + 25, to: 8 * 60 + 50, at: p.school, kind: 'travel' }, { from: 8 * 60 + 50, to: 15 * 60, at: p.school, kind: 'school' },
-      { from: 15 * 60, to: 18 * 60 + 30, at: 'home', kind: 'home' }, { from: 18 * 60 + 30, to: 19 * 60 + 15, at: 'home', kind: 'dinner' }, { from: 19 * 60 + 15, to: 1440, at: 'home', kind: 'sleep' });
+      { from: 15 * 60, to: 18 * 60 + 30, at: 'home', kind: 'home' }, { from: 18 * 60 + 30, to: 19 * 60 + 15, at: 'home', kind: 'dinner' }, { from: 19 * 60 + 15, to: p.age < 13 ? 20 * 60 + 30 : 21 * 60 + 45, at: 'home', kind: 'evening' }, { from: p.age < 13 ? 20 * 60 + 30 : 21 * 60 + 45, to: 1440, at: 'home', kind: 'sleep' });
     return plan;
   }
-  return quietDay(p, weekday, hash);
+  return quietDay(p, weekday, hash, hh);
 }
-function quietDay(p, weekday, hash) {
+function quietDay(p, weekday, hash, hh) {
   const wake = (p.age > 65 ? 6 * 60 : p.age < 5 ? 6 * 60 + 30 : 7 * 60 + 30) + Math.round((hash(p.id + 'q' + weekday) - 0.5) * 60);
   const plan = [{ from: 0, to: wake, at: 'home', kind: 'sleep' }, { from: wake, to: wake + 45, at: 'home', kind: 'breakfast' }];
   let t = wake + 45;
+  const run = weekday > 0 && weekday < 6 && hh?.schoolRun?.driver === p.id ? hh.schoolRun : null;
+  if (run) {
+    plan[0].to = Math.min(wake, 7 * 60 + 15); plan[1].from = plan[0].to; plan[1].to = 8 * 60 + 25;
+    plan.push({ from: 8 * 60 + 25, to: 8 * 60 + 40, at: run.school, kind: 'dropoff' }, { from: 8 * 60 + 40, to: 14 * 60 + 50, at: 'home', kind: 'home' },
+      { from: 14 * 60 + 50, to: 15 * 60 + 10, at: run.school, kind: 'pickup' });
+    t = 15 * 60 + 10;
+  }
   // One household member does the shop (about two shops a week), spread from 8 am to 6 pm.
   if (p.age >= 18 && hash(p.household + 'shop' + weekday) < 0.28 && hash(p.household + 'who' + weekday) * 3 < 1 + (p.role === 'partner' || p.role === 'parent' || p.role === 'adult' ? 1 : 0)) { const s = Math.max(t, 8 * 60 + Math.round(hash(p.household + 'sh' + weekday) * 600)); plan.push({ from: t, to: s, at: 'home', kind: 'home' }, { from: s, to: s + 40, at: 'coles', kind: 'shop' }); t = s + 40; }
-  plan.push({ from: t, to: 18 * 60, at: 'home', kind: 'home' }, { from: 18 * 60, to: 18 * 60 + 45, at: 'home', kind: 'dinner' }, { from: 18 * 60 + 45, to: 1440, at: 'home', kind: 'sleep' });
+  const bed = p.age < 5 ? 19 * 60 + 30 : p.age < 13 ? 20 * 60 + 30 + Math.round(hash(p.id + 'b' + weekday) * 30) : p.age > 70 ? 21 * 60 + Math.round(hash(p.id + 'b' + weekday) * 60) : 22 * 60 + Math.round((hash(p.id + 'b' + weekday) - 0.3) * 90);
+  plan.push({ from: t, to: 18 * 60, at: 'home', kind: 'home' }, { from: 18 * 60, to: 18 * 60 + 45, at: 'home', kind: 'dinner' }, { from: 18 * 60 + 45, to: bed, at: 'home', kind: 'evening' }, { from: bed, to: 1440, at: 'home', kind: 'sleep' });
   return plan;
 }
 
@@ -236,4 +298,12 @@ export function whoIsAt(pop, place, weekday, minute) {
     else if (step.kind === 'shop' && place === 'coles') out.visitors.push(p);
   }
   return out;
+}
+
+// Narromine residents at their Repository Town job right now (placeId is a Repository Town place id).
+export function narromineCommutersAt(pop, placeId, weekday, minute) {
+  return pop.people.filter((p) => p.repoTownJob?.id === placeId).filter((p) => {
+    const step = dayPlan(p, pop.households[+p.household.slice(3)], weekday, pop.workplaces).find((s) => minute >= s.from && minute < s.to);
+    return step?.kind === 'work';
+  });
 }

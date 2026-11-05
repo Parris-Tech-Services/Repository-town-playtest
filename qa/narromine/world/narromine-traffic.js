@@ -8,6 +8,7 @@ import * as THREE from 'three';
 import { STREETS } from './narromine-layout.js';
 import { VEHICLE_MODELS, pickVehicle, pickPaint, loadVehicleModels } from './narromine-vehicle-models.js';
 import { createNarromineCommute } from './narromine-commute.js';
+import { AWAY_WORK } from './narromine-population.js';
 
 export const DAILY_VEHICLES = Object.freeze({ 'Dandaloo Street': 7000, 'Manildra Street': 500, 'Derribong Street': 380, 'Dandaloo Road': 380 });
 const CLASS_VEHICLES = { trunk: 7000, primary: 4000, secondary: 3000, tertiary: 900, unclassified: 250, residential: 150, living_street: 50, service: 40, track: 15 };
@@ -117,41 +118,93 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
       const a = nodes[t.path[i]], b = nodes[t.path[i + 1]]; if (!b) continue;
       if (Math.hypot((a.x + b.x) / 2 - player.x, (a.z + b.z) / 2 - player.z) > RADIUS) continue;
       const e = adj.get(t.path[i]).find(x => x.to === t.path[i + 1]); if (!e) continue;
-      const car = commute.population.cars[+t.car.slice(4)], driver = commute.population.people[+t.person.slice(3)];
+      const car = commute.population.cars[+t.car.slice(4)], driver = t.person ? commute.population.people[+t.person.slice(3)] : { name: t.driverName };
       const c = { id: serial++, trip: t.id, route: t.path, ri: i, from: t.path[i], to: t.path[i + 1], s: Math.min(s, e.len), len: e.len, width: e.width, model: car.model, L: car.length,
-        speed: SPEED * 0.95, v: SPEED * 0.8, colour: car.colour, ute: /truck/.test(VEHICLE_MODELS[car.model].file), carId: car.id, driver: driver.name, purpose: t.purpose, destination: t.to === 'home' ? 'home (' + commute.population.households[+car.household.slice(3)].street + ')' : t.to === 'coles' ? 'Coles' : commute.population.workplaces.find(w => w.id === t.to)?.name || t.to };
+        speed: SPEED * 0.95, v: SPEED * 0.8, colour: car.colour, ute: /truck/.test(VEHICLE_MODELS[car.model].file), carId: car.id, driver: driver.name, passengers: (t.passengers || []).map(k => commute.population.people[+k.slice(3)].first), purpose: t.purpose, destination: t.to === 'home' ? 'home (' + (commute.population.households[+car.household?.slice(3)]?.street || 'out of town') + ')' : t.to === 'coles' ? 'Coles' : t.to === 'repotown' ? (driver.repoTownJob?.name || 'work') + ', Repository Town' : AWAY_WORK.some(a => a.id === t.to) ? 'work: ' + AWAY_WORK.find(a => a.id === t.to).name : commute.population.workplaces.find(w => w.id === t.to)?.name || t.to };
       if (Math.hypot(nodes[c.from].x - player.x, nodes[c.from].z - player.z) < 40 && c.s < 5) continue;   // don't pop in beside the player
       live.add(t.id); cars.push(c); place(c);
     }
   }
+  // Collision of actual oriented vehicle footprints, not a centre-distance proxy.
+  // A 4.5 m car can overlap another even when their centres are 3 m apart.
+  function parkedFootprintsOverlap(a, b) {
+    const dir = c => [Math.sin(c.yaw), Math.cos(c.yaw)];
+    const ua = dir(a), ub = dir(b);
+    const axes = [ua, [-ua[1], ua[0]], ub, [-ub[1], ub[0]]];
+    const radius = (c, axis) => {
+      const u = dir(c), v = [-u[1], u[0]];
+      return (c.L || 4.4) * 0.5 * Math.abs(axis[0] * u[0] + axis[1] * u[1]) +
+        0.95 * Math.abs(axis[0] * v[0] + axis[1] * v[1]);
+    };
+    return axes.every(axis => Math.abs((a.x - b.x) * axis[0] + (a.z - b.z) * axis[1]) <
+      radius(a, axis) + radius(b, axis) + 0.1);
+  }
   // Parked residents' cars within 300 m: at home in the driveway, or at work, school or Coles.
   function parkResidents(player, weekday, minute) {
-    const pop = commute.population, out = [];
-    for (const car of pop.cars) {
-      const st = commute.carState(car.id, weekday, minute);
-      if (!st.parked) continue;
+    const pop = commute.population, out = [], bays = new Map(), taken = [];
+    // Homes are fixed, so reserve their real driveway footprints before fitting kerbside bays.
+    const parkedCars = pop.cars.map(car => ({ car, st: commute.carState(car.id, weekday, minute) }))
+      .filter(p => p.st.parked);
+    parkedCars.sort((a, b) => Number(b.st.parked === 'home') - Number(a.st.parked === 'home'));
+    for (const { car, st } of parkedCars) {
       let x, z, yaw = 0;
       if (st.parked === 'home') {
         // On the driveway: 7.5 m in from the street centreline (past the verge), side by side, nose to the street.
         const h = pop.homes[+car.home.slice(5)], k = h.kerb, D = Math.hypot(h.x - k.x, h.z - k.z) || 1, dx = (h.x - k.x) / D, dz = (h.z - k.z) / D;
-        const n = pop.households[+car.household.slice(3)].cars.indexOf(car.id), into = Math.min(7.5, D - h.d / 2 - 1), side = (n - 0.5) * 2.6;
+        const n = pop.households[+car.household.slice(3)].cars.indexOf(car.id), into = Math.min(7.5, D - h.d / 2 - 1) + Math.floor(n / 2) * 5.5, side = (n % 2 - 0.5) * 2.9;
         x = k.x + dx * into - dz * side; z = k.z + dz * into + dx * side; yaw = Math.atan2(-dx, -dz);
       }
       else {
-        // Kerbside at the end of their route, lined up behind other parked cars (6.5 m bays).
-        const P = st.trip.path, b = nodes[P[P.length - 1]], a = nodes[P[P.length - 2]] || b, L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
-        const e = adj.get(P[P.length - 2])?.find(q => q.to === P[P.length - 1]), off = (e?.width || 7) / 2 - 1.1, back = Math.min(L - 3, 4 + ((+car.id.slice(4)) % 8) * 6.5);
-        x = b.x - ux * back + uz * off; z = b.z - uz * back - ux * off; yaw = Math.atan2(ux, uz);
+        // Kerbside on the street they arrived by: each car takes the next free 6.5 m bay back from the
+        // destination, continuing round corners along its route, so parked cars never overlap.
+        const P = st.trip.path, endNode = P[P.length - 1];
+        let placed = false;
+        for (let tries = 0; tries < 96; tries++) {
+          const bay = bays.get(endNode) || 0; bays.set(endNode, bay + 1);
+          let back = 4 + bay * 6.5, i = P.length - 1;
+          while (i > 1) {
+            const a = nodes[P[i - 1]], b = nodes[P[i]], L = Math.hypot(b.x - a.x, b.z - a.z);
+            if (back <= L - 1) break;
+            back -= L; i--;
+          }
+          const b = nodes[P[i]], a = nodes[P[i - 1]];
+          if (!a || !b) break;
+          const L = Math.hypot(b.x - a.x, b.z - a.z);
+          if (L < 2 || back < 1 || back > L - 1) continue;
+          const ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
+          const e = adj.get(P[i - 1])?.find(q => q.to === P[i]), off = (e?.width || 7) / 2 - 1.1;
+          x = b.x - ux * back + uz * off; z = b.z - uz * back - ux * off; yaw = Math.atan2(ux, uz);
+          if (!taken.some(q => parkedFootprintsOverlap(q, { x, z, yaw, L: car.length }))) {
+            placed = true; break;
+          }
+        }
+        // If there is no genuine free bay on the route, do not render two cars in one space.
+        if (!placed) continue;
       }
       if (Math.hypot(x - player.x, z - player.z) > 300) continue;
+      taken.push({ x, z, yaw, L: car.length });
       out.push({ x, z, yaw, model: car.model, colour: car.colour, L: car.length, ux: Math.sin(yaw), uz: Math.cos(yaw), parked: true, carId: car.id });
     }
     parked = out;
   }
   let filled = false, refill = 0, refillParked = 0;
-  function update(dt, player, minute, weekday = 2) {
+  let lastDay = null, lastMinute = null, lastWeekday = null;
+  // A trip ID is unique within a simulated day, not for the resident's entire lifetime.
+  // On a new day (including the same weekday next week), allow that vehicle to travel
+  // again. Discard only the previous day's resident trips, keeping through traffic.
+  function update(dt, player, minute, weekday = 2, day = null) {
     if (!player) return;
     const now = (minute ?? 600) % 1440, hour = Math.floor(now / 60);
+    const dateChanged = day != null && lastDay != null && day !== lastDay;
+    const weekChanged = lastWeekday != null && weekday !== lastWeekday;
+    const clockRewound = lastMinute != null && now + 0.5 < lastMinute;
+    if (commute && (dateChanged || weekChanged || clockRewound)) {
+      live.clear();
+      for (let i = cars.length - 1; i >= 0; i--) if (cars[i].trip) cars.splice(i, 1);
+      refillParked = 0;
+    }
+    if (day != null) lastDay = day;
+    lastWeekday = weekday; lastMinute = now;
     if (!filled || (refill -= dt) <= 0) { populate(player, hour); filled = true; refill = 4; }
     if (commute) { spawnResidents(player, weekday, now); if ((refillParked -= dt) <= 0) { parkResidents(player, weekday, now); refillParked = 3; } }
     // Spatial buckets (20 m) so each car only checks its neighbours for the car ahead.
@@ -181,5 +234,5 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
     const xs = poly.map(p => p[0]), zs = poly.map(p => p[1]);
     return { x0: Math.min(...xs), x1: Math.max(...xs), z0: Math.min(...zs), z1: Math.max(...zs), poly, traffic: true };
   });
-  return { update, colliders, get count() { return cars.length; }, get modelsLoaded() { return !!real; }, get parked() { return parked; }, cars, expected, edges, commute };
+  return { update, colliders, get count() { return cars.length; }, get modelsLoaded() { return !!real; }, get parked() { return parked; }, cars, expected, edges, commute, graph };
 }
