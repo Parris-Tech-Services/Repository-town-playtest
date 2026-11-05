@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { STREETS } from './narromine-layout.js';
 import { VEHICLE_MODELS, pickVehicle, pickPaint, loadVehicleModels } from './narromine-vehicle-models.js';
+import { createNarromineCommute } from './narromine-commute.js';
 
 export const DAILY_VEHICLES = Object.freeze({ 'Dandaloo Street': 7000, 'Manildra Street': 500, 'Derribong Street': 380, 'Dandaloo Road': 380 });
 const CLASS_VEHICLES = { trunk: 7000, primary: 4000, secondary: 3000, tertiary: 900, unclassified: 250, residential: 150, living_street: 50, service: 40, track: 15 };
@@ -14,7 +15,7 @@ const CLASS_VEHICLES = { trunk: 7000, primary: 4000, secondary: 3000, tertiary: 
 const HOURLY = [.006, .004, .003, .003, .006, .016, .038, .066, .079, .068, .064, .066, .068, .066, .068, .074, .08, .072, .052, .036, .028, .022, .014, .008];
 const SPEED = 50 / 3.6, RADIUS = 500;
 
-function buildGraph() {
+export function buildGraph() {
   const nodes = [], adj = new Map(), key = (p) => Math.round(p[0] * 2) + ',' + Math.round(p[1] * 2), index = new Map();
   const node = (p) => { const k = key(p); if (!index.has(k)) { index.set(k, nodes.length); nodes.push({ x: p[0], z: p[1] }); adj.set(nodes.length - 1, []); } return index.get(k); };
   for (const s of STREETS) {
@@ -23,7 +24,7 @@ function buildGraph() {
     let prev = node(s.pts[0]);
     for (let i = 1; i < s.pts.length; i++) {
       const id = node(s.pts[i]); if (id === prev) continue;
-      const len = Math.hypot(nodes[id].x - nodes[prev].x, nodes[id].z - nodes[prev].z), e = { daily, width: s.width || 7, len, name: s.name };
+      const len = Math.hypot(nodes[id].x - nodes[prev].x, nodes[id].z - nodes[prev].z), e = { daily, width: s.width || 7, len, name: s.name, kind: s.kind };
       adj.get(prev).push({ to: id, ...e }); adj.get(id).push({ to: prev, ...e }); prev = id;
     }
   }
@@ -32,7 +33,11 @@ function buildGraph() {
 
 const CAR_COLOURS = [0xe8e8e4, 0x9aa3ab, 0x2f3b4a, 0x7a1e1e, 0x1f3f6b, 0x3b3b3b, 0xd8d2c0, 0x5c6b52];
 const MAX_CARS = 400;
-export function createNarromineTraffic(parent, { blocked = () => false, models = typeof document !== 'undefined' } = {}) {
+// Most cars are residents' own (narromine-commute.js): each is driven by a named person from home to a real
+// destination, then parks. Only Mitchell Highway (trunk) traffic is through traffic: trucks and travellers
+// passing through, about half of the highway's counted volume.
+const THROUGH_SHARE = 0.5;
+export function createNarromineTraffic(parent, { blocked = () => false, models = typeof document !== 'undefined', residents = true } = {}) {
   // Real vehicle models load in the background; until then (and in Node tests) cars are drawn as
   // simple boxes: two instanced meshes, bodies and cabins.
   const bodies = new THREE.InstancedMesh(new THREE.BoxGeometry(1.8, 0.75, 4.4), new THREE.MeshLambertMaterial({ color: 0xffffff }), MAX_CARS);
@@ -42,7 +47,7 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
   let real = null;
   if (models) loadVehicleModels(parent).then(r => { real = r; bodies.visible = cabins.visible = false; }).catch(e => console.warn('Narromine vehicle models did not load; keeping simple cars', e));
   function draw() {
-    if (real) { real.draw(cars); return; }
+    if (real) { real.draw(parked.length ? cars.concat(parked) : cars); return; }
     const n = Math.min(cars.length, MAX_CARS);
     for (let i = 0; i < n; i++) {
       const c = cars[i]; q.setFromAxisAngle(up, c.yaw);
@@ -52,7 +57,9 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
     }
     bodies.count = cabins.count = n; bodies.instanceMatrix.needsUpdate = cabins.instanceMatrix.needsUpdate = true; if (bodies.instanceColor) bodies.instanceColor.needsUpdate = true;
   }
-  const { nodes, adj } = buildGraph();
+  const graph = buildGraph(), { nodes, adj } = graph;
+  const commute = residents ? createNarromineCommute(graph) : null;
+  let parked = [];
   const edges = []; for (const [from, list] of adj) for (const e of list) if (from < e.to) edges.push({ from, ...e });
   const cars = []; let serial = 0, seed = 1234567;
   const rand = () => (seed = (seed * 16807) % 2147483647) / 2147483647;     // deterministic, so tests repeat
@@ -62,6 +69,11 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
     c.x = p.x + p.uz * off; c.z = p.z - p.ux * off; c.yaw = Math.atan2(-p.ux, -p.uz) + Math.PI; c.ux = p.ux; c.uz = p.uz;
   }
   function nextEdge(c) {
+    if (c.route) {                                                    // a resident follows their own route
+      c.ri++;
+      const to = c.route[c.ri + 1];
+      return to === undefined ? null : adj.get(c.to).find(e => e.to === to);
+    }
     const options = adj.get(c.to).filter(e => e.to !== c.from);
     if (!options.length) return adj.get(c.to)[0];                      // dead end: turn round
     // Busy roads attract through traffic: weight choices by daily volume.
@@ -85,8 +97,9 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
     for (const e of edges) {
       const a = nodes[e.from], b = nodes[e.to], mx = (a.x + b.x) / 2, mz = (a.z + b.z) / 2;
       if (Math.hypot(mx - player.x, mz - player.z) > RADIUS) continue;
+      if (commute && e.daily < 7000 && !/trunk/.test(e.kind || '')) continue;     // side streets carry residents only
       const have = onEdge.get(Math.min(e.from, e.to) + ':' + Math.max(e.from, e.to)) || 0;
-      let want = expected(e, hour); want = Math.floor(want) + (rand() < want % 1 ? 1 : 0);
+      let want = expected(e, hour) * (commute ? THROUGH_SHARE : 1); want = Math.floor(want) + (rand() < want % 1 ? 1 : 0);
       for (let k = have; k < want; k++) {
         const s = rand() * e.len, fwd = rand() < 0.5, p = { x: a.x + (b.x - a.x) * s / e.len, z: a.z + (b.z - a.z) * s / e.len };
         if (Math.hypot(p.x - player.x, p.z - player.z) < 40) continue;          // never pop in beside the player
@@ -94,11 +107,53 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
       }
     }
   }
-  let filled = false, refill = 0;
-  function update(dt, player, minute) {
+  // Residents' cars: spawn those whose trip is under way near the player, at the point they have reached.
+  const live = new Set();
+  function spawnResidents(player, weekday, minute) {
+    for (const t of commute.trips(weekday)) {
+      if (minute < t.depart || minute >= t.depart + t.duration || live.has(t.id)) continue;
+      let s = (minute - t.depart) * 60 * (50 / 3.6), i = 0;
+      while (i < t.path.length - 2) { const a = nodes[t.path[i]], b = nodes[t.path[i + 1]], L = Math.hypot(b.x - a.x, b.z - a.z); if (s < L) break; s -= L; i++; }
+      const a = nodes[t.path[i]], b = nodes[t.path[i + 1]]; if (!b) continue;
+      if (Math.hypot((a.x + b.x) / 2 - player.x, (a.z + b.z) / 2 - player.z) > RADIUS) continue;
+      const e = adj.get(t.path[i]).find(x => x.to === t.path[i + 1]); if (!e) continue;
+      const car = commute.population.cars[+t.car.slice(4)], driver = commute.population.people[+t.person.slice(3)];
+      const c = { id: serial++, trip: t.id, route: t.path, ri: i, from: t.path[i], to: t.path[i + 1], s: Math.min(s, e.len), len: e.len, width: e.width, model: car.model, L: car.length,
+        speed: SPEED * 0.95, v: SPEED * 0.8, colour: car.colour, ute: /truck/.test(VEHICLE_MODELS[car.model].file), carId: car.id, driver: driver.name, purpose: t.purpose, destination: t.to === 'home' ? 'home (' + commute.population.households[+car.household.slice(3)].street + ')' : t.to === 'coles' ? 'Coles' : commute.population.workplaces.find(w => w.id === t.to)?.name || t.to };
+      if (Math.hypot(nodes[c.from].x - player.x, nodes[c.from].z - player.z) < 40 && c.s < 5) continue;   // don't pop in beside the player
+      live.add(t.id); cars.push(c); place(c);
+    }
+  }
+  // Parked residents' cars within 300 m: at home in the driveway, or at work, school or Coles.
+  function parkResidents(player, weekday, minute) {
+    const pop = commute.population, out = [];
+    for (const car of pop.cars) {
+      const st = commute.carState(car.id, weekday, minute);
+      if (!st.parked) continue;
+      let x, z, yaw = 0;
+      if (st.parked === 'home') {
+        // On the driveway: 7.5 m in from the street centreline (past the verge), side by side, nose to the street.
+        const h = pop.homes[+car.home.slice(5)], k = h.kerb, D = Math.hypot(h.x - k.x, h.z - k.z) || 1, dx = (h.x - k.x) / D, dz = (h.z - k.z) / D;
+        const n = pop.households[+car.household.slice(3)].cars.indexOf(car.id), into = Math.min(7.5, D - h.d / 2 - 1), side = (n - 0.5) * 2.6;
+        x = k.x + dx * into - dz * side; z = k.z + dz * into + dx * side; yaw = Math.atan2(-dx, -dz);
+      }
+      else {
+        // Kerbside at the end of their route, lined up behind other parked cars (6.5 m bays).
+        const P = st.trip.path, b = nodes[P[P.length - 1]], a = nodes[P[P.length - 2]] || b, L = Math.hypot(b.x - a.x, b.z - a.z) || 1, ux = (b.x - a.x) / L, uz = (b.z - a.z) / L;
+        const e = adj.get(P[P.length - 2])?.find(q => q.to === P[P.length - 1]), off = (e?.width || 7) / 2 - 1.1, back = Math.min(L - 3, 4 + ((+car.id.slice(4)) % 8) * 6.5);
+        x = b.x - ux * back + uz * off; z = b.z - uz * back - ux * off; yaw = Math.atan2(ux, uz);
+      }
+      if (Math.hypot(x - player.x, z - player.z) > 300) continue;
+      out.push({ x, z, yaw, model: car.model, colour: car.colour, L: car.length, ux: Math.sin(yaw), uz: Math.cos(yaw), parked: true, carId: car.id });
+    }
+    parked = out;
+  }
+  let filled = false, refill = 0, refillParked = 0;
+  function update(dt, player, minute, weekday = 2) {
     if (!player) return;
-    const hour = Math.floor(((minute ?? 600) % 1440) / 60);
+    const now = (minute ?? 600) % 1440, hour = Math.floor(now / 60);
     if (!filled || (refill -= dt) <= 0) { populate(player, hour); filled = true; refill = 4; }
+    if (commute) { spawnResidents(player, weekday, now); if ((refillParked -= dt) <= 0) { parkResidents(player, weekday, now); refillParked = 3; } }
     // Spatial buckets (20 m) so each car only checks its neighbours for the car ahead.
     const grid = new Map();
     for (const c of cars) for (const dx of [-1, 0, 1]) for (const dz of [-1, 0, 1]) { const k = (Math.floor(c.x / 20) + dx) + ',' + (Math.floor(c.z / 20) + dz); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(c); }
@@ -112,16 +167,19 @@ export function createNarromineTraffic(parent, { blocked = () => false, models =
       const target = ahead ? 0 : c.speed * turnSlow;
       c.v += Math.max(-6 * dt, Math.min(2 * dt, target - c.v));
       c.s += c.v * dt;
-      while (c.s > c.len) { const e = nextEdge(c); c.s -= c.len; c.from = c.to; c.to = e.to; c.len = e.len; c.width = e.width; }
+      let arrived = false;
+      while (c.s > c.len) { const e = nextEdge(c); if (!e) { arrived = true; break; } c.s -= c.len; c.from = c.to; c.to = e.to; c.len = e.len; c.width = e.width; }
+      if (arrived) { cars.splice(i, 1); continue; }               // reached their destination: the parked car takes over
       place(c);
     }
     draw();
   }
   // Solid boxes for vehicles near the player, so the player's car and the player can't drive through them.
-  const colliders = (player) => cars.filter(c => Math.hypot(c.x - player.x, c.z - player.z) < 60).map(c => {
-    const hl = c.L / 2, hw = 0.95, poly = [[hl, hw], [-hl, hw], [-hl, -hw], [hl, -hw]].map(([a, b]) => [c.x + c.ux * a - c.uz * b, c.z + c.uz * a + c.ux * b]);
+  const colliders = (player) => cars.concat(parked).filter(c => Math.hypot(c.x - player.x, c.z - player.z) < 60).map(c => {
+    const hl = c.L / 2, hw = 0.95, ux = c.ux ?? Math.sin(c.yaw), uz = c.uz ?? Math.cos(c.yaw);
+    const poly = [[hl, hw], [-hl, hw], [-hl, -hw], [hl, -hw]].map(([a, b]) => [c.x + ux * a - uz * b, c.z + uz * a + ux * b]);
     const xs = poly.map(p => p[0]), zs = poly.map(p => p[1]);
     return { x0: Math.min(...xs), x1: Math.max(...xs), z0: Math.min(...zs), z1: Math.max(...zs), poly, traffic: true };
   });
-  return { update, colliders, get count() { return cars.length; }, get modelsLoaded() { return !!real; }, cars, expected, edges };
+  return { update, colliders, get count() { return cars.length; }, get modelsLoaded() { return !!real; }, get parked() { return parked; }, cars, expected, edges, commute };
 }

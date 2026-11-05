@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { permittedTracksideLight } from './rail-corridor.js';
 import { createStreetLighting, lightingLevel, STREET_LIGHT_BUDGET, householdLightingOn } from './lighting.js';
 import { Builder } from './builder.js';
+import { drawBuilderTree } from './tree-models.js';
 import { buildExterior } from './exterior.js';
 import { exteriorColliders } from './exterior-collision.js';
 import { houseEntranceZone } from './house-entrance.js';
@@ -64,7 +65,11 @@ export function buildTown(scene, houses, streets) {
   for (let c = 0; c <= COLS; c += 5) deco.box(0x55595f, 7, 0.035, depth - 20, (c - COLS / 2) * LOT_X, 0.018, 0);
   // Border trees frame the town and hide the ground edge.
   for (let i = 0; i < 70; i++) {
-    for (const z of [-371, depth / 2 + 6]) { const x = -width / 2 + i * width / 70; deco.cyl(0x6a4a2a, 0.3, 3, x, 1.5, z); deco.ball([0x4e8a46, 0x5a9a50, 0x467e40][i % 3], 2.2, x, 4.2, z); }
+    for (const z of [-371, depth / 2 + 6]) {
+      const x = -width / 2 + i * width / 70;
+      drawBuilderTree(deco, { x, z, scale: 1, trunkHeight: 3, crownCenter: 4.2, crownRadius: 2.2,
+        leaf: [0x4e8a46, 0x5a9a50, 0x467e40][i % 3], seed: i + (z < 0 ? 100 : 0) });
+    }
   }
   // Street lamps on both footpaths: poles merge into the street mesh, the lamp heads into
   // one emissive mesh plus a bounded pool of real downward lights near the player.

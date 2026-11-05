@@ -1,3 +1,4 @@
+import {populationHTML} from './population-panel.js';
 import {pubStandards,pubStandardsAction} from '../world/pub-standards.js';
 import {pubStandardsPanel} from './pub-standards-panel.js';
 // Panels for town life: shop counters, farms, the Town Ledger and the town guide, plus
@@ -335,7 +336,7 @@ export function ledgerPanel(life) {
     e.lines.map(line=>'<p><b>'+esc(line.speaker)+':</b> “'+esc(line.text)+'”</p>').join('')+'</details>').join('');
   return {
     title: `Town Ledger · Day ${L.day}, ${L.time}`, wide: true,
-    body: `<p><b>Population:</b> ${L.population} villagers · ${L.atWork} at work · ${L.asleep} asleep · ${life.homes.length} households.</p>
+    body: `${populationHTML(life)}<p><b>Economic roster:</b> ${L.population} villagers · ${L.atWork} at work · ${L.asleep} asleep.</p>
       <h3>Today</h3>
       <p><b>Harvested:</b> ${n(s.harvested)}<br><b>Milled:</b> ${s.milled} bags of flour · <b>Baked:</b> ${s.baked} loaves and pies<br>
       <b>Deliveries:</b> ${s.deliveries} truckloads — ${n(s.delivered)}<br><b>Sold in shops:</b> ${n(s.sold)}<br>

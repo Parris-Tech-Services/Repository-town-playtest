@@ -91,7 +91,8 @@ export class CollisionWorld {
     for (const c of this.near(x, z, r)) {
       if (c.top == null || c.top > feet + 0.05) continue;
       const cx = Math.max(c.x0, Math.min(x, c.x1)), cz = Math.max(c.z0, Math.min(z, c.z1));
-      if ((x - cx) ** 2 + (z - cz) ** 2 < (r * 0.6) ** 2 && c.top > floor) floor = c.top;
+      if ((x - cx) ** 2 + (z - cz) ** 2 < (r * 0.6) ** 2 &&
+          (!c.poly || circleTouchesPoly(c.poly, x, z, r * 0.6)) && c.top > floor) floor = c.top;
     }
     return floor;
   }

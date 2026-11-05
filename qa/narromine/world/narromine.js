@@ -10,6 +10,7 @@ import { buildNarromineHotel, NARROMINE_HOTEL_ID, hotelForecourtPolygon } from '
 import { buildNarromineRoyalHotel, ROYAL_HOTEL_REPLACED_IDS } from './narromine-royal-hotel.js';
 import { buildNarromineRailwayPrecinct } from './narromine-railway-precinct.js';
 import { NARROMINE_TREES } from './narromine-trees-data.js';
+import { createLiDARTreeForest } from './tree-models.js';
 import { buildNarromineFurniture } from './narromine-furniture.js';
 import { buildNarromineMapillaryObjects } from './narromine-mapillary-objects.js';
 import { NARROMINE_FURNITURE } from './narromine-furniture-data.js';
@@ -18,6 +19,8 @@ import { buildNarromineCourthousePrecinct } from './narromine-courthouse-precinc
 import { buildNarromineStAugustines, ST_AUGUSTINES_OSM_INDEX } from './narromine-st-augustines.js';
 import { NARROMINE_COURTHOUSE_INTEGRATION_SPEC } from './narromine-courthouse-evidence.js';
 import { buildNarromineAviationPrecinct } from './narromine-aviation-precinct.js';
+import { buildNarromineAirfield } from './narromine-airfield.js';
+import { buildFlightLandscape } from './narromine-flight-landscape.js';
 import { NARROMINE_AVIATION_INTEGRATION_SPEC } from './narromine-aviation-evidence.js';
 import { buildNarromineNwDandalooBlock } from './narromine-nw-dandaloo-block.js';
 import { NARROMINE_NW_DANDALOO_INTEGRATION_SPEC } from './narromine-nw-dandaloo-evidence.js';
@@ -32,6 +35,7 @@ const NW_DANDALOO_SUPPRESSED_FILL = new Set(NARROMINE_NW_DANDALOO_INTEGRATION_SP
 import { estimatedShopfrontProfile, facadeBays, landmarkFacadeSpec } from './narromine-facade-profiles.js';
 import { PHYSIO_FACADE, buildNarrominePhysiotherapyFacade } from './narromine-mainstreet-physio.js';
 import { buildDisjointRoadSurfaces, kerbReturns } from './narromine-road-surfaces.js';
+import { clipFootpathsOutsideForecourt } from './narromine-forecourt-footpaths.js';
 import { shouldRenderMappedPaint } from './narromine-road-paint-guards.js';
 import { createNarromineSurfaceMaterial } from './narromine-surface-materials.js';
 import { buildDandalooStreetscape } from './narromine-dandaloo-streetscape.js';
@@ -193,7 +197,8 @@ export function buildNarromine(parent, makeLabel = null) {
   // No generic footpath across a detailed site's own sealed ground (the Narromine Hotel forecourt is
   // one sealed apron out to the street centrelines, as in the owner's Mapillary comparison).
   const HOTEL_FORECOURT = hotelForecourtPolygon();
-  for (const s of roadSurfaces.footpaths) { const cx = s.pts.reduce((a, p) => a + p[0], 0) / s.pts.length, cz = s.pts.reduce((a, p) => a + p[1], 0) / s.pts.length; if (!inPoly(cx, cz, HOTEL_FORECOURT)) flatPoly(s.paving === 'red-brick' ? 0xa4563f : 0xbdb6a8, s.pts, 0.076); }
+  for (const s of clipFootpathsOutsideForecourt(roadSurfaces.footpaths, HOTEL_FORECOURT))
+    flatPoly(s.paving === 'red-brick' ? 0xa4563f : 0xbdb6a8, s.pts, 0.076);
   for (const s of roadSurfaces.asphalt) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.075);
   // Curved kerb returns at junctions, 3 mm under the carriageway so overlaps never flicker.
   for (const s of roadSurfaces.fillets) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.072);
@@ -269,7 +274,7 @@ export function buildNarromine(parent, makeLabel = null) {
       const r = b.pts.reduce((s, p) => s + Math.hypot(p[0] - cx, p[1] - cz), 0) / b.pts.length, eave = b.lidar[2], ridge = b.lidar[3];
       const wall = new THREE.CylinderGeometry(r, r, eave, 24); wall.translate(cx, eave / 2, cz); push(0xcfc9bd, wall);
       const cap = new THREE.ConeGeometry(r * 1.02, Math.max(0.3, ridge - eave), 24); cap.translate(cx, eave + Math.max(0.3, ridge - eave) / 2, cz); push(0xb9b4aa, cap);
-      colliders.push(polyRect(b.pts));
+      colliders.push({ ...polyRect(b.pts), top: Math.max(eave, ridge), source: 'osm-silo' });
       continue;
     }
     const [h, standardColour] = BUILDING_STYLE(b);
@@ -279,7 +284,7 @@ export function buildNarromine(parent, makeLabel = null) {
     const g = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false }); g.rotateX(-Math.PI / 2); push(colour, g);
     // Collide with the outline's box, unless the outline is very irregular or the box covers a street.
     const r = polyRect(b.pts), area = Math.abs(b.pts.reduce((s, p, i) => { const q = b.pts[(i + 1) % b.pts.length]; return s + p[0] * q[1] - q[0] * p[1]; }, 0) / 2);
-    if (area > 0.55 * (r.x1 - r.x0) * (r.z1 - r.z0) && !nearTownStreet((r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2, 0)) colliders.push({ ...r, poly: b.pts, source: 'osm-building', osmIndex: b.osmIndex });
+    if (area > 0.55 * (r.x1 - r.x0) * (r.z1 - r.z0) && !nearTownStreet((r.x0 + r.x1) / 2, (r.z0 + r.z1) / 2, 0)) colliders.push({ ...r, poly: b.pts, top: h, source: 'osm-building', osmIndex: b.osmIndex });
   }
   // Stand-ins for unmapped named places: still ESTIMATED rectangles, never survey footprints.
   // Reusable facade elements remain batched by material/tile and have NO new collision boxes.
@@ -343,7 +348,7 @@ export function buildNarromine(parent, makeLabel = null) {
       placeBox(NOT_SHOPFRONT.has(f.kind) ? HOUSE_WALLS[0] : profile.wall, f.w, wall, f.d, f.x, wall / 2, f.z, f.yaw);
       const r = roofGeo(); r.scale(f.w + 0.8, roofH, f.d + 0.8); r.rotateY(f.yaw); r.translate(f.x, wall + roofH / 2, f.z); push(HOUSE_ROOFS[2], r);
       if (!NOT_SHOPFRONT.has(f.kind)) storefront({ ...f.frontEdge, name: f.name, profile, wallHeight: wall });
-      colliders.push(rotatedBoxCollider(f, 'poi-footprint'));
+      colliders.push({ ...rotatedBoxCollider(f, 'poi-footprint'), top: wall + roofH });
       continue;
     }
     placeBox(profile.wall, f.w, 4.6, f.d, f.x, 2.3, f.z, f.yaw);
@@ -356,7 +361,7 @@ export function buildNarromine(parent, makeLabel = null) {
     const x = f.x + nx * (f.d / 2 + 0.02), z = f.z + nz * (f.d / 2 + 0.02);
     storefront({ a: [x - ux * f.w / 2, z - uz * f.w / 2], b: [x + ux * f.w / 2, z + uz * f.w / 2],
       toward: direction, name: f.name, profile, wallHeight: 4.6 });
-    colliders.push(rotatedBoxCollider(f, 'poi-shop'));
+    colliders.push({ ...rotatedBoxCollider(f, 'poi-shop'), top: 5.3 });
   }
   for (const h of FILL_HOUSES) {
     // Real traced footprint; total height from its measured estimate when known (else a 3 m wall + 2.2 m roof).
@@ -364,28 +369,16 @@ export function buildNarromine(parent, makeLabel = null) {
     const { wall, roofH } = footprintHeights(h);
     placeBox(HOUSE_WALLS[h.tone], h.w, wall, h.d, h.x, wall / 2, h.z, h.yaw);
     const r = roofGeo(); r.scale(h.w + 0.8, roofH, h.d + 0.8); r.rotateY(h.yaw); r.translate(h.x, wall + roofH / 2, h.z); push(HOUSE_ROOFS[h.tone], r);
-    colliders.push(rotatedBoxCollider(h, 'microsoft-footprint'));
+    colliders.push({ ...rotatedBoxCollider(h, 'microsoft-footprint'), top: wall + roofH });
   }
   // OSM power poles, transmission towers and lines, give-way signs and bus stops.
   buildNarromineFurniture(town, colliders);
   // Signs, crossings, stop lines and street furniture where Mapillary photos detected them.
   buildNarromineMapillaryObjects(town);
-  // Real trees detected in the 2023 LiDAR (narromine-trees-data.js): one instanced trunk and crown mesh
-  // each, at the measured height and crown radius. Trunks are solid; crowns are not.
-  {
-    const trunkMesh = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.5, 0.7, 1, 6), new THREE.MeshLambertMaterial({ color: 0x5b4a3a }), NARROMINE_TREES.length);
-    const crownMesh = new THREE.InstancedMesh(new THREE.IcosahedronGeometry(1, 1), new THREE.MeshLambertMaterial({ color: 0x55703f }), NARROMINE_TREES.length);
-    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), tint = new THREE.Color();
-    NARROMINE_TREES.forEach(([x, z, h, r], i) => {
-      const trunkH = h * 0.42, trunkR = Math.min(0.45, 0.12 + h * 0.015), crownH = Math.max(1.5, h - trunkH * 0.85);
-      m4.compose(new THREE.Vector3(x, trunkH / 2, z), q, new THREE.Vector3(trunkR, trunkH, trunkR)); trunkMesh.setMatrixAt(i, m4);
-      m4.compose(new THREE.Vector3(x, h - crownH / 2, z), q, new THREE.Vector3(Math.max(1, r), crownH / 2, Math.max(1, r))); crownMesh.setMatrixAt(i, m4);
-      tint.setHSL(0.24 + ((i * 37) % 10) / 200, 0.28, 0.27 + ((i * 53) % 10) / 120); crownMesh.setColorAt(i, tint);
-      colliders.push({ x0: x - trunkR - 0.1, x1: x + trunkR + 0.1, z0: z - trunkR - 0.1, z1: z + trunkR + 0.1 });
-    });
-    trunkMesh.name = 'Narromine LiDAR trees (trunks)'; crownMesh.name = 'Narromine LiDAR trees (crowns)';
-    town.add(trunkMesh, crownMesh);
-  }
+  // 2023 NSW LiDAR locations and canopy sizes are authoritative; natural morphology is illustrative.
+  // Keep identical trunk collision footprints and no extra invented Narromine tree locations.
+  const liDARForest = createLiDARTreeForest(NARROMINE_TREES, colliders);
+  town.add(liDARForest.group);
   // Mapped OSM main-street facades: the EDGE is data-grounded; facade materials,
   // mullions, piers and doors are visual approximations (see facade profiles).
   for (const f of FRONTAGES) {
@@ -560,6 +553,11 @@ export function buildNarromine(parent, makeLabel = null) {
       if (p.storeys === 2 && !p.features && !landmarkFacadeSpec(d.id, p.name)) for (const side of [-1, 1]) for (let t = -f.L / 2 + 1.5; t < f.L / 2 - 1; t += 3) { // upper-floor windows on the long faces
         const ox = Math.cos(-f.yaw) * t - Math.sin(-f.yaw) * side * (f.W / 2 + 0.03), oz = Math.sin(-f.yaw) * t + Math.cos(-f.yaw) * side * (f.W / 2 + 0.03);
         box(0x34434f, 1.0, 1.6, 0.06, f.cx + ox, fitY(5.6), f.cz + oz, f.yaw); }
+      // The collider top is the tallest rendered roof plane (ridge for pitched,
+      // actual cap for flat). A 12/25/50m super-jump can reach/clear the building
+      // without making any ground-level doorway or road collider passable.
+      const roofTop = Math.max(wallH,
+        pitched ? (Number.isFinite(ridgeTop) ? ridgeTop : wallH + Math.tan(pitch ?? 0.42) * span / 2) : wallH + 0.15);
       if (d.id === 'dandaloo-82' && p.name.startsWith('Coles ')) {
         // Coles walls are skewed against the adjacent Kierath's arcade. A
         // single axis-aligned bounding rectangle wrongly fills the open air
@@ -575,10 +573,10 @@ export function buildNarromine(parent, makeLabel = null) {
             const x0 = a[0] + (b[0] - a[0]) * t0, x1 = a[0] + (b[0] - a[0]) * t1;
             const z0 = a[1] + (b[1] - a[1]) * t0, z1 = a[1] + (b[1] - a[1]) * t1;
             colliders.push({ x0: Math.min(x0, x1) - 0.10, x1: Math.max(x0, x1) + 0.10,
-              z0: Math.min(z0, z1) - 0.10, z1: Math.max(z0, z1) + 0.10 });
+              z0: Math.min(z0, z1) - 0.10, z1: Math.max(z0, z1) + 0.10, top: roofTop });
           }
         }
-      } else colliders.push(polyRect(p.pts));
+      } else colliders.push({ ...polyRect(p.pts), top: roofTop });
       if (p.roofText && pitched && typeof document !== 'undefined') {
         // Align painted letters to the actual pitched LiDAR-adjusted hip face,
         // not the former world-axis plane hard-coded to 0.42 rad.
@@ -741,6 +739,11 @@ export function buildNarromine(parent, makeLabel = null) {
   buildNarromineCourthousePrecinct({ box, push, strip, flatPoly, plane, boardTexture, colliders, spots });
   buildNarromineStAugustines({ push, colliders, spots, town });
   buildNarromineAviationPrecinct({ box, push, strip, flatPoly, plane, boardTexture, colliders, spots });
+  // Complete YNRM runway surfaces live separately from the museum's verified geometry.
+  const airfield = buildNarromineAirfield(town);
+  // Thin, batched agricultural underlay extends real-town visibility to the
+  // fictional settlement during aerial traversal; mapped surfaces stay above it.
+  const flightLandscape = buildFlightLandscape(root);
   buildNarromineNwDandalooBlock({ box, push, strip, flatPoly, plane, boardTexture, colliders, spots });
   // Named places: a sign over each, and an E-prompt with what it is, its address and any history.
   for (const p of PLACES) {
@@ -759,8 +762,12 @@ export function buildNarromine(parent, makeLabel = null) {
   }
   town.visible = false;
   parent.add(root);
-  const update = (pos) => { const show = pos.x < SHOW_WEST_OF; if (town.visible !== show) town.visible = show; };
-  return { group: town, root, colliders, spots, update };
+  const update = (pos, airborne = false) => {
+    const show = airborne || pos.x < SHOW_WEST_OF;
+    if (town.visible !== show) town.visible = show;
+    if (show) liDARForest.update(pos, airborne, typeof performance !== 'undefined' ? performance.now() * 0.001 : 0);
+  };
+  return { group: town, root, colliders, spots, update, airfield, flightLandscape };
 }
 
 // Minimal geometry merge (position + normal), avoiding a dependency on BufferGeometryUtils here.

@@ -21,7 +21,7 @@ export function populateShopStaff(site,life,interior,makeLabel){
   // The visual identity remains stable for this physical staff position.
   const model=makeDistinctPerson(worker
     ? 'villager:'+worker.id+':'+worker.name+':'+(worker.job||'')
-    : 'host:'+site.id+':'+name+':'+job);
+    : 'host:'+site.id+':'+name+':'+job,worker);
   const npc=new Walker(model,pos,{name,speed:0.4});
   npc.heading=0; // Face towards the front door, behind the service counter.
   npc.group.rotation.y=0;

@@ -1,3 +1,5 @@
+import {tickPopulation,populationSnapshot,restorePopulation} from './population-routines.js';
+import {createPopulation,populationReport} from './population.js';
 import { RAIL_Z, RAIL_CROSSINGS, railGateState, railUserBlocked, scheduledRailTrainX } from './rail-corridor.js';
 import {townDate, townDateLabel, venueHoursOnDay, residentWorksToday, isWeekend, weekdayOnlyWorkplace} from './town-calendar.js';
 export { RAIL_Z };
@@ -570,6 +572,7 @@ export class TownLife {
       };
     });
     this.marriages=homes.length>=188?createMarriages(this.villagers):[];
+    this.population=homes.length>=188?createPopulation(homes,this.villagers):null;
     // A larger population needs more shelves and wholesale storage, not magically replenished stock.
     // Goods still originate at farms and are physically delivered by the existing trucks.
     const demandScale=Math.max(1,this.villagers.length/legacyCount);
@@ -698,9 +701,10 @@ export class TownLife {
     callInMissingStaff(this, minutes);
     for (const o of readyOrders(this)) this.collectOrder(o);
     for (const v of this.villagers) this.liveVillager(v, minutes);
+    tickPopulation(this,minutes,walkRoute);
     // All walkers, shop visitors and on-duty staff retain physical space.
     // Stationary conversations count too; no more two models in one body.
-    separatePedestrians(this.villagers.filter(v=>!v.inside).map(v=>({
+    separatePedestrians([...this.villagers,...(this.population?.additional||[])].filter(v=>!v.inside).map(v=>({
       id:v.id,pos:v,radius:v.bike&&v.path.length?1.16:.59,
       fixed:!!v.engaged
     })),{world:this.pedestrianWorld||null,gap:1.24,passes:12});
@@ -2132,6 +2136,7 @@ export class TownLife {
   }
 
   // ── For chat, the guide and the ledger ──
+  populationReport(){return populationReport(this.population);}
   householdMembers(coordinate){return familyMembers(this.villagers,coordinate);}
   describe(v) {
     const last = v.lastMeal ? `${v.lastMeal.name} at ${fmt(v.lastMeal.at)}${v.lastMeal.day !== this.day ? ' yesterday' : ''}` : 'nothing yet today';
@@ -2156,7 +2161,7 @@ export class TownLife {
   // Saves just what matters to resume tomorrow where the town left off.
   snapshot() {
     const pick = (o, keys) => { const r = { id: o.id }; for (const k of keys) if (o[k] !== undefined) r[k] = o[k]; return r; };
-    const state = { saveVersion:2, staffRestorationVersion:1, seed: this.seed, rngState: this.rand.getState(), day: this.day, minute: this.minute, social:this.social, powerGridEvents:this.powerGridEvents, powerGridEventSeq:this.powerGridEventSeq, civic: this.civic, places: [...this.places.values()].map((p) => [p.id, p.stock, p.out, p.till, p.growth]), villagers: this.villagers.map((v) => [v.id, v.larder, v.wallet, v.lastMeal, v.meals, v.hunger, v.fatigue, v.restedMinutes, v.wageArrears || 0, v.rateArrears || 0, v.housingArrears || 0]), hotelBookings:this.place('hotel').bookings,
+    const state = { population:populationSnapshot(this.population), saveVersion:2, staffRestorationVersion:1, seed: this.seed, rngState: this.rand.getState(), day: this.day, minute: this.minute, social:this.social, powerGridEvents:this.powerGridEvents, powerGridEventSeq:this.powerGridEventSeq, civic: this.civic, places: [...this.places.values()].map((p) => [p.id, p.stock, p.out, p.till, p.growth]), villagers: this.villagers.map((v) => [v.id, v.larder, v.wallet, v.lastMeal, v.meals, v.hunger, v.fatigue, v.restedMinutes, v.wageArrears || 0, v.rateArrears || 0, v.housingArrears || 0]), hotelBookings:this.place('hotel').bookings,
       sim: { events: this.events, stats: this.stats, yesterday: this.yesterday || null, villagers: this.villagers.map((v) => ({ ...pick(v, SIM_VILLAGER_FIELDS), wageArrears: v.wageArrears || 0, rateArrears: v.rateArrears || 0, housingArrears: v.housingArrears || 0 })), trucks: (this.trucks || []).map((t) => pick(t, SIM_TRUCK_FIELDS)), parcels: this.parcels || [] } };
     return JSON.parse(JSON.stringify(state));
   }
@@ -2232,6 +2237,7 @@ export class TownLife {
     }
     for (const v of this.villagers) { if (!Array.isArray(v.larder)) v.larder = null; ensureHousehold(v); }
     if(this.marriages.length)reconcileSpouseHouseholds(this.villagers);
+    restorePopulation(this.population,s.population);
     startNeeds(this);
     return true;
   }

@@ -187,7 +187,7 @@ export function createShopVisitors(site,life,interior,makeLabel,people){
   const addPerson=(v,existing,reserved,playerSeat,player)=>{
     const spawn=existing?entry:spawnSpot(player);
     if(!spawn)return null; // try on the next update after the doorway clears
-    const fig=makeDistinctPerson('villager:'+v.id+':'+v.name+':'+(v.job||''));
+    const fig=makeDistinctPerson('villager:'+v.id+':'+v.name+':'+(v.job||''),v);
     const seed=fig.group.userData.residentAppearance.seed;
     const pos=new THREE.Vector3(spawn.x,0,spawn.z);
     const tag=makeLabel(v.name,'interactive');tag.position.y=2.35;

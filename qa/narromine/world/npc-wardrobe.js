@@ -48,8 +48,11 @@ export function appearanceFor(identity) {
     build: (seed >>> 25) % 6,
   };
 }
-export function makeDistinctPerson(identity) {
+export function makeDistinctPerson(identity, resident = null) {
   const look = appearanceFor(identity);
+  const age=Number.isFinite(resident?.age)?resident.age:null;
+  if(age!==null&&age<18)look.facialHair=false;
+  if(age!==null&&age>=65)look.hair=0xb9b5ae;
   const p = makePerson(look.seed, look.shirt, look.trousers);
   const head = p.head;
   const outfit = p.group.children.find(child => child.userData.isOutfit);
@@ -58,6 +61,11 @@ export function makeDistinctPerson(identity) {
   const widths = [.92, 1, 1.06, .96, 1.09, .98];
   const heights = [.95, 1.03, 1, 1.07, .97, 1.04];
   p.group.scale.set(widths[look.build], heights[look.build], widths[look.build]);
+  if(age!==null){
+    const scale=age<5?.42+age*.045:age<13?.64+(age-5)*.028:age<18?.86+(age-13)*.025:1;
+    p.group.scale.multiplyScalar(scale);
+    if(age<13)p.head.scale.setScalar(1.12);
+  }
   // Eight recognisable hair/headwear silhouettes rather than just recoloured caps.
   switch (look.hairStyle) {
   case 0: // bun
@@ -125,6 +133,6 @@ export function makeDistinctPerson(identity) {
   default:
     for (const y of [1.10,1.28,1.43]) a(outfit, BALL, look.accent, [.028,.028,.024], [0,y,.17]); // buttons
   }
-  p.group.userData.residentAppearance = { ...look, identity: String(identity) };
+  p.group.userData.residentAppearance = { ...look, identity: String(identity), age };
   return p;
 }

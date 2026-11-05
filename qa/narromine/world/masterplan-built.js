@@ -128,7 +128,8 @@ function buildHomes(root) {
     if (glass) { const g = new THREE.Mesh(glass, new THREE.MeshLambertMaterial({ vertexColors: true })); g.position.copy(mesh.position); g.rotation.y = mesh.rotation.y; root.add(g); }
     for (const c of [...exteriorColliders(fp, 0, 0), ...fp.yard]) {
       // Rotating π about the house origin mirrors both axes.
-      colliders.push(h.facesNorth ? { x0: h.x - c.x1, x1: h.x - c.x0, z0: cz - c.z1, z1: cz - c.z0 } : { x0: h.x + c.x0, x1: h.x + c.x1, z0: cz + c.z0, z1: cz + c.z1 });
+      const ext = c.top != null ? { top: c.top } : {};
+      colliders.push(h.facesNorth ? { x0: h.x - c.x1, x1: h.x - c.x0, z0: cz - c.z1, z1: cz - c.z0, ...ext } : { x0: h.x + c.x0, x1: h.x + c.x1, z0: cz + c.z0, z1: cz + c.z1, ...ext });
     }
   }
   return colliders;
