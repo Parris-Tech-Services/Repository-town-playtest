@@ -83,8 +83,10 @@ export function createNarromineCommute(graph, { seed = 20211810 } = {}) {
         const r = route(nearestNode(a.x, a.z), nearestNode(b.x, b.z));
         if (!r || r.length <= 150) continue;
         // Children ride along to school (drop-off) and home again (after pick-up).
+        // A partner who rides to work with this driver is in the car to work and home again.
+        const riders = (step.kind === 'travel' || (step.at === 'home' && pk === 'work') || (step.at === 'home' && pk === 'shop')) ? hh.members.map((id) => pop.people[+id.slice(3)]).filter((q) => q.ridesWith === p.id && dayPlan(q, hh, weekday, pop.workplaces).some((x) => x.kind === 'work')).map((q) => q.id) : [];
         const kids = hh.schoolRun?.driver === p.id && (step.kind === 'dropoff' || (step.at === 'home' && carAt === hh.schoolRun.school && pk === 'pickup')) ? hh.schoolRun.kids : [];
-        out.push({ id: car.id + '@' + step.from, car: car.id, person: p.id, passengers: kids, from: carAt, to: step.at, depart: step.from, path: r.path, length: r.length, duration: r.length / TOWN_SPEED / 60, dest: b, purpose: step.kind });
+        out.push({ id: car.id + '@' + step.from, car: car.id, person: p.id, passengers: [...kids, ...riders], from: carAt, to: step.at, depart: step.from, path: r.path, length: r.length, duration: r.length / TOWN_SPEED / 60, dest: b, purpose: step.kind });
         carAt = step.at;
       }
     }

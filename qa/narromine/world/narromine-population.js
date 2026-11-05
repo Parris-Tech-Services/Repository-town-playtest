@@ -6,7 +6,7 @@
 // Workplaces are the town's mapped businesses and services (OpenStreetMap); staff numbers per workplace
 // are estimates, calibrated where the census gives an industry count (schools, hospital, council, Coles,
 // social assistance). Pure logic and deterministic: the same town every load. No three.js.
-import { PLACES, STREETS } from './narromine-layout.js';
+import { PLACES, STREETS, BUILDINGS, DETAILED } from './narromine-layout.js';
 import { NARROMINE_FOOTPRINTS } from './narromine-footprints-data.js';
 
 export const NARROMINE_CENSUS = Object.freeze({
@@ -94,13 +94,49 @@ export function residentialHomes() {
   return out;
 }
 
+// The building a mapped place is in: the nearest traced footprint (within 45 m), or for main-street
+// businesses drawn from detailed or OSM outlines, that outline as a rotated box.
+export function workplaceBuilding(w) {
+  let best = null, bd = 45;
+  for (const [x, z, fw, fd, yaw] of NARROMINE_FOOTPRINTS) { if (fw * fd < 40) continue; const d = Math.hypot(x - w.x, z - w.z); if (d < bd) { bd = d; best = { x, z, w: fw, d: fd, yaw }; } }
+  if (!best) for (const bl of [...DETAILED.filter((x) => x.boundary?.length).map((x) => ({ pts: x.boundary })), ...BUILDINGS]) {
+    const xs = bl.pts.map((p) => p[0]), zs = bl.pts.map((p) => p[1]), cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2, d = Math.hypot(cx - w.x, cz - w.z);
+    if (d >= 35 || (best && d >= best.dist)) continue;
+    let L = 0, yaw = 0; for (let i = 1; i < bl.pts.length; i++) { const dx = bl.pts[i][0] - bl.pts[i - 1][0], dz = bl.pts[i][1] - bl.pts[i - 1][1], l = Math.hypot(dx, dz); if (l > L) { L = l; yaw = -Math.atan2(dz, dx); } }
+    const c = Math.cos(yaw), sn = Math.sin(yaw), u = bl.pts.map(([x, z]) => (x - cx) * c - (z - cz) * sn), v = bl.pts.map(([x, z]) => (x - cx) * sn + (z - cz) * c);
+    best = { x: cx, z: cz, w: Math.max(...u) - Math.min(...u), d: Math.max(...v) - Math.min(...v), yaw, dist: d, osm: true };
+  }
+  return best;
+}
+// Floor area per worker by kind of business (m² of floor per full-time-equivalent worker), from the Homes
+// England / HCA Employment Density Guide (3rd ed., 2015): high-street retail 15–20, food and drink 15–20,
+// general office 10–13, light industrial and workshops ~47, storage/agricultural yards higher. Our footprints are
+// gross areas including storage and plant, so the upper ends are used. Part-timers make headcount ~1.3 × FTE.
+const M2_PER_WORKER = { office: 13, retail: 20, food: 18, workshop: 47, yard: 80, care: 15, venue: 40 };
+const DENSITY_KIND = { cafe: 'food', restaurant: 'food', bakery: 'food', pub: 'food', bar: 'food', butcher: 'retail', pharmacy: 'retail', fuel: 'retail', clothes: 'retail', fashion_accessories: 'retail', houseware: 'retail', tobacco: 'retail', alcohol: 'retail', charity: 'retail', second_hand: 'retail', jewelry: 'retail', laundry: 'retail', hairdresser: 'retail', beauty: 'retail',
+  car_repair: 'workshop', tyres: 'workshop', trade: 'workshop', hvac: 'workshop', car: 'workshop', car_wash: 'workshop', agrarian: 'yard', caravan: 'yard', doctors: 'care', physiotherapist: 'care', alternative: 'care', animal_shelter: 'yard',
+  sports_centre: 'venue', golf_course: 'venue', museum: 'venue', camp_site: 'venue', guest_house: 'venue', aerodrome: 'venue', community_centre: 'venue', railway_station: 'venue', fire_station: 'venue' };
+// Census-counted industries keep their census staff (spread across their workplaces).
+// Places with no daily staff: Narromine station closed to passenger trains in 1975 and is an unstaffed coach
+// stop; the fire station is crewed by Fire and Rescue NSW retained (on-call) firefighters who have other jobs.
+const NIL_STAFF = { railway_station: 'unstaffed coach stop (station closed to passenger trains in 1975)', fire_station: 'retained (on-call) Fire and Rescue NSW crew; no daily shift' };
+const CENSUS_KINDS = new Set(['school', 'hospital', 'supermarket', 'townhall', 'social_facility']);
 export function buildWorkplaces() {
   const list = [];
   for (const p of PLACES) {
     const spec = WORK[p.kind]; if (!spec) continue;
-    const staff = p.kind === 'school' ? SCHOOL_STAFF[p.name] || 8 : spec[0];
+    const building = workplaceBuilding(p), area = building ? Math.round(building.w * building.d) : null;
+    let staff, basis;
+    if (CENSUS_KINDS.has(p.kind)) { staff = p.kind === 'school' ? SCHOOL_STAFF[p.name] || 8 : spec[0]; basis = 'ABS 2021 census industry count for Narromine'; }
+    else if (NIL_STAFF[p.kind]) { staff = 0; basis = NIL_STAFF[p.kind]; }
+    else if (area && !building.osm && (area <= 800 || ['yard', 'venue', 'workshop'].includes(DENSITY_KIND[p.kind]))) {
+      // Traced single building: floor area sets staff, kept within half to one-and-a-half times typical.
+      const m2 = M2_PER_WORKER[DENSITY_KIND[p.kind] || 'office'], raw = Math.round(area / m2 * 1.3);
+      staff = Math.max(1, Math.round(spec[0] * 0.5), Math.min(Math.round(spec[0] * 1.5), raw)); basis = area + ' m² building at ' + m2 + ' m² per worker (employment density guide), within the usual range for its kind';
+    }
+    else { staff = spec[0]; basis = 'typical for a ' + p.kind.replace(/_/g, ' ') + (building?.osm || area > 800 ? ' (its mapped outline covers several shops in a row, so floor area is not used)' : ' (no building outline mapped)'); }
     if (!staff) continue;
-    list.push({ id: 'work-' + list.length, name: p.name, kind: p.kind, x: p.x, z: p.z, staff, opens: spec[1], closes: spec[2], weekend: spec[3] });
+    list.push({ id: 'work-' + list.length, name: p.name, kind: p.kind, x: p.x, z: p.z, staff, staffBasis: basis, area, building, opens: spec[1], closes: spec[2], weekend: spec[3] });
   }
   return list;
 }
@@ -184,6 +220,22 @@ export function createNarrominePopulation(seed = 20211810) {
       if (drivers[k]) { drivers[k].drives = true; drivers[k].car = car.id; }
     }
   });
+  // Car passengers to work: the census counts 72 of 1,301 Narromine workers (5.5%) travelling as a car
+  // passenger. Two working members of a household whose workplaces are within 3 km and open within an hour of
+  // each other share a car: one drives, the other rides, and the passenger's own car (if any) stays home. This
+  // finds about 56 such pairs, a little under the census's ~67 (not every household has two matching jobs).
+  const wById = new Map(workplaces.map((w) => [w.id, w]));
+  let riders = 0; const riderTarget = Math.round(workers.length * C.travelToWork.carPassenger / (C.labour.fullTime + C.labour.partTime + C.labour.away));
+  for (const hh of households) {
+    if (riders >= riderTarget) break;
+    const ws = hh.members.map((id) => people[+id.slice(3)]).filter((p) => wById.has(p.workplace) && p.age >= 16).sort((x, y) => (y.drives ? 1 : 0) - (x.drives ? 1 : 0));
+    if (ws.length < 2 || !ws[0].drives) continue;
+    const [a, b] = ws, wa = wById.get(a.workplace), wb = wById.get(b.workplace);
+    if (Math.hypot(wa.x - wb.x, wa.z - wb.z) > 3000 || Math.abs(wa.opens - wb.opens) > 60) continue;
+    b.ridesWith = a.id; b.drives = false;
+    if (b.car) { const c = cars.find((x) => x.id === b.car); if (c) c.driver = null; b.car = null; }
+    riders++;
+  }
   // Between the towns (the Mitchell Highway links them):
   //  - Narromine residents whose job is in Repository Town are given a real workplace there.
   //  - Repository Town residents take some staffed jobs in Narromine and drive in each shift. They live in

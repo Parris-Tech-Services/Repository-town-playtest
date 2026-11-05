@@ -47,17 +47,7 @@ export function createNarromineWorkplaceIndex(pop) {
   const list = [];
   for (const w of pop.workplaces) {
     if (OWN_INTERIOR.has(w.kind)) continue;
-    let best = null, bd = 45;
-    for (const [x, z, fw, fd, yaw] of NARROMINE_FOOTPRINTS) { if (fw * fd < 40) continue; const d = Math.hypot(x - w.x, z - w.z); if (d < bd) { bd = d; best = { x, z, w: fw, d: fd, yaw }; } }
-    // Main-street businesses are drawn from detailed or mapped OSM outlines instead of traced footprints:
-    // use the nearest mapped outline as a rotated box (its longest edge sets the orientation).
-    if (!best) for (const bl of [...DETAILED.filter((x) => x.boundary?.length).map((x) => ({ pts: x.boundary })), ...BUILDINGS]) {
-      const xs = bl.pts.map((p) => p[0]), zs = bl.pts.map((p) => p[1]), cx = (Math.min(...xs) + Math.max(...xs)) / 2, cz = (Math.min(...zs) + Math.max(...zs)) / 2, d = Math.hypot(cx - w.x, cz - w.z);
-      if (d >= 35 || (best && d >= best.dist)) continue;
-      let L = 0, yaw = 0; for (let i = 1; i < bl.pts.length; i++) { const dx = bl.pts[i][0] - bl.pts[i - 1][0], dz = bl.pts[i][1] - bl.pts[i - 1][1], l = Math.hypot(dx, dz); if (l > L) { L = l; yaw = -Math.atan2(dz, dx); } }
-      const c = Math.cos(yaw), sn = Math.sin(yaw), u = bl.pts.map(([x, z]) => (x - cx) * c - (z - cz) * sn), v = bl.pts.map(([x, z]) => (x - cx) * sn + (z - cz) * c);
-      best = { x: cx, z: cz, w: Math.max(...u) - Math.min(...u), d: Math.max(...v) - Math.min(...v), yaw, dist: d, osm: true };
-    }
+    const best = w.building ? { ...w.building } : null;
     if (!best) continue;
     const s = segNearest(best.x, best.z); if (!s) continue;
     best.kerb = { x: s.x, z: s.z };
@@ -73,7 +63,31 @@ export function createNarromineWorkplaceIndex(pop) {
 
 export function buildNarromineWorkplaceInterior(pop, entry, makeLabel, weekday, minute) {
   const w = entry.workplace, rooms = JSON.parse(JSON.stringify(fitFor(w.kind)));
-  const built = buildInterior({ repo: 'narromine-' + w.id, name: w.name, int: { layout: 'row', height: 3, rooms } }, makeLabel);
+  // Each business is its own place: rooms sized for its building and staff, a station per worker on a
+  // typical shift, its own colours, and its name over the front room.
+  const H = (k) => { let h = 2166136261; for (const c of w.name + k) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
+  const pickH = (k, list) => list[Math.floor(H(k) * list.length)];
+  const onShift = Math.max(1, Math.ceil(w.staff / ((w.closes - w.opens) > 11 * 60 ? 3 : 1.4)));
+  const stationCount = rooms.reduce((n, r) => n + r.props.filter((p) => Array.isArray(p) && p[2]?.station).length, 0);
+  // Extra stations for bigger crews, in the room that has the first station (e.g. more counters or desks).
+  const main = rooms.find((r) => r.props.some((p) => Array.isArray(p) && p[2]?.station));
+  const proto = main.props.find((p) => Array.isArray(p) && p[2]?.station);
+  for (let k = stationCount; k < Math.min(onShift, 10); k++) main.props.push([proto[0], proto[1] + ' ' + (k + 1), proto[2]]);
+  if (/hair|clip/i.test(w.name)) main.props.push(['mirror', 'Styling mirror'], ['chair', 'Salon chair'], ['chair', 'Salon chair']);
+  if (/beauty|belladonna/i.test(w.name)) main.props.push(['mirror', 'Mirror'], ['bed', 'Treatment bed']);
+  const scale = w.area && w.area <= 800 ? Math.max(0.9, Math.min(1.6, Math.sqrt(w.area / 150))) : 1 + H('sz') * 0.3;
+  for (const r of rooms) { r.w = Math.round(r.w * scale * (0.9 + H('w' + r.name) * 0.2) * 10) / 10; r.d = Math.round(r.d * scale * (0.9 + H('d' + r.name) * 0.2) * 10) / 10; }
+  rooms[0].name = w.name + ' · ' + rooms[0].name.toLowerCase();
+  const walls = pickH('wall', [0xf2f0ea, 0xe6e1d6, 0xdfe6e3, 0xe9dfd0, 0xd3dce2, 0xefe7d8, 0xcfd6cc]), floor = pickH('floor', [0xb9b2a7, 0x9c8f7d, 0x8a8f94, 0xc7bfae, 0x7b6a58, 0xa7a59e]);
+  const spec = { layout: rooms.length > 2 ? pickH('lay', ['row', 'hub', 'L']) : 'row', height: pickH('h', [3, 3.3, 3.6]), walls, floor, rooms };
+  let built = null;
+  for (let tries = 0; tries < 14 && !built; tries++) {
+    try { built = buildInterior({ repo: 'narromine-' + w.id, name: w.name, noBedroom: true, int: spec }, makeLabel); } catch (e) {
+      const m = /no room for \w+ in "([^"]+)"/.exec(e.message); if (!m) throw e;
+      const r = rooms.find((x) => x.name === m[1]); r.w = Math.round(r.w * 1.12 * 10) / 10; r.d = Math.round(r.d * 1.12 * 10) / 10;
+    }
+  }
+  if (!built) throw new Error(w.name + ': could not fit the fit-out');
   const open = w.opens <= minute && minute < w.closes;
   const here = whoIsAt(pop, w.id, weekday, minute);
   // Staff at their stations, in order; extra staff stand beside the first stations.

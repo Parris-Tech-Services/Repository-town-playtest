@@ -102,19 +102,58 @@ export function buildNarromineHomeInterior(population, home, makeLabel, day, min
   const info = (title, text) => ({ do: 'info', title, text });
   const doing = { sleep: 'asleep', breakfast: 'having breakfast', dinner: 'having dinner', evening: 'relaxing', home: 'at home' };
   const whoText = who.map((o) => `${o.person.name} (${o.person.age}): ${o.home ? doing[o.doing] || 'at home' : o.doing}`).join('; ');
+  // Every home is different: rooms sized from this house's traced outline, a layout that suits its shape,
+  // its own colours and floors, and furniture for the people who actually live here.
+  const H = (k) => { let h = 2166136261; for (const c of home.id + k) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
+  const pickH = (k, list) => list[Math.floor(H(k) * list.length)];
+  const oldest = Math.max(...people.map((p) => p.age));
+  // Walls and floors typical of Narromine houses: older owners lean to 1970s–90s finishes.
+  const WALLS = oldest > 65 ? [0xe9e2cf, 0xd9cdb0, 0xcfc4a8, 0xe6d8bd, 0xb89f7c] : [0xf2f0ea, 0xe7e4dc, 0xd9ddd6, 0xcfd8d2, 0xe9e1d3, 0xd4dbe2, 0xc9cfc1];
+  const FLOORS = oldest > 65 ? [0x8a6b4a, 0x9c8a6e, 0xb3a184, 0x7d6a55] : [0xa98a64, 0xc2a57f, 0x8f8a83, 0xb7b1a6, 0x6e5a45, 0xd2c6b2];
+  const walls = pickH('w', WALLS), floor = pickH('f', FLOORS), wet = pickH('t', [0xe8eef0, 0xdfe5e2, 0xf1ece4, 0xcfd6d8]);
+  const usable = home.area * 0.85, roomArea = (share) => Math.max(36, usable * share);
+  const aspect = Math.max(1, Math.max(home.w, home.d) / Math.min(home.w, home.d));
+  const size = (a, k) => { const r = 1 + (H(k) - 0.5) * 0.5 * Math.min(aspect, 2); const w = Math.sqrt(a * r); return { w: Math.round(w * 10) / 10, d: Math.round(a / w * 10) / 10 }; };
+  const kids = people.filter((p) => p.role === 'child'), couple = people.filter((p) => p.role === 'partner' || p.role === 'parent'), others = people.filter((p) => !couple.includes(p) && !kids.includes(p));
+  const retired = people.some((p) => p.retired || p.age >= 67), babies = kids.filter((p) => p.age < 3), trade = people.some((p) => ['farm', 'graincorp'].includes(p.workplace) || /car_repair|tyres|trade|hvac|agrarian/.test(population.workplaces.find((w) => w.id === p.workplace)?.kind || ''));
+  const HOBBY = [['guitar', 'Guitar'], ['piano', 'Piano'], ['treadmill', 'Treadmill'], ['easel', 'Easel and paints'], ['vinyl', 'Record player'], ['chessboard', 'Chess set'], ['aquarium', 'Fish tank'], ['bookshelf', 'Bookshelf'], ['dumbbells', 'Weights'], ['loom', 'Sewing and craft table'], ['radio', 'Radio'], ['pinball', 'Pinball machine']];
+  const hobbies = HOBBY.filter((_, i) => H('h' + i) < 0.16).slice(0, 3);
+  const lounge = [['sofa', 'Couch'], ['tv', 'Television', info('Television', 'The ' + hh.surname + ' household television.')], ['aircon', 'Air conditioner', info('Air conditioner', 'Split-system air conditioning: Narromine summers often pass 35°C.')], ['table', 'Who is home', info('The ' + hh.surname + ' household', whoText)], ...(H('rug') < 0.6 ? [['rug', 'Rug']] : []), ...(H('lamp') < 0.7 ? [['lamp', 'Lamp']] : []), ...(H('plant') < 0.5 ? [['plant', 'Pot plant']] : []), ...(retired ? [['clock', 'Mantel clock'], ['radio', 'Radio']] : []), ...(kids.length && H('game') < 0.6 ? [['boardGame', 'Board games']] : []), ...hobbies];
+  const kitchen = [['fridge', 'Fridge', info('Fridge', describeFridge(fridge) + '. Last Coles shop ' + fridge.daysSinceShop + ' days ago' + (fridge.needsShop ? '; running low.' : '.'))], ['pantry', 'Pantry', info('Pantry', 'Cereal, tins, rice and pasta from Coles Narromine.')], ['stove', 'Oven and cooktop'], ['kitchenSink', 'Kitchen sink'], ['crockery', 'Plates and cutlery'], [people.length > 4 ? 'table' : pickH('kt', ['table', 'roundTable']), 'Kitchen table'], ...people.slice(0, 6).map((p) => ['chair', p.first + "'s chair"]), ...(H('coffee') < 0.45 ? [['coffeeMachine', 'Coffee machine']] : []), ...(H('fruit') < 0.6 ? [['fruitBowl', 'Fruit bowl']] : []), ...(H('herb') < 0.25 ? [['herbGarden', 'Herb pots']] : [])];
   const rooms = [
-    { name: 'Lounge', w: 10, d: 9, props: [['sofa', 'Couch'], ['tv', 'Television', info('Television', 'The ' + hh.surname + ' household television.')], ['lamp', 'Lamp'], ['aircon', 'Air conditioner', info('Air conditioner', 'Split-system air conditioning: Narromine summers often pass 35°C.')], ['table', 'Who is home', info('The ' + hh.surname + ' household', whoText)]] },
-    { name: 'Kitchen', w: 10, d: 8, props: [['fridge', 'Fridge', info('Fridge', describeFridge(fridge) + '. Last Coles shop ' + fridge.daysSinceShop + ' days ago' + (fridge.needsShop ? '; running low.' : '.'))], ['pantry', 'Pantry', info('Pantry', 'Cereal, tins, rice and pasta from Coles Narromine.')], ['stove', 'Oven and cooktop'], ['kitchenSink', 'Kitchen sink'], ['crockery', 'Plates and cutlery'], ['table', 'Kitchen table'], ['chair', 'Chair']] },
-    { name: 'Bathroom', w: 7, d: 6, props: [['shower', 'Shower'], ['toilet', 'Toilet'], ['basin', 'Basin and mirror']] },
-    { name: 'Laundry', w: 6, d: 6, props: [['washingMachine', 'Washing machine'], ['freezer', 'Chest freezer'], ['switchboard', 'Switchboard']] },
+    { name: pickH('ln', ['Lounge', 'Living room', 'Family room']), ...size(roomArea(0.24), 'l'), walls, floor, props: lounge },
+    { name: H('open') < 0.35 ? 'Kitchen and dining' : 'Kitchen', ...size(roomArea(0.15), 'k'), walls, floor: H('kf') < 0.5 ? wet : floor, props: kitchen },
+    { name: H('bath') < 0.3 ? 'Bathroom' : 'Bathroom and toilet', ...size(Math.max(30, usable * 0.07), 'b'), walls: wet, floor: wet, props: [['shower', 'Shower'], ['toilet', 'Toilet'], ['basin', 'Basin and mirror'], ...(H('tub') < 0.45 ? [['bathtub', 'Bath']] : [])] },
+    { name: 'Laundry', ...size(30, 'u'), walls: wet, floor: wet, props: [['washingMachine', 'Washing machine'], ['switchboard', 'Switchboard'], ...(H('fz') < 0.5 ? [['freezer', 'Chest freezer']] : []), ...(H('cl') < 0.4 ? [['clothesline', 'Clothes airer']] : [])] },
   ];
-  // Bedrooms: couples/parents share; children up to two to a room; other adults have their own.
-  const couple = people.filter((p) => p.role === 'partner' || p.role === 'parent'), kids = people.filter((p) => p.role === 'child'), others = people.filter((p) => !couple.includes(p) && !kids.includes(p));
-  if (couple.length) rooms.push({ name: 'Main bedroom', w: 8, d: 8, props: [['bed', couple.length > 1 ? 'Double bed · ' + couple.map((p) => p.first).join(' & ') : 'Bed · ' + couple[0].first, info('Main bedroom', couple.map((p) => p.name).join(' and ') + '.')], ['wardrobe', 'Wardrobe'], ['lamp', 'Bedside lamp']] });
-  for (let i = 0; i < kids.length; i += 2) { const k = kids.slice(i, i + 2); rooms.push({ name: 'Bedroom ' + (rooms.length - 3), w: 7, d: 7, props: [...k.map((p) => ['bed', 'Bed · ' + p.first, info(p.first + "'s bed", p.name + ', ' + p.age + (p.school ? ', goes to ' + (population.workplaces.find((w) => w.id === p.school)?.name || 'school') : ''))]), ['desk', 'Desk'], ['toyBlocks', 'Toys']] }); }
-  for (const p of others) rooms.push({ name: 'Bedroom ' + (rooms.length - 3), w: 7, d: 7, props: [['bed', 'Bed · ' + p.first, info(p.first + "'s bed", p.name + ', ' + p.age)], ['wardrobe', 'Wardrobe'], ['lamp', 'Lamp']] });
-  const house = { repo: 'narromine-' + home.id, name: 'The ' + hh.surname + ' household', int: { layout: 'row', height: 2.7, rooms } };
-  const built = buildInterior(house, makeLabel);
+  const bed = (a) => roomArea(Math.min(0.13, 0.5 / Math.max(1, people.length)) + a);
+  if (couple.length) rooms.push({ name: 'Main bedroom', ...size(bed(0.04), 'm'), walls, floor, props: [['bed', couple.length > 1 ? 'Double bed · ' + couple.map((p) => p.first).join(' & ') : 'Bed · ' + couple[0].first, info('Main bedroom', couple.map((p) => p.name).join(' and ') + '.')], ['wardrobe', 'Wardrobe'], ['lamp', 'Bedside lamp'], ...(babies.length === 1 && couple.length ? [['crib', 'Cot · ' + babies[0].first]] : []), ...(H('mir') < 0.5 ? [['mirror', 'Mirror']] : [])] });
+  // Children up to two to a room (but not a teenager with a little one), furnished for their age.
+  const kidRooms = [];
+  for (const k of kids.filter((p) => p.age >= 3).sort((a, b) => a.age - b.age)) { const r = kidRooms.find((x) => x.length < 2 && Math.abs(x[0].age - k.age) <= 5); if (r) r.push(k); else kidRooms.push([k]); }
+  if (babies.length > 1 || (babies.length && !couple.length)) rooms.push({ name: 'Nursery', ...size(bed(0), 'n'), walls: pickH('nw', [0xf3ecd6, 0xe1efe0, 0xd9e6f2]), floor, props: [...babies.map((p) => ['crib', 'Cot · ' + p.first, info(p.first + "'s cot", p.name + ', ' + p.age)]), ['wardrobe', 'Change table and drawers'], ['rockingHorse', 'Rocking chair']] });
+  for (const g of kidRooms) {
+    const teen = g.some((p) => p.age >= 13), small = g.every((p) => p.age < 8);
+    rooms.push({ name: g.length > 1 ? g.map((p) => p.first).join(' and ') + "'s room" : g[0].first + "'s room", ...size(bed(0), 'c' + g[0].id), walls: pickH('cw' + g[0].id, [0xd9e6f2, 0xf2dfe6, 0xe1efe0, 0xf3ecd6, walls]), floor,
+      props: [...g.map((p) => ['bed', 'Bed · ' + p.first, info(p.first + "'s bed", p.name + ', ' + p.age + (p.school ? ', goes to ' + (population.workplaces.find((w) => w.id === p.school)?.name || 'school') : ''))]),
+        ...(small ? [['toyBlocks', 'Toys'], ['rockingHorse', 'Rocking horse']] : teen ? [['desk', 'Desk'], ['computer', 'Computer'], ...(H('sp' + g[0].id) < 0.5 ? [['speaker', 'Speaker']] : [])] : [['desk', 'Desk'], ['bookshelf', 'Books'], ['toyBlocks', 'Toys']]), ['wardrobe', 'Wardrobe']] });
+  }
+  for (const p of others) rooms.push({ name: p.first + "'s room", ...size(bed(0), 'o' + p.id), walls, floor, props: [['bed', 'Bed · ' + p.first, info(p.first + "'s bed", p.name + ', ' + p.age)], ['wardrobe', 'Wardrobe'], p.age >= 67 ? ['radio', 'Radio'] : p.age < 30 ? ['computer', 'Laptop and desk'] : ['lamp', 'Lamp']] });
+  // A study for a household with someone working office hours from home; a shed for tradies and farm workers.
+  if (people.some((p) => p.workplace && (H('wfh' + p.id) < 0.12))) rooms.push({ name: 'Study', ...size(30, 's'), walls, floor, props: [['desk', 'Desk'], ['computer', 'Computer'], ['filingCabinet', 'Filing cabinet'], ['bookshelf', 'Bookshelf']] });
+  if (trade || H('shed') < 0.25) rooms.push({ name: trade ? 'Shed and workshop' : 'Garage', ...size(40, 'g'), walls: 0xc7c2b8, floor: 0x9a968e, props: [['workbench', 'Workbench'], ['toolWall', 'Tools'], ...(trade ? [['partsBins', 'Parts bins']] : [['bicycle', 'Bicycle']]), ...(H('mow') < 0.6 ? [['mower', 'Lawn mower']] : [])] });
+  // Layout by shape: long narrow houses run rooms in a row or deep; squarer ones gather round a hall.
+  const layout = aspect > 1.7 ? pickH('lay', ['row', 'deep']) : pickH('lay', ['hub', 'grid', 'L', 'row']);
+  const house = { repo: 'narromine-' + home.id, name: 'The ' + hh.surname + ' household', int: { layout, height: pickH('ht', [2.4, 2.7, 3.0, 3.3]), walls, floor, doors: pickH('dr', [0x7a5a3c, 0xf2efe8, 0x5a4634, 0xd8cfc0]), rooms } };
+  // Rooms start at the house's real proportions; any room too small for its furniture grows 12% and tries again.
+  let built = null;
+  for (let tries = 0; tries < 14 && !built; tries++) {
+    try { built = buildInterior(house, makeLabel); } catch (e) {
+      const m = /no room for \w+ in "([^"]+)"/.exec(e.message); if (!m) throw e;
+      const r = rooms.find((x) => x.name === m[1]); r.w = Math.round(r.w * 1.12 * 10) / 10; r.d = Math.round(r.d * 1.12 * 10) / 10;
+    }
+  }
+  if (!built) throw new Error(house.repo + ': could not fit furniture');
   // The residents who are home, where their activity puts them: in bed asleep, in the kitchen at
   // breakfast or dinner, otherwise in the lounge. Children are drawn smaller.
   const roomCentre = (i) => { const r = built.rooms[i]; return { x: (r.x0 + r.x1) / 2, z: (r.z0 + r.z1) / 2 }; };

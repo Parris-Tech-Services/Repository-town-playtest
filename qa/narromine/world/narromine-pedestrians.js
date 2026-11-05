@@ -29,7 +29,8 @@ export function createNarrominePedestrians(commute, nodes, adj, parent = null) {
         if (inCar.has(p.id + '@' + step.from)) continue;
         // A school-run child rides with the parent at 8:25, so their own 8:25 'travel' is not a walk.
         if (hh.schoolRun?.kids.includes(p.id) && (step.kind === 'travel' || (from === hh.schoolRun.school && hh.schoolRun.pickup))) continue;
-        if (p.drives && step.kind !== 'school') continue;               // drivers' legs are car trips (or walked hops under 150 m)
+        if (p.drives && step.kind !== 'school') continue;
+        if (p.ridesWith && (step.kind === 'travel' || step.at === 'home')) continue;      // rides with their partner               // drivers' legs are car trips (or walked hops under 150 m)
         const a = commute.pointOf(from, hh), b = commute.pointOf(step.at, hh); if (!a || !b || b.away) continue;
         const r = commute.route(commute.nearestNode(a.x, a.z), commute.nearestNode(b.x, b.z));
         if (!r || r.length > MAX_WALK_M || r.length < 60) continue;
