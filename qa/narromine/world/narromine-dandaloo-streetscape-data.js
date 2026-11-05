@@ -133,8 +133,13 @@ export function planDandalooSouth(streets, clear = () => true) {
   for (let z = SOUTH_RANGE.upperZ; z < SOUTH_RANGE.lowerZ; z += 6) {
     const zz = Math.min(z + 6, SOUTH_RANGE.lowerZ), a = frame(z), b = frame(zz);
     if (!a || !b || nearMouth((z + zz) / 2, 6)) continue;
-    for (const side of [-1, 1]) kerbs.push({ a: [a.cx + side * (half + 0.08) * a.nx, z + side * (half + 0.08) * a.nz],
+    for (const side of [-1, 1]) {
+      // No kerb where the edge runs through sealed ground (e.g. the Narromine Hotel forecourt).
+      const mx = (a.cx + b.cx) / 2 + side * (half + 0.08) * a.nx, mz = (z + zz) / 2 + side * (half + 0.08) * a.nz;
+      if (!clear(mx, mz, 0, 'kerb')) continue;
+      kerbs.push({ a: [a.cx + side * (half + 0.08) * a.nx, z + side * (half + 0.08) * a.nz],
       b: [b.cx + side * (half + 0.08) * b.nx, zz + side * (half + 0.08) * b.nz], side: side < 0 ? 'west' : 'east' });
+    }
   }
   // Only mapped geometry is built. Street trees, lamps and power poles were spaced by estimate,
   // and the owner's Street View check (4 Nov 2026) found the trees were not there. Add each

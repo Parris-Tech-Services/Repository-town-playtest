@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { buildKieraths } from './narromine-kieraths.js';
 import { roofLetteringSurface } from './narromine-roof-lettering.js';
-import { buildNarromineHotel, NARROMINE_HOTEL_ID } from './narromine-hotel.js';
+import { buildNarromineHotel, NARROMINE_HOTEL_ID, hotelForecourtPolygon } from './narromine-hotel.js';
 import { buildNarromineRoyalHotel, ROYAL_HOTEL_REPLACED_IDS } from './narromine-royal-hotel.js';
 import { buildNarromineRailwayPrecinct } from './narromine-railway-precinct.js';
 import { NARROMINE_TREES } from './narromine-trees-data.js';
@@ -30,7 +30,7 @@ const RAILWAY_SUPPRESSED_OSM = new Set([
 const NW_DANDALOO_SUPPRESSED_FILL = new Set(NARROMINE_NW_DANDALOO_INTEGRATION_SPEC.suppressedFillShopNames);
 import { estimatedShopfrontProfile, facadeBays, landmarkFacadeSpec } from './narromine-facade-profiles.js';
 import { PHYSIO_FACADE, buildNarrominePhysiotherapyFacade } from './narromine-mainstreet-physio.js';
-import { buildDisjointRoadSurfaces } from './narromine-road-surfaces.js';
+import { buildDisjointRoadSurfaces, kerbReturns } from './narromine-road-surfaces.js';
 import { createNarromineSurfaceMaterial } from './narromine-surface-materials.js';
 import { buildDandalooStreetscape } from './narromine-dandaloo-streetscape.js';
 import { NARROMINE_POST_OFFICE_ENTRANCE, NARROMINE_POST_OFFICE_ID } from './narromine-post-office.js';
@@ -173,10 +173,48 @@ export function buildNarromine(parent, makeLabel = null) {
     return runs.map(r => ({ ...st, kind: r.unpaved ? 'track' : st.kind, pts: r.pts }));
   });
   const roadSurfaces = buildDisjointRoadSurfaces(SURFACE_STREETS, { highway: HIGHWAY });
-  for (const s of roadSurfaces.footpaths) flatPoly(0xbdb6a8, s.pts, 0.076);
+  // No generic footpath across a detailed site's own sealed ground (the Narromine Hotel forecourt is
+  // one sealed apron out to the street centrelines, as in the owner's Mapillary comparison).
+  const HOTEL_FORECOURT = hotelForecourtPolygon();
+  for (const s of roadSurfaces.footpaths) { const cx = s.pts.reduce((a, p) => a + p[0], 0) / s.pts.length, cz = s.pts.reduce((a, p) => a + p[1], 0) / s.pts.length; if (!inPoly(cx, cz, HOTEL_FORECOURT)) flatPoly(0xbdb6a8, s.pts, 0.076); }
   for (const s of roadSurfaces.asphalt) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.075);
   // Curved kerb returns at junctions, 3 mm under the carriageway so overlaps never flicker.
   for (const s of roadSurfaces.fillets) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.072);
+  // Main-road line marking as on the real A32 through town (owner's Mapillary comparison at the hotel):
+  // solid white edge lines inside each kerb, and a broken centre line on two-way main roads. Lines break
+  // where another street joins, so side streets stay open. Positions are approximate (OSM gives the
+  // centreline and width, not the paint).
+  {
+    const MAIN = /^(trunk|primary|secondary)$/, others = STREETS.filter(s => s.pts.length > 1);
+    const nearOtherStreet = (st, x, z) => others.some(o => o !== st && o.name !== st.name && o.pts.some((b, i) => { if (!i) return false; const a = o.pts[i - 1], dx = b[0] - a[0], dz = b[1] - a[1], l = dx * dx + dz * dz || 1;
+      const t = Math.max(0, Math.min(1, ((x - a[0]) * dx + (z - a[1]) * dz) / l)); return Math.hypot(x - a[0] - t * dx, z - a[1] - t * dz) < (o.width || 7) / 2 + 2.5; }));
+    // The edge line turns the corner with the kerb: follow each curved kerb return on a main road,
+    // 0.6 m in from the kerb, as in the owner's photo at the hotel corner.
+    const arcs = []; kerbReturns(SURFACE_STREETS, undefined, arcs);
+    for (const { O, r, a1, da, kinds } of arcs) {
+      if (!kinds.some(k => MAIN.test(k))) continue;
+      const R = r + 0.6, steps = Math.max(4, Math.ceil(Math.abs(da) * R / 1.2));
+      for (let k = 0; k < steps; k++) {
+        const t0 = a1 + da * k / steps, t1 = a1 + da * (k + 1) / steps;
+        const p0 = [O[0] + Math.cos(t0) * R, O[1] + Math.sin(t0) * R], p1 = [O[0] + Math.cos(t1) * R, O[1] + Math.sin(t1) * R];
+        box(0xf4f2ea, Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) + 0.05, 0.01, 0.12, (p0[0] + p1[0]) / 2, 0.081, (p0[1] + p1[1]) / 2, -Math.atan2(p1[1] - p0[1], p1[0] - p0[0]));
+      }
+    }
+    for (const st of STREETS) {
+      if (!MAIN.test(st.kind)) continue;
+      const centre = st.kind !== 'trunk' && !nearLine(NARROMINE_FURNITURE.laned, st.pts[0][0], st.pts[0][1], 3);   // trunk ways here are one-way carriageways
+      for (let i = 1; i < st.pts.length; i++) {
+        const [ax, az] = st.pts[i - 1], [bx, bz] = st.pts[i], len = Math.hypot(bx - ax, bz - az); if (len < 1) continue;
+        const ux = (bx - ax) / len, uz = (bz - az) / len, nx = -uz, nz = ux, yaw = -Math.atan2(bz - az, bx - ax), edge = st.width / 2 - 0.6;
+        for (let d = 0; d + 3 <= len; d += 3) {
+          const mx = ax + ux * (d + 1.5), mz = az + uz * (d + 1.5);
+          if (nearOtherStreet(st, mx, mz)) continue;
+          for (const side of [-1, 1]) box(0xf4f2ea, 3, 0.01, 0.12, mx + nx * edge * side, 0.081, mz + nz * edge * side, yaw);
+          if (centre && Math.floor(d / 3) % 4 === 0) box(0xf4f2ea, 3, 0.01, 0.1, mx, 0.081, mz, yaw);
+        }
+      }
+    }
+  }
   // Broken centre line (3 m line, 9 m gap, the Australian standard) only on ways OSM tags with 2+ lanes.
   for (const pts of NARROMINE_FURNITURE.laned) {
     let carry = 0;
@@ -189,7 +227,7 @@ export function buildNarromine(parent, makeLabel = null) {
   }
   // OSM-aligned Dandaloo streetscape: no duplicate road or building geometry.
   // Verge items must not sit inside buildings, detailed lots or other roads/driveways.
-  const streetscapeClear = (x, z, r) => !DETAILED.some((d) => inPoly(x, z, d.boundary)) &&
+  const streetscapeClear = (x, z, r, mode) => mode === 'kerb' ? !inPoly(x, z, hotelForecourtPolygon()) : !DETAILED.some((d) => inPoly(x, z, d.boundary)) &&
     !BUILDINGS.some((b) => { const q = polyRect(b.pts); return x > q.x0 - r && x < q.x1 + r && z > q.z0 - r && z < q.z1 + r; }) &&
     ![...FILL_SHOPS, ...FILL_HOUSES].some((g) => Math.hypot(g.x - x, g.z - z) < 7 + r) &&
     !STREETS.some((st) => st.name !== 'Dandaloo Street' && st.pts.some(([sx, sz]) => Math.hypot(sx - x, sz - z) < st.width / 2 + r + 1));

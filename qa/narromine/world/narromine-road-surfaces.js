@@ -101,7 +101,7 @@ function priority(kind) {
 // between the two road edges with a circular fillet (radius KERB_RETURN_RADIUS, the usual size of an
 // urban kerb return), as a fan of small convex triangles from the corner point.
 export const KERB_RETURN_RADIUS = 9;
-export function kerbReturns(streets, radius = KERB_RETURN_RADIUS) {
+export function kerbReturns(streets, radius = KERB_RETURN_RADIUS, arcs = null) {
   const nodes = new Map(), key = ([x, z]) => Math.round(x * 2) + ',' + Math.round(z * 2);
   streets.forEach((st, si) => st.pts.forEach((p, i) => {
     const k = key(p); if (!nodes.has(k)) nodes.set(k, { p, arms: [] });
@@ -136,42 +136,13 @@ export function kerbReturns(streets, radius = KERB_RETURN_RADIUS) {
       const steps = Math.max(3, Math.ceil(Math.abs(da) / 0.26)), arc = [];
       for (let k = 0; k <= steps; k++) { const ang = a1 + da * k / steps; arc.push([O[0] + Math.cos(ang) * r, O[1] + Math.sin(ang) * r]); }
       const kind = priority(A.kind) <= priority(B.kind) ? A.kind : B.kind;
+      if (arcs) arcs.push({ O, r, a1, da, kinds: [A.kind, B.kind] });
       for (let k = 1; k < arc.length; k++) {
         const tri = [C, arc[k - 1], arc[k]];
         // counter-clockwise like roadQuad
         const s2 = (tri[1][0] - tri[0][0]) * (tri[2][1] - tri[0][1]) - (tri[1][1] - tri[0][1]) * (tri[2][0] - tri[0][0]);
         out.push({ pts: s2 < 0 ? [tri[0], tri[2], tri[1]] : tri, kind });
       }
-    }
-  }
-  return out;
-}
-
-export function sealedGaps(segments, maxGap = 7) {
-  const out = [], idx = new QuadIndex();
-  segments.forEach(sg => idx.add(sg.asphalt));
-  const byQuad = new Map(segments.map(sg => [sg.asphalt, sg]));
-  for (const s1 of segments) {
-    const [ax, az] = s1.a, [bx, bz] = s1.b, len = Math.hypot(bx - ax, bz - az); if (len < 3) continue;
-    const ux = (bx - ax) / len, uz = (bz - az) / len, nx = -uz, nz = ux;
-    const probe = [[ax - 20, az - 20], [bx + 20, az - 20], [bx + 20, bz + 20], [ax - 20, bz + 20]];
-    const b1 = bounds([s1.a, s1.b]), reach = [[b1.x0 - 20, b1.z0 - 20], [b1.x1 + 20, b1.z0 - 20], [b1.x1 + 20, b1.z1 + 20], [b1.x0 - 20, b1.z1 + 20]];
-    for (const q of idx.find(reach)) {
-      const s2 = byQuad.get(q); if (!s2 || s2.street === s1.street || s2.index < s1.index) continue;
-      const [cx, cz] = s2.a, [dx, dz] = s2.b, l2 = Math.hypot(dx - cx, dz - cz); if (l2 < 3) continue;
-      if (Math.abs(ux * (dx - cx) / l2 + uz * (dz - cz) / l2) < 0.9) continue;          // not side by side (> ~25°)
-      const proj = (x, z) => [(x - ax) * ux + (z - az) * uz, (x - ax) * nx + (z - az) * nz];
-      const [tc, oc] = proj(cx, cz), [td, od] = proj(dx, dz);
-      const t0 = Math.max(0, Math.min(tc, td)), t1 = Math.min(len, Math.max(tc, td)); if (t1 - t0 < 3) continue;
-      const off = (oc + od) / 2, side = Math.sign(off) || 1, gap = Math.abs(off) - (s1.width + s2.width) / 2;
-      if (gap <= 0.2 || gap > maxGap) continue;
-      const e1 = side * s1.width / 2, e2 = off - side * s2.width / 2;
-      const P = (t, o) => [ax + ux * t + nx * o, az + uz * t + nz * o];
-      let quad = [P(t0, e1), P(t1, e1), P(t1, e2), P(t0, e2)];
-      if (area(quad) < AREA_EPS) continue;
-      const sgn = quad.reduce((a, p, i) => { const r = quad[(i + 1) % 4]; return a + p[0] * r[1] - r[0] * p[1]; }, 0);
-      if (sgn < 0) quad = quad.reverse();
-      out.push({ pts: quad, kind: priority(s1.kind) <= priority(s2.kind) ? s1.kind : s2.kind });
     }
   }
   return out;
@@ -184,7 +155,7 @@ export function buildDisjointRoadSurfaces(streets, { highway = null } = {}) {
     const asphalt = roadQuad(...a, ...b, street.width);
     if (!asphalt) continue;
     const kerbed = /^(trunk|primary|secondary|tertiary|residential|unclassified)$/.test(street.kind);
-    segments.push({ kind: street.kind, asphalt, a, b, width: street.width, street,
+    segments.push({ kind: street.kind, asphalt,
       footpath: kerbed ? roadQuad(...a, ...b, street.width + 5) : null,
       index: segments.length });
   }
@@ -213,10 +184,6 @@ export function buildDisjointRoadSurfaces(streets, { highway = null } = {}) {
   for (const segment of segments) insert(segment.asphalt, asphalt, segment.kind);
   // Curved kerb returns at junctions (after the straight carriageways, before footpaths, so the
   // footpath is cut to the same curve).
-  // Sealed gaps: two roads running side by side with under 7 m between their edges (a service road
-  // beside a main street, as at Dandaloo Street by the Narromine Hotel) are one sealed surface in reality,
-  // not two roads with a strip of footpath between them.
-  for (const g of sealedGaps(segments)) insert(g.pts, asphalt, g.kind);
   // Drawn whole just below the carriageway (no fragmenting), but they still cut the footpaths.
   const fillets = kerbReturns(streets);
   for (const f of fillets) occupied.add(f.pts);
