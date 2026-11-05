@@ -172,14 +172,33 @@ export function buildNarromine(parent, makeLabel = null) {
     }
     return runs.map(r => ({ ...st, kind: r.unpaved ? 'track' : st.kind, pts: r.pts }));
   });
+  // Footpaths: concrete footpaths belong to the main roads and the town-centre streets; Narromine's
+  // residential streets mostly have grass or gravel verges (OSM maps almost no sidewalks here, so this is
+  // the honest default rather than a footpath on both sides of every street).
+  const TOWN_CENTRE = [-4790, -800], TOWN_CENTRE_RADIUS = 450;
+  for (const st of SURFACE_STREETS) {
+    const main = /^(trunk|primary|secondary)$/.test(st.kind);
+    const central = st.pts.some(([x, z]) => Math.hypot(x - TOWN_CENTRE[0], z - TOWN_CENTRE[1]) < TOWN_CENTRE_RADIUS);
+    if (!main && !central) st.footpath = false;
+  }
+  // Owner's photo (Mapillary, west along Derribong Avenue from the hotel): red brick-paved footpath on the
+  // north side only, gravel verge on the south. Its points run east, so north is on the left.
+  for (const st of SURFACE_STREETS) if (st.name === 'Derribong Avenue' && st.pts.some(([x, z]) => Math.hypot(x - TOWN_CENTRE[0], z - TOWN_CENTRE[1]) < TOWN_CENTRE_RADIUS)) {
+    const eastward = st.pts.at(-1)[0] > st.pts[0][0]; st.footpathSide = eastward ? 'left' : 'right'; st.paving = 'red-brick';
+  }
   const roadSurfaces = buildDisjointRoadSurfaces(SURFACE_STREETS, { highway: HIGHWAY });
   // No generic footpath across a detailed site's own sealed ground (the Narromine Hotel forecourt is
   // one sealed apron out to the street centrelines, as in the owner's Mapillary comparison).
   const HOTEL_FORECOURT = hotelForecourtPolygon();
-  for (const s of roadSurfaces.footpaths) { const cx = s.pts.reduce((a, p) => a + p[0], 0) / s.pts.length, cz = s.pts.reduce((a, p) => a + p[1], 0) / s.pts.length; if (!inPoly(cx, cz, HOTEL_FORECOURT)) flatPoly(0xbdb6a8, s.pts, 0.076); }
+  for (const s of roadSurfaces.footpaths) { const cx = s.pts.reduce((a, p) => a + p[0], 0) / s.pts.length, cz = s.pts.reduce((a, p) => a + p[1], 0) / s.pts.length; if (!inPoly(cx, cz, HOTEL_FORECOURT)) flatPoly(s.paving === 'red-brick' ? 0xa4563f : 0xbdb6a8, s.pts, 0.076); }
   for (const s of roadSurfaces.asphalt) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.075);
   // Curved kerb returns at junctions, 3 mm under the carriageway so overlaps never flicker.
   for (const s of roadSurfaces.fillets) flatPoly(ROAD_COLOUR[s.kind] ?? 0x4f5153, s.pts, 0.072);
+  // OSM-mapped footways and paths: concrete where sealed, gravel where unpaved; zebra-white at crossings.
+  for (const f of NARROMINE_FURNITURE.footways || []) {
+    const colour = f.kind === 'crossing' ? 0xe9e7df : f.surface === 'unpaved' ? 0xb19c80 : 0xbdb6a8, wdt = f.kind === 'cycleway' ? 2.5 : f.kind === 'crossing' ? 2.4 : 1.6;
+    for (let i = 1; i < f.pts.length; i++) strip(colour, ...f.pts[i - 1], ...f.pts[i], wdt, f.kind === 'crossing' ? 0.079 : 0.077, 0.004);
+  }
   // Main-road line marking as on the real A32 through town (owner's Mapillary comparison at the hotel):
   // solid white edge lines inside each kerb, and a broken centre line on two-way main roads. Lines break
   // where another street joins, so side streets stay open. Positions are approximate (OSM gives the

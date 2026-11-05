@@ -154,9 +154,20 @@ export function buildDisjointRoadSurfaces(streets, { highway = null } = {}) {
     const a = street.pts[i - 1], b = street.pts[i];
     const asphalt = roadQuad(...a, ...b, street.width);
     if (!asphalt) continue;
-    const kerbed = /^(trunk|primary|secondary|tertiary|residential|unclassified)$/.test(street.kind);
-    segments.push({ kind: street.kind, asphalt,
-      footpath: kerbed ? roadQuad(...a, ...b, street.width + 5) : null,
+    const kerbed = street.footpath !== false && /^(trunk|primary|secondary|tertiary|residential|unclassified)$/.test(street.kind);
+    // One-sided footpath (street.footpathSide 'left'|'right' of the drawing direction): a 2.5 m strip
+    // beside the carriageway on that side only.
+    let sideFoot = null;
+    if (kerbed && street.footpathSide) {
+      const l = Math.hypot(b[0] - a[0], b[1] - a[1]), ux = (b[0] - a[0]) / l, uz = (b[1] - a[1]) / l, sgn = street.footpathSide === 'left' ? 1 : -1;
+      const nx = uz * sgn, nz = -ux * sgn, w0 = street.width / 2, w1 = w0 + 2.5, ext = street.width * 0.25;
+      const P = (t, o) => [a[0] + ux * t + nx * o, a[1] + uz * t + nz * o];
+      sideFoot = [P(-ext, w0), P(l + ext, w0), P(l + ext, w1), P(-ext, w1)];
+      const sg = sideFoot.reduce((acc, p, i) => { const q = sideFoot[(i + 1) % 4]; return acc + p[0] * q[1] - q[0] * p[1]; }, 0);
+      if (sg < 0) sideFoot.reverse();
+    }
+    segments.push({ kind: street.kind, asphalt, paving: street.paving || null,
+      footpath: kerbed ? (sideFoot || roadQuad(...a, ...b, street.width + 5)) : null,
       index: segments.length });
   }
   // Higher-order roads have priority at a junction, giving deterministic
@@ -170,13 +181,13 @@ export function buildDisjointRoadSurfaces(streets, { highway = null } = {}) {
     [highway.x0, highway.z + highway.width / 2],
   ]);
   const asphalt = [], footpaths = [];
-  const insert = (quad, dest, kind) => {
+  const insert = (quad, dest, kind, paving = null) => {
     let parts = [quad];
     for (const blocker of occupied.find(quad)) {
       parts = parts.flatMap(part => subtractConvex(part, blocker));
       if (!parts.length) break;
     }
-    for (const pts of parts) if (area(pts) > AREA_EPS) dest.push({ pts, kind });
+    for (const pts of parts) if (area(pts) > AREA_EPS) dest.push(paving ? { pts, kind, paving } : { pts, kind });
     // The union of original footprints is equivalent to all visible fragments.
     occupied.add(quad);
   };
@@ -187,6 +198,6 @@ export function buildDisjointRoadSurfaces(streets, { highway = null } = {}) {
   // Drawn whole just below the carriageway (no fragmenting), but they still cut the footpaths.
   const fillets = kerbReturns(streets);
   for (const f of fillets) occupied.add(f.pts);
-  for (const segment of segments) if (segment.footpath) insert(segment.footpath, footpaths, segment.kind);
+  for (const segment of segments) if (segment.footpath) insert(segment.footpath, footpaths, segment.kind, segment.paving);
   return { asphalt, footpaths, fillets };
 }
