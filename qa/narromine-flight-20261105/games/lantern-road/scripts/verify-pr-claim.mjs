@@ -1,0 +1,309 @@
+import fs from "node:fs";
+import path from "node:path";
+import { execFileSync } from "node:child_process";
+
+function fail(message) {
+  console.error(message);
+  process.exit(1);
+}
+
+function git(args) {
+  return execFileSync("git", args, { encoding: "utf8" }).trim();
+}
+
+function readJson(filePath, label = filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, "utf8"));
+  } catch (error) {
+    fail(`${label}: invalid JSON: ${error.message}`);
+  }
+}
+
+if (process.env.GITHUB_EVENT_NAME !== "pull_request") {
+  console.log("Not a pull_request event; PR claim verification skipped.");
+  process.exit(0);
+}
+
+const branch = process.env.GITHUB_HEAD_REF || "";
+if (!branch.startsWith("agent/")) {
+  console.log(`Non-agent branch "${branch}"; agent claim verification skipped.`);
+  process.exit(0);
+}
+
+const branchTaskMatch = branch.match(/^agent\/(LR-\d{4})-/);
+if (!branchTaskMatch) {
+  fail(`Agent PR branch "${branch}" does not contain a valid LR task id.`);
+}
+const branchTaskId = branchTaskMatch[1];
+
+const root = process.cwd();
+const claimsDir = path.join(root, ".agent-coordination", "claims");
+const queuePath = path.join(root, ".agent-coordination", "WORK-QUEUE.json");
+const queue = readJson(queuePath, "WORK-QUEUE.json");
+const task = (queue.tasks ?? []).find(item => item.id === branchTaskId);
+
+if (!task) {
+  fail(`Agent PR branch "${branch}" references missing queue task ${branchTaskId}.`);
+}
+
+const lockEntries = [];
+const lockFiles = fs.existsSync(claimsDir)
+  ? fs.readdirSync(claimsDir).filter(name => name.endsWith(".lock.json"))
+  : [];
+
+for (const file of lockFiles) {
+  try {
+    const lock = JSON.parse(fs.readFileSync(path.join(claimsDir, file), "utf8"));
+    lockEntries.push({ file, lock });
+  } catch {
+    // Structural lock validation is handled by validate-agent-coordination.mjs.
+  }
+}
+
+const branchLocks = lockEntries.filter(({ lock }) => lock.branch === branch);
+const taskOrScopeLocks = lockEntries.filter(({ lock }) =>
+  lock.task_id === task.id || lock.exclusive_scope === task.exclusive_scope
+);
+
+if (branchLocks.length > 1) {
+  fail(`Agent PR branch "${branch}" has multiple matching active locks; found ${branchLocks.length}.`);
+}
+
+const prHead = process.env.PR_HEAD_SHA || "";
+
+function inspectStewardApproval() {
+  const expectedReviewFile = `.agent-coordination/design-reviews/${task.id}.json`;
+  const reviewPath = path.join(root, expectedReviewFile);
+
+  if (!prHead) {
+    return { present: false, reviewOnly: false, valid: false, error: `${task.id}: PR_HEAD_SHA is unavailable; cannot verify Steward approval freshness.` };
+  }
+
+  let reviewedHead;
+  try {
+    reviewedHead = git(["rev-parse", `${prHead}^`]);
+  } catch (error) {
+    return { present: false, reviewOnly: false, valid: false, error: `${task.id}: cannot resolve the parent of PR head ${prHead}: ${error.message}` };
+  }
+
+  let approvalChanges;
+  try {
+    approvalChanges = git(["diff", "--name-only", reviewedHead, prHead])
+      .split("\n")
+      .filter(Boolean);
+  } catch (error) {
+    return { present: false, reviewOnly: false, valid: false, error: `${task.id}: cannot inspect final PR commit: ${error.message}` };
+  }
+
+  const reviewOnly = approvalChanges.length === 1 && approvalChanges[0] === expectedReviewFile;
+  const present = fs.existsSync(reviewPath);
+
+  if (!present) {
+    return {
+      present: false,
+      reviewOnly,
+      valid: false,
+      reviewedHead,
+      approvalChanges,
+      error: `${task.id}: missing Steward game review at ${expectedReviewFile}`
+    };
+  }
+
+  let review;
+  try {
+    review = JSON.parse(fs.readFileSync(reviewPath, "utf8"));
+  } catch (error) {
+    return {
+      present: true,
+      reviewOnly,
+      valid: false,
+      reviewedHead,
+      approvalChanges,
+      error: `${task.id}: invalid Steward game review JSON: ${error.message}`
+    };
+  }
+
+  if (!reviewOnly) {
+    return {
+      present: true,
+      reviewOnly: false,
+      valid: false,
+      review,
+      reviewedHead,
+      approvalChanges,
+      error: `${task.id}: Steward approval must be the final PR commit and change only ${expectedReviewFile}; found: ${approvalChanges.join(", ") || "no files"}.`
+    };
+  }
+
+  if (review.task_id !== task.id || review.reviewer_agent_number !== 1 || review.status !== "APPROVED") {
+    return {
+      present: true,
+      reviewOnly: true,
+      valid: false,
+      review,
+      reviewedHead,
+      approvalChanges,
+      error: `${task.id}: Steward review must match the task, be by Agent 1, and have status APPROVED.`
+    };
+  }
+
+  if (review.reviewed_head_sha !== reviewedHead) {
+    return {
+      present: true,
+      reviewOnly: true,
+      valid: false,
+      review,
+      reviewedHead,
+      approvalChanges,
+      error: `${task.id}: Steward approval is stale. It reviewed ${review.reviewed_head_sha || "nothing"}, but current feature head before approval is ${reviewedHead}.`
+    };
+  }
+
+  return {
+    present: true,
+    reviewOnly: true,
+    valid: true,
+    review,
+    reviewedHead,
+    approvalChanges,
+    expectedReviewFile
+  };
+}
+
+const reviewCapable = task.primary_agent !== 1;
+const needsStewardReview = task.steward_review === "REQUIRED";
+const steward = reviewCapable ? inspectStewardApproval() : null;
+
+function assertMergeGatesComplete() {
+  const incompleteGates = (task.merge_gate_depends_on ?? []).filter(
+    id => (queue.tasks ?? []).find(item => item.id === id)?.status !== "DONE"
+  );
+  if (incompleteGates.length) {
+    fail(`${task.id}: PR cannot merge until merge gates are DONE: ${incompleteGates.join(", ")}`);
+  }
+}
+
+if (branchLocks.length === 0) {
+  // A frozen parked PR may merge without waking the implementation owner back up.
+  // steward_review REQUIRED specialist tasks need an exact final Steward approval commit.
+  // NOT_REQUIRED (or omitted) tasks may merge at the exact parked feature head.
+  if (task.status !== "READY") {
+    fail(`${task.id}: parked no-lock merge requires task status READY; found ${task.status}.`);
+  }
+  if (taskOrScopeLocks.length !== 0) {
+    fail(`${task.id}: parked branch cannot use the no-lock merge exception while another active lock owns the task/scope.`);
+  }
+
+  const notes = String(task.notes || "");
+  const parkedMarker = /(parked|parking|fresh(?:ly)?\s+(?:re-)?claim|re-claim|release(?:d)?\s+(?:the\s+)?(?:own\s+)?lock|partial\s+handoff|frozen)/i;
+  if (!parkedMarker.test(notes)) {
+    fail(`${task.id}: queue notes do not identify this work as parked/frozen under the claim protocol.`);
+  }
+  if (!notes.includes(branch)) {
+    fail(`${task.id}: parked queue notes do not name this PR branch "${branch}".`);
+  }
+
+  assertMergeGatesComplete();
+
+  if (!needsStewardReview) {
+    if (!prHead) {
+      fail(`${task.id}: PR_HEAD_SHA is unavailable; cannot verify frozen parked no-review head.`);
+    }
+
+    // Historical review-only commits (including old Agent 7 approvals) remain valid
+    // branch history. They are not a current approval gate, so accept the current
+    // head or the underlying parked useful head when the final commit(s) contain
+    // only this task's legacy design/map review records.
+    const acceptedHeads = [prHead];
+    try {
+      const parent = git(["rev-parse", `${prHead}^`]);
+      const changes = git(["diff", "--name-only", parent, prHead]).split("\n").filter(Boolean);
+      const designReview = `.agent-coordination/design-reviews/${task.id}.json`;
+      const mapReview = `.agent-coordination/map-canon-reviews/${task.id}.json`;
+      if (changes.length === 1 && (changes[0] === designReview || changes[0] === mapReview)) {
+        acceptedHeads.push(parent);
+        const grandparent = git(["rev-parse", `${parent}^`]);
+        const parentChanges = git(["diff", "--name-only", grandparent, parent]).split("\n").filter(Boolean);
+        if (changes[0] === designReview && parentChanges.length === 1 && parentChanges[0] === mapReview) {
+          acceptedHeads.push(grandparent);
+        }
+      }
+    } catch {
+      // Single-commit branches simply rely on the exact current parked head.
+    }
+
+    const recordedHead = acceptedHeads.find(candidate => notes.includes(candidate));
+    if (!recordedHead) {
+      fail(`${task.id}: parked queue notes do not name the exact current or accepted underlying parked head. Expected one of: ${acceptedHeads.join(", ")}.`);
+    }
+
+    console.log(
+      `Parked no-review PR verified for direct merge without owner re-claim: ${task.id} / ${task.exclusive_scope} / ${branch} / parked useful head ${recordedHead}`
+    );
+    process.exit(0);
+  }
+
+  if (!steward?.valid) {
+    fail(steward?.error || `${task.id}: missing valid Steward approval.`);
+  }
+
+  const parkedUsefulHeads = [steward.reviewedHead];
+  try {
+    const reviewParent = git(["rev-parse", `${steward.reviewedHead}^`]);
+    const reviewChanges = git(["diff", "--name-only", reviewParent, steward.reviewedHead])
+      .split("\n")
+      .filter(Boolean);
+    const expectedMapCanonReview = `.agent-coordination/map-canon-reviews/${task.id}.json`;
+    if (reviewChanges.length === 1 && reviewChanges[0] === expectedMapCanonReview) {
+      parkedUsefulHeads.push(reviewParent);
+    }
+  } catch {
+    // Ordinary parked approvals need only the direct reviewed head.
+  }
+
+  const parkedHead = parkedUsefulHeads.find(candidate => notes.includes(candidate));
+  if (!parkedHead) {
+    fail(
+      `${task.id}: parked queue notes do not name an accepted reviewed useful head. ` +
+      `Expected one of: ${parkedUsefulHeads.join(", ")}.`
+    );
+  }
+
+  console.log(
+    `Parked Steward-reviewed PR verified for direct merge without owner re-claim: ${task.id} / ${task.exclusive_scope} / ${branch} / reviewed ${steward.reviewedHead} / parked useful head ${parkedHead}`
+  );
+  process.exit(0);
+}
+
+const { file, lock } = branchLocks[0];
+
+if (lock.task_id !== task.id) {
+  fail(`${file}: branch task ${task.id} does not match lock task ${lock.task_id}.`);
+}
+if (lock.exclusive_scope !== task.exclusive_scope) {
+  fail(`${file}: lock scope ${lock.exclusive_scope} does not match queue scope ${task.exclusive_scope}.`);
+}
+if (lock.agent_number !== task.primary_agent) {
+  fail(`${file}: lock agent ${lock.agent_number} does not match task primary_agent ${task.primary_agent}.`);
+}
+if (!branch.startsWith(`agent/${lock.task_id}-`)) {
+  fail(`${file}: branch does not match task id ${lock.task_id}.`);
+}
+if (task.status !== "READY") {
+  fail(`${file}: active PR task must remain READY until merge completion; found ${task.status}.`);
+}
+
+assertMergeGatesComplete();
+
+if (needsStewardReview) {
+  if (!steward?.valid) fail(steward?.error || `${task.id}: missing valid Steward approval.`);
+}
+
+const expiry = Date.parse(lock.expires_at);
+if (!Number.isFinite(expiry) || expiry < Date.now()) {
+  fail(`${file}: claim lease is expired or invalid; renew/recover it before PR work continues.`);
+}
+
+console.log(
+  `PR claim verified: ${lock.task_id} / ${lock.exclusive_scope} / ${branch}`
+);

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Narromine — architectural fidelity register</title>
+<style>
+:root{color-scheme:dark;font:15px/1.45 system-ui,Segoe UI,Arial,sans-serif;background:#10202b;color:#eef4f6}
+*{box-sizing:border-box}body{margin:0}a{color:#9addeb}header{padding:1rem max(1rem,calc((100vw - 1500px)/2));background:#183441;border-bottom:1px solid #41616d}
+h1{margin:.1rem 0 .25rem;font-size:clamp(1.45rem,3vw,2rem)}h2{margin:.2rem 0 .5rem;font-size:1.12rem}
+p{margin:.35rem 0 .8rem;color:#c1d1d7}.stats{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.6rem}
+.stat{background:#244552;border:1px solid #3a6777;padding:.5rem .85rem;border-radius:.7rem}
+.stat strong{display:block;font-size:1.3rem}main{margin:auto;max-width:1500px;padding:1rem;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:1rem}
+.panel{background:#1b3440;border:1px solid #375966;border-radius:12px;padding:12px;min-width:0}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;margin:.5rem 0}
+input,select,button{background:#0d2735;border:1px solid #537482;border-radius:8px;padding:8px;color:#fff;font:inherit}
+input{min-width:220px;flex:1}button{cursor:pointer}button:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:3px solid #e6cc69;outline-offset:2px}
+.viewport{overflow:auto;max-height:68vh;background:#172e34;border:1px solid #44616a;border-radius:9px;touch-action:pan-x pan-y}
+svg{display:block;width:100%;height:auto;min-width:690px}svg .road{fill:none;stroke:#6c8389;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}
+svg .building{stroke:#d8e9eb;stroke-width:1.7;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .08s}
+svg .building:focus,svg .building:hover,svg .building.selected{stroke:#ffe19b;stroke-width:4}
+svg .mapped{fill:#507b93}svg .modelled{fill:#388d7c}svg .passed{fill:#d0ab55}svg .verified{fill:#a589d1}
+svg .dim{opacity:.09;pointer-events:none}svg .source-bbox{fill:none;stroke:#b4c5cb;stroke-dasharray:12 9;stroke-width:4}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.83rem;margin:.6rem 0;color:#cfe1e3}
+.dot{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:4px;vertical-align:middle}
+dl{margin:0;display:grid;grid-template-columns:110px minmax(0,1fr);gap:.45rem .5rem}
+dt{color:#9fc5cf}dd{margin:0;overflow-wrap:anywhere}
+#details a[href^="https://commons.wikimedia.org/"]{display:block;margin:.6rem 0 .25rem;overflow-wrap:anywhere}#details small{display:block;line-height:1.4;margin-bottom:.6rem}small{color:#b0c4cd}
+#details{min-height:180px}#details p{overflow-wrap:anywhere}
+.notice{border-left:3px solid #d5b36b;padding:.55rem .7rem;background:#334048}
+@media(max-width:900px){main{grid-template-columns:1fr}.viewport{max-height:58vh}}
+</style></head><body>
+<header><h1>Narromine · Building fidelity register</h1>
+<p>Survey and modelling progress — not a claim that all Narromine buildings have been mapped or photographically verified.</p>
+<div id="stats" class="stats" aria-label="Inventory statistics"></div>
+</header>
+<main>
+<section class="panel" aria-label="Interactive mapped buildings">
+<div class="bar">
+<label for="search">Find a building</label><input id="search" type="search" placeholder="Name, ID, address or type">
+<label for="filter">Show</label>
+<select id="filter"><option value="all">All records</option><option value="Mapped">Mapped only</option><option value="Modelled">Modelled only</option><option value="lidar">LiDAR evidence</option><option value="missing">Needs photos</option></select>
+<button type="button" id="reset">Reset</button><button type="button" id="zoomIn">Zoom +</button><button type="button" id="zoomOut">Zoom −</button>
+</div>
+<div class="legend"><span><i class="dot" style="background:#507b93"></i>Mapped outline</span><span><i class="dot" style="background:#388d7c"></i>Modelled detailed site</span><span><i class="dot" style="background:#d0ab55"></i>Visual QA passed</span><span><i class="dot" style="background:#a589d1"></i>Reference verified</span></div>
+<div class="viewport" id="viewport"><svg id="map" viewBox="0 0 4000 3700" role="img" aria-label="Narromine roads and building footprints with selectable survey records"><title>Current survey footprint: Narromine, NSW</title></svg></div>
+<p id="matches" role="status"></p><small>Outlines come from OpenStreetMap; detailed sites from NSW Spatial Services aerial/cadastre tracing. This is an offline diagram, not a satellite image. Coverage gaps need field/aerial checking.</small>
+</section>
+<aside class="panel"><h2>Building record</h2><section id="details"><p>Select a footprint to inspect what is known, what is estimated, and what still needs photography.</p></section>
+<hr><h2>Evidence rules</h2><p class="notice">No extracted Google Street View images, private interiors or unlicensed photographs are included. “Modelled” does not mean “visually verified”.</p>
+<p>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> (ODbL). NSW mapping and LiDAR © State of New South Wales, Spatial Services (CC BY 4.0).</p>
+<p><a href="./index.html">Back to Repository Town</a></p></aside>
+</main>
+<script type="module">
+const $=id=>document.getElementById(id),ns='http://www.w3.org/2000/svg';
+const node=(tag,attrs={},text)=>{const el=document.createElementNS(ns,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,String(v));if(text!==undefined)el.textContent=String(text);return el};
+const words=(el,text,tag='p')=>{const x=document.createElement(tag);x.textContent=String(text);el.append(x);return x};
+const dd=(dl,key,val)=>{const a=document.createElement('dt'),b=document.createElement('dd');a.textContent=key;b.textContent=val==null||val===''?'Not recorded':String(val);dl.append(a,b)};
+const stats=(data)=>{const root=$('stats');for(const [n,label] of [[data.counts.osmFootprints,'OSM outlines'],[data.counts.detailedSites,'detailed sites'],[data.counts.osmWithLidar,'OSM LiDAR matches'],[data.counts.visuallyVerified,'reference-verified']]){const d=document.createElement('div');d.className='stat';words(d,n,'strong');words(d,label,'small');root.append(d)}};
+let data,svg=$('map'),records=[],selected=null,scale=1,photographicRefs=new Map();
+const roadLayer=node('g'),buildingLayer=node('g');svg.append(roadLayer,buildingLayer);
+function show(b){
+selected=b;for(const x of buildingLayer.children)x.classList.toggle('selected',x.dataset.id===b.id);
+const panel=$('details');panel.replaceChildren();words(panel,b.name||b.id,'h2');
+const dl=document.createElement('dl');panel.append(dl);
+dd(dl,'ID',b.id);dd(dl,'Status',b.rendering.status+' — '+b.rendering.tier);
+dd(dl,'Location',b.centreGeo.join(', '));dd(dl,'Orientation',b.orientationDeg==null?null:b.orientationDeg+'° from north (principal footprint edge)');
+dd(dl,'Storeys',b.storeys);dd(dl,'Roof shape',b.roofType);
+if(b.sourceType==='detailed')dd(dl,'Address',b.address);
+dd(dl,'LiDAR',b.heightEvidence?b.heightEvidence.surveyYear+': '+b.heightEvidence.medianRoofM+' m median above terrain':b.parts?b.parts.filter(p=>p.heightEvidence).length+' parts with LiDAR':'No match');
+dd(dl,'Photographs',b.photoReferences.length+' permission-checked archival reference(s)');
+for(const photoId of b.photoReferences){const ref=photographicRefs.get(photoId);if(!ref)continue;const a=document.createElement('a');a.href=ref.sourceUrl;a.rel='noopener noreferrer';a.target='_blank';a.textContent='Open dated source photo — '+ref.creator+' ('+ref.captureDate.slice(0,10)+', '+ref.licenceOrPermission+')';panel.append(a);words(panel,'Historical reference only: not proof of the building’s 2026 appearance.','small');}
+dd(dl,'Visual QA',b.visualQa.status);
+dd(dl,'Facade colours',b.facade.colours.join(', ')||null);
+dd(dl,'Signs',b.facade.signs.join(' / ')||null);
+if(b.rendering.siteIds?.length)dd(dl,'Covered by',b.rendering.siteIds.join(', '));
+words(panel,'Evidence gaps','h2');for(const item of b.uncertainty||[])words(panel,'• '+item);
+words(panel,'Next steps','h2');for(const item of b.nextActions||[])words(panel,'• '+item);
+const a=document.createElement('a');a.textContent='Inspect location in OpenStreetMap';const [lat,lon]=b.centreGeo;a.href='https://www.openstreetmap.org/?mlat='+lat+'&mlon='+lon+'#map=19/'+lat+'/'+lon;a.target='_blank';a.rel='noopener noreferrer';panel.append(a);
+}
+const fit=(el,arr)=>el.setAttribute('points',arr.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '));
+const query=()=>{const term=$('search').value.trim().toLowerCase(),value=$('filter').value;let found=0;
+for(const [b,polygon] of records){const matches=(!term||[b.name,b.id,b.address,b.kind,b.amenity].some(x=>String(x||'').toLowerCase().includes(term)))&&(value==='all'||value===b.rendering.status||value==='lidar'&&(b.heightEvidence||b.parts?.some(x=>x.heightEvidence))||value==='missing'&&!b.photoReferences.length);
+polygon.classList.toggle('dim',!matches);polygon.setAttribute('aria-hidden',String(!matches));if(matches)found++;}
+$('matches').textContent=found+' records matching this selection (of '+records.length+').';
+};
+try {
+const [res,module,photoResponse]=await Promise.all([fetch('./narromine-building-inventory.json',{cache:'no-store'}),import('./world/narromine-osm-data.js'),fetch('./narromine-photo-references.json',{cache:'no-store'})]);
+if(!res.ok)throw Error('Inventory JSON unavailable (HTTP '+res.status+'). Run npm run build and serve dist/public.');
+if(!photoResponse.ok)throw Error('Photographic reference catalogue missing');
+photographicRefs=new Map((await photoResponse.json()).records.map(x=>[x.id,x]));
+data=await res.json();stats(data);
+const osm=module.NARROMINE_OSM,box=osm.extent,pad=32,dx=box.x1-box.x0,dz=box.z1-box.z0;
+svg.setAttribute('viewBox','0 0 '+(dx+pad*2)+' '+(dz+pad*2));
+const P=([x,z])=>[x-box.x0+pad,z-box.z0+pad];
+for(const road of osm.roads){const pts=road.pts.map(P);if(pts.length<2)continue;const line=node('polyline',{class:'road','stroke-width':road.width||4});fit(line,pts);roadLayer.append(line);}
+for(const b of data.buildings){const poly=node('polygon',{class:'building '+(b.rendering.status==='Modelled'?'modelled':'mapped'),tabindex:'0',role:'button','aria-label':(b.name||b.id)+' — '+b.rendering.status});
+poly.dataset.id=b.id;fit(poly,b.footprintLocal.map(P));poly.append(node('title',{},(b.name||b.id)+' — '+b.rendering.status));
+poly.addEventListener('click',()=>show(b));poly.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();show(b)}});
+buildingLayer.append(poly);records.push([b,poly]);}
+$('search').addEventListener('input',query);$('filter').addEventListener('change',query);
+$('reset').addEventListener('click',()=>{$('search').value='';$('filter').value='all';query()});
+const zoom=d=>{scale=Math.min(3.5,Math.max(1,scale*d));svg.style.width=scale*100+'%'};
+$('zoomIn').addEventListener('click',()=>zoom(1.3));$('zoomOut').addEventListener('click',()=>zoom(1/1.3));
+query();show(data.buildings.find(b=>b.siteId==='dandaloo-82')||data.buildings[0]);
+} catch(err){words($('details'),'Could not load survey register: '+err.message);$('matches').textContent='No building data loaded.';console.error(err);}
+</script></body></html>

@@ -1,0 +1,147 @@
+{
+  "carl": {
+    "name": "Carl",
+    "symbol": "C",
+    "position": { "x": 3, "y": 9 },
+    "level": 1,
+    "role": "player",
+    "entity_type": "player",
+    "tags": ["crawler", "human", "classless", "improviser"],
+    "resources": {
+      "health": 12,
+      "max_health": 12,
+      "stamina": 8,
+      "max_stamina": 8,
+      "armor": 1
+    },
+    "stats": {
+      "strength": 5,
+      "dexterity": 4,
+      "constitution": 6,
+      "charisma": 3,
+      "explosives": 1
+    },
+    "inventory": ["leather_jacket"],
+    "equipment": {
+      "torso": "leather_jacket"
+    },
+    "debuffs": ["no_pants"],
+    "buffs": [],
+    "status_effects": [],
+    "state": {}
+  },
+  "donut": {
+    "name": "Princess Donut",
+    "symbol": "D",
+    "position": { "x": 1, "y": 9 },
+    "level": 0,
+    "role": "companion",
+    "entity_type": "companion",
+    "tags": ["civilian", "persian", "grand_champion", "cat"],
+    "resources": {
+      "health": 5,
+      "max_health": 5,
+      "stamina": 10,
+      "max_stamina": 10,
+      "armor": 0
+    },
+    "stats": {
+      "strength": 1,
+      "dexterity": 7,
+      "constitution": 2,
+      "charisma": 9,
+      "fame": 4
+    },
+    "inventory": [],
+    "equipment": {},
+    "debuffs": ["civilian"],
+    "buffs": ["viewer_appeal"],
+    "status_effects": [],
+    "state": {
+      "mode": "follow"
+    }
+  },
+  "mordecai": {
+    "name": "Mordecai",
+    "symbol": "M",
+    "position": { "x": 6, "y": 4 },
+    "level": 1,
+    "role": "guide",
+    "entity_type": "npc",
+    "tags": ["manager", "chupacabra_form", "stressed"],
+    "resources": {
+      "health": 20,
+      "max_health": 20,
+      "stamina": 10,
+      "max_stamina": 10,
+      "armor": 0
+    },
+    "stats": {
+      "stress": 6,
+      "patience": 2,
+      "knowledge": 10
+    },
+    "inventory": [],
+    "equipment": {},
+    "debuffs": [],
+    "buffs": [],
+    "status_effects": [],
+    "state": {
+      "dialogue_stress": 6
+    }
+  },
+  "bopca_clerk": {
+    "name": "Bopca Clerk",
+    "symbol": "B",
+    "position": { "x": 9, "y": 6 },
+    "level": 1,
+    "role": "shopkeeper",
+    "entity_type": "npc",
+    "tags": ["shopkeeper", "saferoom_economy", "placeholder"],
+    "resources": {
+      "health": 10,
+      "max_health": 10,
+      "stamina": 6,
+      "max_stamina": 6,
+      "armor": 0
+    },
+    "stats": {
+      "charisma": 5,
+      "patience": 1
+    },
+    "inventory": [],
+    "equipment": {},
+    "debuffs": [],
+    "buffs": [],
+    "status_effects": [],
+    "state": {}
+  },
+  "training_goblin": {
+    "name": "Training Goblin",
+    "symbol": "g",
+    "position": { "x": 8, "y": 8 },
+    "level": 1,
+    "role": "enemy",
+    "entity_type": "monster",
+    "tags": ["tutorial_enemy", "hostile"],
+    "resources": {
+      "health": 6,
+      "max_health": 6,
+      "stamina": 4,
+      "max_stamina": 4,
+      "armor": 0
+    },
+    "stats": {
+      "strength": 2,
+      "dexterity": 2,
+      "constitution": 2,
+      "charisma": 0
+    },
+    "inventory": [],
+    "equipment": {},
+    "debuffs": [],
+    "buffs": [],
+    "status_effects": [],
+    "state": {}
+  }
+}
