@@ -1,0 +1,14 @@
+{
+  "name": "sylviephonetics",
+  "version": "1.0.0",
+  "description": "Sylvie Phonics Adventure",
+  "private": true,
+  "scripts": {
+    "dev": "http-server . -p 8082 -c-1",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "http-server": "^14.1.1"
+  }
+}
