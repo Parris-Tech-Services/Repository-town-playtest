@@ -10,16 +10,16 @@ const houseImg = loadImg("https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/ass
 
 // More houses, improved positions (based on your aerial photo, visually mapped)
 const houses = [
-  { x: 75, y: 110, w: 50, h: 38, name: "53 Buckland St", resident: "You", info: "This is your house! Welcome home." },
-  { x: 20, y: 110, w: 48, h: 36, name: "51 Buckland St", resident: "Alice", info: "Alice is an avid gardener." },
-  { x: 135, y: 130, w: 48, h: 38, name: "55 Buckland St", resident: "George", info: "George loves classic cars." },
-  { x: 190, y: 85, w: 42, h: 32, name: "57 Buckland St", resident: "Emma", info: "Emma bakes the best muffins." },
-  { x: 240, y: 110, w: 50, h: 38, name: "59 Buckland St", resident: "Raj", info: "Raj runs marathons!" },
-  { x: 310, y: 120, w: 45, h: 35, name: "61 Buckland St", resident: "Lily", info: "Lily plays the violin." },
-  { x: 370, y: 90, w: 50, h: 38, name: "63 Buckland St", resident: "Oscar", info: "Oscar can juggle." },
-  { x: 415, y: 135, w: 44, h: 34, name: "65 Buckland St", resident: "Priya", info: "Priya is a computer genius!" },
-  { x: 480, y: 110, w: 50, h: 38, name: "67 Buckland St", resident: "Jasper", info: "Jasper is new in town." },
-  { x: 545, y: 120, w: 46, h: 36, name: "69 Buckland St", resident: "Mia", info: "Mia makes paper crafts." },
+  { x: 75, y: 110, w: 50, h: 38, name: "53 Maple St", resident: "You", info: "This is your house! Welcome home." },
+  { x: 20, y: 110, w: 48, h: 36, name: "51 Maple St", resident: "Alice", info: "Alice is an avid gardener." },
+  { x: 135, y: 130, w: 48, h: 38, name: "55 Maple St", resident: "George", info: "George loves classic cars." },
+  { x: 190, y: 85, w: 42, h: 32, name: "57 Maple St", resident: "Emma", info: "Emma bakes the best muffins." },
+  { x: 240, y: 110, w: 50, h: 38, name: "59 Maple St", resident: "Raj", info: "Raj runs marathons!" },
+  { x: 310, y: 120, w: 45, h: 35, name: "61 Maple St", resident: "Lily", info: "Lily plays the violin." },
+  { x: 370, y: 90, w: 50, h: 38, name: "63 Maple St", resident: "Oscar", info: "Oscar can juggle." },
+  { x: 415, y: 135, w: 44, h: 34, name: "65 Maple St", resident: "Priya", info: "Priya is a computer genius!" },
+  { x: 480, y: 110, w: 50, h: 38, name: "67 Maple St", resident: "Jasper", info: "Jasper is new in town." },
+  { x: 545, y: 120, w: 46, h: 36, name: "69 Maple St", resident: "Mia", info: "Mia makes paper crafts." },
   // Add dozens more with new coordinates for left/right and up/down, for visual streets
 ];
 
