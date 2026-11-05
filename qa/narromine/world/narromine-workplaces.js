@@ -9,6 +9,7 @@ import { NARROMINE_FOOTPRINTS } from './narromine-footprints-data.js';
 import { BUILDINGS, DETAILED } from './narromine-layout.js';
 import { segNearest, whoIsAt } from './narromine-population.js';
 import { homeDoor, doorCandidates, pickDoor } from './narromine-homes.js';
+import { INTERIOR_EVIDENCE } from './narromine-interior-evidence.js';
 
 const S = (t, l) => [t, l, { do: 'info', title: l, text: 'Workstation.' , station: true }];   // a staffed station
 const FIT = {
@@ -62,7 +63,7 @@ export function createNarromineWorkplaceIndex(pop) {
 }
 
 export function buildNarromineWorkplaceInterior(pop, entry, makeLabel, weekday, minute) {
-  const w = entry.workplace, rooms = JSON.parse(JSON.stringify(fitFor(w.kind)));
+  const w = entry.workplace, evidence = INTERIOR_EVIDENCE[w.name] || null, rooms = JSON.parse(JSON.stringify(evidence ? evidence.rooms : fitFor(w.kind)));
   // Each business is its own place: rooms sized for its building and staff, a station per worker on a
   // typical shift, its own colours, and its name over the front room.
   const H = (k) => { let h = 2166136261; for (const c of w.name + k) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return (h >>> 0) / 4294967296; };
@@ -111,5 +112,5 @@ export function buildNarromineWorkplaceInterior(pop, entry, makeLabel, weekday, 
     const rooms2 = built.rooms.map((r, i) => [r, i]).filter(([r]) => r.name === 'Classroom');
     kids.slice(0, 40).forEach((p, i) => { const [r] = rooms2[i % rooms2.length]; const row = Math.floor(i / rooms2.length); put(p, { x: r.x0 + 1.5 + (row % 5) * 1.3, z: r.z0 + 2.5 + Math.floor(row / 5) * 1.4, yaw: Math.PI }, 0x2f5f8a); pupils++; });
   }
-  return { ...built, workplace: w, open, staff: here.staff, pupils };
+  return { ...built, workplace: w, open, staff: here.staff, pupils, evidence };
 }
