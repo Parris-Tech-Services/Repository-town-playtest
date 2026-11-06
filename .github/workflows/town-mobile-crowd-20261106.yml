@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: town-mobile-crowd-514-qa
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build-test-publish:
