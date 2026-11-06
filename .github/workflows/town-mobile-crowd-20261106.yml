@@ -1,0 +1,94 @@
+name: Repository Town mobile crowd fix isolated QA
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/town-mobile-crowd-20261106.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: town-mobile-crowd-514-qa
+  cancel-in-progress: false
+
+jobs:
+  build-test-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - name: Fetch exact reviewed Repository Town source
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: 3a9088dd825388acc1fbc69b61bf9cf393da5001
+          path: source
+          persist-credentials: false
+
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+
+      - name: Full release, privacy, integrity and population/traffic regressions
+        working-directory: source/repository-town
+        run: |
+          set -euo pipefail
+          npm ci --no-audit --no-fund
+          npm run build:release
+          node tools/verify-release.mjs dist/public
+          node tests/pedestrian-spatial.mjs
+          node tests/population-collision-sync.mjs
+          node tests/narromine-repotown-parking.mjs
+          node --input-type=module -e "import fs from 'node:fs'; import {execFileSync} from 'node:child_process'; const m=JSON.parse(fs.readFileSync('dist/public/release.json')); const actual=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(); if(m.sourceCommit!==actual || actual!=='3a9088dd825388acc1fbc69b61bf9cf393da5001') throw Error('Source SHA mismatch: '+m.sourceCommit+' vs '+actual); if(!/^[a-f0-9]{64}$/.test(m.contentHash)) throw Error('Invalid content fingerprint'); console.log('Verified source',actual,'contentHash',m.contentHash)"
+
+      - name: Chromium simulated crowd soak
+        working-directory: source/repository-town
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          npx playwright install --with-deps chromium
+          node tests/npc-soak.mjs --quiet
+
+      - name: Preserve crowd browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: town-mobile-crowd-browser-qa
+          path: source/repository-town/test-results/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Checkout existing QA Pages site, not approved backup
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+
+      - name: Publish only isolated QA path after successful gates
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f site/index.html
+          grep -q 'Download saved progress' site/index.html
+          target="site/qa/mobile-crowd-20261106"
+          mkdir -p "$target"
+          rsync -a --delete source/repository-town/dist/public/ "$target/"
+          test "$(node -p "require('./source/repository-town/dist/public/release.json').sourceCommit")" = "3a9088dd825388acc1fbc69b61bf9cf393da5001"
+          hash="$(node -p "require('./source/repository-town/dist/public/release.json').contentHash")"
+          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nContentHash: %s\nTests: full release/privacy/integrity; crowd/parking; Chromium NPC soak\nQA ONLY: use a private browser tab to isolate saves\n' "3a9088dd825388acc1fbc69b61bf9cf393da5001" "$hash" > "$target/QA_BUILD.txt"
+          git -C site config user.name 'github-actions[bot]'
+          git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C site add qa/mobile-crowd-20261106
+          if ! git -C site diff --cached --quiet; then
+            git -C site commit -m "qa(town): exact verified mobile crowd 3a9088dd [skip ci]"
+            git -C site push origin HEAD:main
+          fi
+
+      - name: Published independent Android QA link
+        run: echo 'https://parris-tech-services.github.io/Repository-town-playtest/qa/mobile-crowd-20261106/'
