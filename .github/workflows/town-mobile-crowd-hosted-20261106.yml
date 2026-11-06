@@ -59,7 +59,16 @@ jobs:
         env:
           TOWN_PLAYTEST_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/mobile-crowd-20261106/
           LIBGL_ALWAYS_SOFTWARE: '1'
-        run: node tests/webgl-playtest.mjs
+        run: |
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const src=fs.readFileSync('tests/webgl-playtest.mjs','utf8');
+          const marker="page.on('pageerror',e=>errors.push(e.message));";
+          if(!src.includes(marker))throw Error('Missing expected instrumentation point');
+          const diagnostic="page.on('response',r=>{if(r.status()>=400)console.log('QA HTTP FAILURE',r.status(),r.url());});";
+          fs.writeFileSync('tests/webgl-playtest-network-diagnostic.mjs',src.replace(marker,marker+'\\n '+diagnostic));
+          NODE
+          node tests/webgl-playtest-network-diagnostic.mjs
 
       - name: Preserve screenshots, videos and browser telemetry
         if: always()
