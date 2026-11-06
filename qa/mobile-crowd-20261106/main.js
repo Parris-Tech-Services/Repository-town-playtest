@@ -1173,7 +1173,12 @@ async function start() {
       ambience.chop(); woodlot.hit(tr.id, t);
       hatchetView.burst({ x: tr.pos.x + (player.pos.x - tr.pos.x) / d * 0.4, z: tr.pos.z + (player.pos.z - tr.pos.z) / d * 0.4 }, { x: (player.pos.x - tr.pos.x) / d, z: (player.pos.z - tr.pos.z) / d });
     }
-    for (let n = gameTick.advance(tickClock === null ? 0 : t - tickClock); n > 0; n--) tickActions();
+    // Rendering may block for more than 0.6 s on low-end mobiles; catch up
+    // a bounded number of foreground action ticks without advancing a
+    // backgrounded tab while the player is away.
+    for (let n = gameTick.advance(tickClock === null ? 0 : t - tickClock, {
+      catchUp: document.visibilityState === 'visible',
+    }); n > 0; n--) tickActions();
     tickClock = t;
   }
   // Tap-to-walk, as in RuneScape (engine step 2): a quick tap on the view walks you there by an

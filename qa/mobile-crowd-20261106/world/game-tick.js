@@ -12,9 +12,16 @@ export function createGameTick() {
   let acc = 0, count = 0;
   return {
     get count() { return count; },
-    advance(dt) {
+    advance(dt, { catchUp = false } = {}) {
       acc += Math.max(0, dt);
-      if (acc > TICK_SECONDS * 2) acc = TICK_SECONDS;
+      // Foreground rendering may stall on slow phones. Preserve up to four
+      // earned ticks so gameplay time doesn't run slower than wall time.
+      // Long stalls/background resumes still advance at most one tick.
+      if (acc > TICK_SECONDS * 2) {
+        acc = catchUp && dt <= 5
+          ? Math.min(acc, TICK_SECONDS * 4)
+          : TICK_SECONDS;
+      }
       let n = 0;
       while (acc >= TICK_SECONDS) { acc -= TICK_SECONDS; count++; n++; }
       return n;
