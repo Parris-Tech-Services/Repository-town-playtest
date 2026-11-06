@@ -1,0 +1,125 @@
+name: Repository Town loading screen isolated QA (7 November 2026)
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/town-loading-qa-20261107.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: town-loading-qa-20261107
+  cancel-in-progress: false
+
+jobs:
+  build-test-stage:
+    name: Build, playtest and publish immutable loading QA
+    runs-on: ubuntu-24.04
+    timeout-minutes: 65
+    environment:
+      name: github-pages
+    env:
+      SOURCE_SHA: 12260dc73931ce64f9342b1da85f12ebcad54107
+      QA_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/town-loading-20261107/
+    steps:
+      - name: Checkout exact public source
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: 12260dc73931ce64f9342b1da85f12ebcad54107
+          path: source
+          persist-credentials: false
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+      - name: Install pinned dependencies
+        working-directory: source/repository-town
+        run: npm ci --no-audit --no-fund
+      - name: All release, protected geometry, privacy, and integrity gates
+        working-directory: source/repository-town
+        run: |
+          set -euo pipefail
+          test "$(git -C .. rev-parse HEAD)" = "$SOURCE_SHA"
+          npm run build:release
+          node --input-type=module -e "import fs from 'node:fs'; const x=JSON.parse(fs.readFileSync('dist/public/release.json','utf8')); if(x.sourceCommit!==process.env.SOURCE_SHA) throw Error('Release source mismatch'); if(Object.keys(x.files||{}).length<1000) throw Error('Incomplete asset manifest'); console.log(x.sourceCommit,x.contentHash,Object.keys(x.files).length)"
+      - name: Install software-WebGL Chromium
+        working-directory: source/repository-town
+        run: npx playwright install --with-deps chromium
+      - name: Real desktop and emulated-phone loading, failure-retry and map tests
+        working-directory: source/repository-town
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          node tests/loading-screen-browser.mjs
+          node tests/narromine-minimap-browser.mjs
+      - name: Checkout existing Pages site without overwriting current QA
+        uses: actions/checkout@v4
+        with:
+          repository: Parris-Tech-Services/Repository-town-playtest
+          ref: main
+          path: site
+          persist-credentials: true
+      - name: Create ONLY new QA folder; preserve all older playtests and saves
+        shell: bash
+        run: |
+          set -euo pipefail
+          target="site/qa/town-loading-20261107"
+          test ! -e "$target"
+          test -f site/index.html
+          mkdir -p "$target"
+          rsync -a source/repository-town/dist/public/ "$target/"
+          test "$(node -p "require('./$target/release.json').sourceCommit")" = "$SOURCE_SHA"
+          git -C site config user.name 'github-actions[bot]'
+          git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C site add qa/town-loading-20261107
+          git -C site commit -m "qa: publish tested startup progress 12260dc73931 [skip ci]"
+          git -C site pull --rebase origin main
+          git -C site push origin HEAD:main
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+      - uses: actions/deploy-pages@v4
+        id: deploy
+      - name: Verify live Pages manifest and startup on real browser desktop + phone
+        working-directory: source/repository-town
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 20); do
+            if curl -fsSL "$QA_URL/release.json" -o /tmp/town-loading-live-release.json; then break; fi
+            sleep 5
+          done
+          node --input-type=module -e "import fs from 'node:fs'; const x=JSON.parse(fs.readFileSync('/tmp/town-loading-live-release.json')); if(x.sourceCommit!==process.env.SOURCE_SHA) throw Error('Hosted source mismatch'); console.log('LIVE',x.sourceCommit,x.contentHash);"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { chromium } from 'playwright';
+          const b=await chromium.launch({args:['--use-angle=swiftshader','--enable-unsafe-swiftshader']});
+          try {
+            for(const mobile of [false,true]){
+              const p=await b.newPage(mobile?{viewport:{width:375,height:812},isMobile:true,hasTouch:true}:{viewport:{width:1280,height:800}});
+              const errors=[]; p.on('pageerror',e=>errors.push(e.message));
+              await p.goto(process.env.QA_URL,{waitUntil:'domcontentloaded'});
+              await p.waitForFunction(()=>window.__town&&window.TownLoading?.snapshot().ready&&document.querySelector('#loading')?.hidden,null,{timeout:90000});
+              const state=await p.evaluate(()=>({completed:window.TownLoading.snapshot().completed,display:getComputedStyle(document.querySelector('#loading')).display,overflow:document.documentElement.scrollWidth>innerWidth+1}));
+              assert.deepEqual(state,{completed:12,display:'none',overflow:false});
+              assert.deepEqual(errors,[]);
+              console.log('HOSTED',mobile?'PHONE':'DESKTOP',state);
+              await p.close();
+            }
+          }finally{await b.close()}
+          JS
+      - name: Store test screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: town-loading-20261107-qa-evidence
+          path: source/repository-town/test-results/narromine-minimap/
+          if-no-files-found: warn
+          retention-days: 14
