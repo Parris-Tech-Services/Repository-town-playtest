@@ -50,7 +50,16 @@ jobs:
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
         run: |
+          set -euo pipefail
           npx playwright install --with-deps chromium
+          node tools/serve.mjs dist/public 8091 > /tmp/town-mobile-crowd-soak.log 2>&1 &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:8091/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8091/release.json >/dev/null
           node tests/npc-soak.mjs --quiet
 
       - name: Preserve crowd browser evidence
