@@ -1,0 +1,71 @@
+name: Repository Town hosted mobile crowd WebGL acceptance
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/town-mobile-crowd-hosted-20261106.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: town-mobile-crowd-hosted
+  cancel-in-progress: true
+
+jobs:
+  public-site-gameplay:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    defaults:
+      run:
+        working-directory: source/repository-town
+    steps:
+      - name: Checkout exact deployed source to use its public-browser tests
+        uses: actions/checkout@v4
+        with:
+          repository: joshualparris/JoshMemory
+          ref: 3a9088dd825388acc1fbc69b61bf9cf393da5001
+          path: source
+          persist-credentials: false
+
+      - name: Node 22 and pinned dependencies
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/repository-town/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install Chromium and WebGL system libraries
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify public Pages release is exactly the QA candidate
+        env:
+          QA_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/mobile-crowd-20261106/
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl -fsSL "$QA_URL/release.json" -o /tmp/town-mobile-crowd-release.json; then break; fi
+            sleep 5
+          done
+          node --input-type=module -e "import fs from 'node:fs'; const m=JSON.parse(fs.readFileSync('/tmp/town-mobile-crowd-release.json','utf8'));if(m.sourceCommit!=='3a9088dd825388acc1fbc69b61bf9cf393da5001')throw Error('Public QA source mismatch: '+m.sourceCommit);if(!/^[a-f0-9]{64}$/.test(m.contentHash)||Object.keys(m.files||{}).length<1000)throw Error('Incomplete public release');console.log('Verified hosted commit',m.sourceCommit,'content hash',m.contentHash,'assets',Object.keys(m.files).length)"
+          test "$(curl -fsSL -o /dev/null -w '%{http_code}' "$QA_URL/main.js")" = "200"
+
+      - name: Play actual hosted game with desktop and Android touch in software WebGL
+        env:
+          TOWN_PLAYTEST_URL: https://parris-tech-services.github.io/Repository-town-playtest/qa/mobile-crowd-20261106/
+          LIBGL_ALWAYS_SOFTWARE: '1'
+        run: node tests/webgl-playtest.mjs
+
+      - name: Preserve screenshots, videos and browser telemetry
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: town-mobile-crowd-hosted-desktop-android
+          path: source/repository-town/test-results/webgl-playtest/
+          retention-days: 14
+          if-no-files-found: warn
