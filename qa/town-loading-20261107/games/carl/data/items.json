@@ -1,0 +1,40 @@
+{
+  "leather_jacket": {
+    "name": "Carl's Leather Jacket",
+    "slot": "torso",
+    "armor": 1,
+    "durability": 12,
+    "tags": ["starting_item", "plot_relevant", "actual_protection"],
+    "description": "The only useful protection Carl had when the dungeon catalogued him."
+  },
+  "unstable_powder": {
+    "name": "Unstable Dungeon Powder",
+    "slot": "material",
+    "crafting_power": 2,
+    "tags": ["tutorial_material", "explosive_component"],
+    "description": "A suspicious powder that clearly wants to become somebody else's problem."
+  },
+  "crude_blast_charge": {
+    "name": "Crude Blast Charge",
+    "slot": "combat_item",
+    "damage": 4,
+    "accuracy": 90,
+    "tags": ["explosive", "crafted", "unsafe", "consumable"],
+    "description": "Not elegant. Not stable. Very Carl."
+  },
+  "threadbare_pants": {
+    "name": "Threadbare Tutorial Pants",
+    "slot": "legs",
+    "armor": 1,
+    "durability": 5,
+    "tags": ["equipment", "tutorial", "dignity_adjacent"],
+    "description": "Barely pants. Still a tactical breakthrough."
+  },
+  "stale_healing_bar": {
+    "name": "Stale Healing Bar",
+    "slot": "consumable",
+    "healing": 4,
+    "tags": ["consumable", "healing", "shop_item"],
+    "description": "It heals. The texture raises separate questions."
+  }
+}
