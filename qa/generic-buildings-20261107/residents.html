@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Resident Studio — Repository Town</title>
+<meta name="description" content="A playable studio of Repository Town's persistent resident identities, faces, clothing and animations.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Ccircle cx=%2232%22 cy=%2222%22 r=%2214%22 fill=%22%236fd2c3%22/%3E%3Cpath d=%22M8 64c0-16 10-26 24-26s24 10 24 26%22 fill=%22%23ffc45e%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="resident-showcase.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+</head>
+<body>
+<div id="studio-shell">
+  <header id="studio-head">
+    <div>
+      <p class="eyebrow">Repository Town · visual identity</p>
+      <h1>Resident Studio</h1>
+      <p class="lede">Every person is generated from one stable identity. The same face, body, hair and clothing follow them from home to work to the shops.</p>
+    </div>
+    <div id="studio-status" role="status">Building residents…</div>
+  </header>
+
+  <main id="studio-main">
+    <aside id="roster-panel" aria-label="Resident roster">
+      <div class="panel-head"><h2>Residents</h2><span id="roster-count">16</span></div>
+      <div id="roster" role="listbox" aria-label="Choose a resident"></div>
+      <p class="hint">Choose a person, then change their activity, clothing or level of detail.</p>
+    </aside>
+
+    <section id="stage-wrap" aria-label="3D resident preview">
+      <canvas id="stage"></canvas>
+      <div id="stage-label" aria-hidden="true"></div>
+      <div id="stage-help">Drag to orbit · scroll to zoom · ← → to change resident</div>
+      <div id="crowd-toggle" hidden></div>
+    </section>
+
+    <aside id="controls-panel" aria-label="Appearance and animation controls">
+      <section class="control-group">
+        <h2 id="person-name">—</h2>
+        <p id="person-summary" class="person-summary"></p>
+        <dl id="person-facts" class="facts"></dl>
+      </section>
+
+      <section class="control-group">
+        <h2>Animation</h2>
+        <div id="animation-buttons" class="button-grid" role="group" aria-label="Animation"></div>
+      </section>
+
+      <section class="control-group">
+        <h2>Clothing context</h2>
+        <div id="context-buttons" class="button-grid" role="group" aria-label="Clothing context"></div>
+      </section>
+
+      <section class="control-group">
+        <h2>Level of detail</h2>
+        <div id="lod-buttons" class="button-grid three" role="group" aria-label="Level of detail"></div>
+        <p id="lod-note" class="hint">Near: face and micro detail. Mid: simplified face. Far: seven-mesh street proxy.</p>
+      </section>
+
+      <section class="control-group">
+        <label class="switch"><input type="checkbox" id="crowd-toggle-input"> <span>Show a crowd of 12 identities</span></label>
+        <p class="hint">The crowd uses the same identity system; it is not cloned meshes. Far rows switch to the cheap proxy.</p>
+      </section>
+
+      <p class="fineprint">All residents are fictional. The studio uses the same visual modules as the game and does not read real private data.</p>
+    </aside>
+  </main>
+</div>
+<script type="module" src="residents-showcase.js"></script>
+</body>
+</html>

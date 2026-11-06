@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#18120f">
+  <meta name="description" content="A three-layer browser adventure: hexcrawl, ASCII towns, and tactical combat.">
+  <title>Grey March: Lanterns of Sanctum</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Grey March: Lanterns of Sanctum</h1>
+        <p class="subtitle">One campaign, three zoom levels: road, town, and encounter.</p>
+      </div>
+      <div class="header-actions">
+        <button id="newBtn">New Campaign</button>
+        <button id="saveBtn">Save</button>
+        <button id="loadBtn">Load</button>
+      </div>
+    </header>
+
+    <section id="statusStrip" class="status-strip"></section>
+
+    <main>
+      <section id="worldScreen" class="screen world-layout">
+        <div class="panel map-panel">
+          <div class="panel-head">
+            <div>
+              <h2>Overland Map</h2>
+              <p class="muted">Tap a neighbouring hex to travel. Enter settlements to drop into the town map.</p>
+            </div>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="worldCanvas" width="900" height="640" aria-label="Grey March hex map"></canvas>
+          </div>
+        </div>
+        <aside id="worldSide" class="panel side-panel"></aside>
+      </section>
+
+      <section id="townScreen" class="screen town-layout" hidden>
+        <div class="panel town-main">
+          <div class="panel-head">
+            <div>
+              <h2 id="townTitle">Town</h2>
+              <p id="townSubtitle" class="muted"></p>
+            </div>
+            <div class="row">
+              <button id="townExitBtn" class="secondary">Leave town</button>
+            </div>
+          </div>
+          <div class="town-grid-wrap">
+            <pre id="townGrid" class="ascii-grid" aria-label="ASCII town map"></pre>
+          </div>
+          <div id="townMovePad" class="move-pad">
+            <button data-dir="n">North</button>
+            <div class="move-row">
+              <button data-dir="w">West</button>
+              <button data-dir="s">South</button>
+              <button data-dir="e">East</button>
+            </div>
+          </div>
+        </div>
+        <aside class="panel town-side">
+          <div id="townInfo" class="tab-content"></div>
+          <div class="card">
+            <h3>Actions</h3>
+            <div id="townActions" class="choice-list"></div>
+          </div>
+        </aside>
+      </section>
+
+      <section id="combatScreen" class="screen combat-layout" hidden>
+        <aside id="combatParty" class="panel column"></aside>
+        <section class="center-column">
+          <div id="combatBoard" class="panel combat-board"></div>
+          <div id="combatActions" class="panel action-bar"></div>
+        </section>
+        <aside class="column stack">
+          <div id="combatInfo" class="panel"></div>
+          <div class="panel log-panel">
+            <h3>Combat Log</h3>
+            <div id="combatLog" class="mini-list"></div>
+          </div>
+        </aside>
+      </section>
+    </main>
+  </div>
+
+  <div id="modalRoot" class="modal-root" hidden></div>
+
+  <script src="content.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>

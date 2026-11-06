@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Resident model comparison — Repository Town</title>
+<meta name="description" content="Side-by-side comparison of Repository Town's procedural residents and the Quaternius rigged base characters, using the same persistent identity.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Ccircle cx=%2224%22 cy=%2222%22 r=%2213%22 fill=%22%236fd2c3%22/%3E%3Ccircle cx=%2244%22 cy=%2222%22 r=%2213%22 fill=%22%23ffc45e%22/%3E%3Cpath d=%22M4 64c0-15 9-24 20-24s20 9 20 24%22 fill=%22%236fd2c3%22/%3E%3Cpath d=%22M26 64c0-15 9-24 20-24s20 9 20 24%22 fill=%22%23ffc45e%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="resident-compare.css">
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js","three/addons/utils/BufferGeometryUtils.js":"./vendor/BufferGeometryUtils.js"}}</script>
+</head>
+<body>
+<header id="cmp-head">
+  <div>
+    <p class="eyebrow">Repository Town · resident model review</p>
+    <h1>Procedural vs Quaternius</h1>
+    <p class="lede">The same persistent identity, two render paths. Quaternius rigged is now the default for new installations; the procedural figure remains available as the optional Classic style.</p>
+  </div>
+  <div id="cmp-status" role="status">Loading models…</div>
+</header>
+<main id="cmp-main">
+  <section id="stage-wrap">
+    <canvas id="cmp-canvas"></canvas>
+    <div class="stage-label left"><span>Procedural</span><small>optional Classic style</small></div>
+    <div class="stage-label right"><span>Quaternius</span><small>default resident style</small></div>
+    <div id="cmp-help">Drag to orbit · scroll to zoom</div>
+  </section>
+  <aside id="cmp-panel">
+    <section class="group">
+      <h2>Identity</h2>
+      <div id="cmp-roster" role="listbox" aria-label="Choose a resident"></div>
+      <p id="cmp-person" class="person"></p>
+    </section>
+    <section class="group">
+      <h2>Animation</h2>
+      <div id="cmp-anim" class="buttons"></div>
+    </section>
+    <section class="group">
+      <h2>Performance</h2>
+      <dl id="cmp-stats" class="stats"></dl>
+      <p class="hint">Draw calls and triangles are measured from the live WebGL renderer. The Quaternius path uses one skinned mesh per body plus a small shirt overlay.</p>
+    </section>
+    <section class="group">
+      <h2>Assets</h2>
+      <p class="hint">Quaternius Universal Base Characters + Universal Animation Library, CC0. Textures downscaled to 512 px; normal/roughness maps omitted. Procedural figures remain available in Settings → Resident style.</p>
+    </section>
+  </aside>
+</main>
+<script type="module" src="resident-compare.js"></script>
+</body>
+</html>
