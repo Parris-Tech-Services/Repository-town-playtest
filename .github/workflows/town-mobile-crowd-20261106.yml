@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: joshualparris/JoshMemory
-          ref: 3a9088dd825388acc1fbc69b61bf9cf393da5001
+          ref: 409ae5c231f197b490d118c468a5b9200173d6c2
           path: source
           persist-credentials: false
 
@@ -43,7 +43,7 @@ jobs:
           node tests/pedestrian-spatial.mjs
           node tests/population-collision-sync.mjs
           node tests/narromine-repotown-parking.mjs
-          node --input-type=module -e "import fs from 'node:fs'; import {execFileSync} from 'node:child_process'; const m=JSON.parse(fs.readFileSync('dist/public/release.json')); const actual=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(); if(m.sourceCommit!==actual || actual!=='3a9088dd825388acc1fbc69b61bf9cf393da5001') throw Error('Source SHA mismatch: '+m.sourceCommit+' vs '+actual); if(!/^[a-f0-9]{64}$/.test(m.contentHash)) throw Error('Invalid content fingerprint'); console.log('Verified source',actual,'contentHash',m.contentHash)"
+          node --input-type=module -e "import fs from 'node:fs'; import {execFileSync} from 'node:child_process'; const m=JSON.parse(fs.readFileSync('dist/public/release.json')); const actual=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(); if(m.sourceCommit!==actual || actual!=='409ae5c231f197b490d118c468a5b9200173d6c2') throw Error('Source SHA mismatch: '+m.sourceCommit+' vs '+actual); if(!/^[a-f0-9]{64}$/.test(m.contentHash)) throw Error('Invalid content fingerprint'); console.log('Verified source',actual,'contentHash',m.contentHash)"
 
       - name: Desktop and Android-size recorded WebGL gameplay
         working-directory: source/repository-town
@@ -88,14 +88,14 @@ jobs:
           target="site/qa/mobile-crowd-20261106"
           mkdir -p "$target"
           rsync -a --delete source/repository-town/dist/public/ "$target/"
-          test "$(node -p "require('./source/repository-town/dist/public/release.json').sourceCommit")" = "3a9088dd825388acc1fbc69b61bf9cf393da5001"
+          test "$(node -p "require('./source/repository-town/dist/public/release.json').sourceCommit")" = "409ae5c231f197b490d118c468a5b9200173d6c2"
           hash="$(node -p "require('./source/repository-town/dist/public/release.json').contentHash")"
-          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nContentHash: %s\nTests: full release/privacy/integrity; crowd/parking; desktop/Android-size WebGL gameplay\nQA ONLY: use a private browser tab to isolate saves\n' "3a9088dd825388acc1fbc69b61bf9cf393da5001" "$hash" > "$target/QA_BUILD.txt"
+          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nContentHash: %s\nTests: full release/privacy/integrity; crowd/parking; desktop/Android-size WebGL gameplay\nQA ONLY: use a private browser tab to isolate saves\n' "409ae5c231f197b490d118c468a5b9200173d6c2" "$hash" > "$target/QA_BUILD.txt"
           git -C site config user.name 'github-actions[bot]'
           git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git -C site add qa/mobile-crowd-20261106
           if ! git -C site diff --cached --quiet; then
-            git -C site commit -m "qa(town): exact verified mobile crowd 3a9088dd [skip ci]"
+            git -C site commit -m "qa(town): exact verified mobile crowd 409ae5c2 [skip ci]"
             git -C site push origin HEAD:main
           fi
 
