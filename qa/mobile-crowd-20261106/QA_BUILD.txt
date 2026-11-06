@@ -1,0 +1,5 @@
+Source: joshualparris/JoshMemory
+Commit: 3a9088dd825388acc1fbc69b61bf9cf393da5001
+ContentHash: e2dc4d06d5520b9b41cbe339a01897be181c7e31585484b58978b5c21932bba5
+Tests: full release/privacy/integrity; crowd/parking; desktop/Android-size WebGL gameplay
+QA ONLY: use a private browser tab to isolate saves

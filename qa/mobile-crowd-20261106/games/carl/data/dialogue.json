@@ -1,0 +1,28 @@
+{
+  "mordecai": [
+    {
+      "stress": 6,
+      "text": "Mordecai: Listen carefully. You are alive, classless, underdressed, and already behind schedule. That is not a strategy."
+    },
+    {
+      "stress": 7,
+      "text": "Mordecai: The cat is Level 0. Civilian. Do not let her get hit. Do not let yourself get hit either, but especially do not let the cat get hit."
+    },
+    {
+      "stress": 8,
+      "text": "Mordecai: The System has rules. Bad rules. Cruel rules. But rules can be used, and that is the only reason I am still talking to you."
+    },
+    {
+      "stress": 9,
+      "text": "Mordecai: Stop looking for pants and start looking for advantages. The dungeon does not care about dignity."
+    }
+  ],
+  "bopca_clerk": [
+    {
+      "text": "Bopca Clerk: You want affordable prices? That is adorable. I sell survival, not hope."
+    },
+    {
+      "text": "Bopca Clerk: The cat gets a discount if she stops staring at me like that."
+    }
+  ]
+}
