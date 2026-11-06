@@ -45,7 +45,7 @@ jobs:
           node tests/narromine-repotown-parking.mjs
           node --input-type=module -e "import fs from 'node:fs'; import {execFileSync} from 'node:child_process'; const m=JSON.parse(fs.readFileSync('dist/public/release.json')); const actual=execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(); if(m.sourceCommit!==actual || actual!=='3a9088dd825388acc1fbc69b61bf9cf393da5001') throw Error('Source SHA mismatch: '+m.sourceCommit+' vs '+actual); if(!/^[a-f0-9]{64}$/.test(m.contentHash)) throw Error('Invalid content fingerprint'); console.log('Verified source',actual,'contentHash',m.contentHash)"
 
-      - name: Chromium simulated crowd soak
+      - name: Desktop and Android-size recorded WebGL gameplay
         working-directory: source/repository-town
         env:
           LIBGL_ALWAYS_SOFTWARE: '1'
@@ -60,13 +60,13 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:8091/release.json >/dev/null
-          node tests/npc-soak.mjs --quiet
+          TOWN_PLAYTEST_URL=http://127.0.0.1:8091/ node tests/webgl-playtest.mjs
 
       - name: Preserve crowd browser evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: town-mobile-crowd-browser-qa
+          name: town-mobile-crowd-webgl-qa
           path: source/repository-town/test-results/
           retention-days: 14
           if-no-files-found: warn
@@ -90,7 +90,7 @@ jobs:
           rsync -a --delete source/repository-town/dist/public/ "$target/"
           test "$(node -p "require('./source/repository-town/dist/public/release.json').sourceCommit")" = "3a9088dd825388acc1fbc69b61bf9cf393da5001"
           hash="$(node -p "require('./source/repository-town/dist/public/release.json').contentHash")"
-          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nContentHash: %s\nTests: full release/privacy/integrity; crowd/parking; Chromium NPC soak\nQA ONLY: use a private browser tab to isolate saves\n' "3a9088dd825388acc1fbc69b61bf9cf393da5001" "$hash" > "$target/QA_BUILD.txt"
+          printf 'Source: joshualparris/JoshMemory\nCommit: %s\nContentHash: %s\nTests: full release/privacy/integrity; crowd/parking; desktop/Android-size WebGL gameplay\nQA ONLY: use a private browser tab to isolate saves\n' "3a9088dd825388acc1fbc69b61bf9cf393da5001" "$hash" > "$target/QA_BUILD.txt"
           git -C site config user.name 'github-actions[bot]'
           git -C site config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git -C site add qa/mobile-crowd-20261106
