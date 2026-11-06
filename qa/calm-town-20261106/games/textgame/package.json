@@ -1,0 +1,1 @@
+{"name":"textgame","private":true,"type":"module","scripts":{"check":"node --check src/engine.mjs && node --check src/app.mjs && node --check service-worker.js","test":"npm run check && node --test tests/*.test.mjs"}}

@@ -1,0 +1,43 @@
+:root { --bg:#080d14; --panel:#101a28; --line:rgba(137,176,215,.18); --text:#e9f0f8; --muted:#9eb1c7; --accent:#6fd2c3; --accent2:#ffc45e; }
+* { box-sizing: border-box; }
+html,body { height:100%; }
+body { margin:0; background:radial-gradient(1100px 600px at 20% -10%,rgba(58,111,157,.35),transparent 60%),linear-gradient(160deg,#0a111c,#080d14 60%,#0a1420); color:var(--text); font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; overflow:hidden; }
+#cmp-shell { height:100dvh; display:flex; flex-direction:column; }
+#cmp-head { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; padding:20px 26px 12px; }
+.eyebrow { margin:0 0 4px; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--accent); }
+h1 { margin:0; font-size:clamp(24px,2.4vw,38px); letter-spacing:-.03em; }
+.lede { margin:6px 0 0; max-width:760px; color:var(--muted); font-size:13px; line-height:1.5; }
+#cmp-status { flex:0 0 auto; border:1px solid var(--line); border-radius:999px; padding:8px 12px; font-size:11.5px; color:var(--muted); background:rgba(12,21,33,.65); }
+#cmp-main { flex:1; min-height:0; display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:14px; padding:0 18px 18px; }
+#stage-wrap { position:relative; min-height:0; border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.45); background:linear-gradient(180deg,#101d2f,#0a1420 60%,#070c13); }
+#cmp-canvas { display:block; width:100%; height:100%; touch-action:none; cursor:grab; }
+.stage-label { position:absolute; bottom:16px; display:flex; flex-direction:column; gap:2px; pointer-events:none; text-shadow:0 2px 12px rgba(0,0,0,.8); }
+.stage-label span { font-size:17px; font-weight:650; }
+.stage-label small { font-size:11px; color:var(--muted); }
+.stage-label.left { left:18px; }
+.stage-label.right { right:18px; text-align:right; }
+#cmp-help { position:absolute; left:18px; top:14px; font-size:11px; color:var(--muted); }
+#cmp-panel { overflow:auto; border:1px solid var(--line); border-radius:18px; background:linear-gradient(180deg,rgba(18,29,45,.92),rgba(12,20,32,.9)); box-shadow:0 24px 70px rgba(0,0,0,.4); padding:14px; }
+.group { padding:4px 2px 14px; border-bottom:1px solid rgba(137,176,215,.12); margin-bottom:10px; }
+.group:last-child { border-bottom:0; margin-bottom:0; }
+.group h2 { margin:0 0 8px; font-size:12px; letter-spacing:.13em; text-transform:uppercase; color:var(--muted); }
+#cmp-roster { display:flex; flex-direction:column; gap:5px; }
+#cmp-roster button { text-align:left; font:inherit; font-size:12.5px; color:var(--text); background:rgba(9,16,26,.65); border:1px solid transparent; border-radius:9px; padding:7px 9px; cursor:pointer; display:flex; flex-direction:column; gap:2px; }
+#cmp-roster button small { color:var(--muted); font-size:10.5px; }
+#cmp-roster button:hover { background:rgba(24,40,60,.85); }
+#cmp-roster button.active { border-color:var(--accent); background:linear-gradient(90deg,rgba(111,210,195,.16),rgba(35,57,79,.65)); }
+.person { margin:8px 2px 0; font-size:11.5px; line-height:1.5; color:var(--accent); }
+.buttons { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; }
+.buttons button { font:inherit; font-size:11.5px; color:var(--text); background:rgba(9,16,26,.7); border:1px solid var(--line); border-radius:8px; padding:8px 4px; cursor:pointer; text-transform:capitalize; }
+.buttons button.active { border-color:var(--accent); background:linear-gradient(180deg,rgba(111,210,195,.22),rgba(37,74,88,.55)); }
+.stats { display:grid; grid-template-columns:1fr auto; gap:5px 10px; margin:0; font-size:11.5px; }
+.stats dt { color:var(--muted); }
+.stats dd { margin:0; text-align:right; font-variant-numeric:tabular-nums; }
+.hint { color:var(--muted); font-size:10.8px; line-height:1.5; margin:8px 2px 0; }
+@media (max-width: 900px) {
+  body { overflow:auto; }
+  #cmp-head { flex-direction:column; align-items:flex-start; padding:16px 14px 10px; }
+  #cmp-main { display:flex; flex-direction:column; padding:0 12px 16px; }
+  #stage-wrap { height:52vh; min-height:320px; }
+  #cmp-panel { overflow:visible; }
+}

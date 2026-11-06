@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kingkiller Lore Atlas - Elodin Compendium</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <style>
+      .compendium-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: var(--spacing-xl);
+      }
+
+      .compendium-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xl);
+        padding: var(--spacing-xl);
+        background: linear-gradient(135deg, rgba(96, 165, 250, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border-radius: var(--radius-lg);
+        border: 1px solid rgba(96, 165, 250, 0.2);
+      }
+
+      .compendium-header h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: var(--spacing-md) 0;
+        background: linear-gradient(135deg, #60a5fa, #a78bfa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .compendium-header p {
+        color: var(--color-text-dim);
+        font-size: 1.1rem;
+        margin-top: var(--spacing-md);
+      }
+
+      .compendium-nav {
+        position: sticky;
+        top: 0;
+        background: var(--color-bg);
+        padding: var(--spacing-md) 0;
+        border-bottom: 1px solid var(--color-surface-light);
+        z-index: 100;
+        margin-bottom: var(--spacing-xl);
+      }
+
+      .compendium-nav a {
+        display: inline-block;
+        margin-right: var(--spacing-lg);
+        color: var(--color-accent);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: color 0.2s ease;
+      }
+
+      .compendium-nav a:hover {
+        color: var(--color-accent-dark);
+      }
+
+      .section {
+        margin-bottom: var(--spacing-xl);
+        padding: var(--spacing-lg);
+        background: var(--color-surface);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--color-surface-light);
+      }
+
+      .section h2 {
+        font-size: 1.8rem;
+        color: var(--color-accent);
+        margin-bottom: var(--spacing-md);
+        padding-bottom: var(--spacing-md);
+        border-bottom: 2px solid var(--color-accent);
+      }
+
+      .section h3 {
+        font-size: 1.3rem;
+        color: var(--color-accent);
+        margin-top: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+      }
+
+      .section h4 {
+        font-size: 1.05rem;
+        color: var(--color-text);
+        margin-top: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+        font-weight: 600;
+      }
+
+      .section p {
+        color: var(--color-text-dim);
+        line-height: 1.8;
+        margin-bottom: var(--spacing-md);
+      }
+
+      .quote {
+        background: rgba(96, 165, 250, 0.1);
+        padding: var(--spacing-lg);
+        border-left: 3px solid var(--color-accent);
+        border-radius: var(--radius);
+        margin: var(--spacing-lg) 0;
+        font-style: italic;
+        color: var(--color-text);
+        line-height: 1.8;
+      }
+
+      .quote-source {
+        color: var(--color-text-dim);
+        font-size: 0.9rem;
+        margin-top: var(--spacing-sm);
+        font-style: normal;
+      }
+
+      .timeline-item {
+        display: flex;
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-md);
+        background: rgba(96, 165, 250, 0.05);
+        border-radius: var(--radius);
+      }
+
+      .timeline-age {
+        flex-shrink: 0;
+        font-weight: 600;
+        color: var(--color-accent);
+        min-width: 60px;
+      }
+
+      .timeline-content {
+        flex: 1;
+      }
+
+      .timeline-content p {
+        margin: 0;
+      }
+
+      ul, ol {
+        margin-left: var(--spacing-lg);
+        margin-bottom: var(--spacing-md);
+      }
+
+      li {
+        margin-bottom: var(--spacing-sm);
+        color: var(--color-text-dim);
+      }
+
+      .back-to-top {
+        display: inline-block;
+        margin-top: var(--spacing-lg);
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: var(--color-accent);
+        color: var(--color-bg);
+        text-decoration: none;
+        border-radius: var(--radius);
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .back-to-top:hover {
+        background: var(--color-accent-dark);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="compendium-wrapper">
+      <!-- HEADER -->
+      <div class="compendium-header">
+        <a href="./index.html" style="color: inherit; text-decoration: none;">
+          <h1>Kingkiller Lore Atlas</h1>
+          <p>Complete Lore Compendium</p>
+          <p style="font-size: 0.95rem; margin-top: var(--spacing-lg);">
+            Every canon fact, direct quote, timeline entry, teaching philosophy, and theory
+            about Master Elodin from The Name of the Wind and The Wise Man's Fear.
+          </p>
+        </a>
+      </div>
+
+      <!-- NAVIGATION -->
+      <div class="compendium-nav">
+        <a href="#section-1">Physical</a>
+        <a href="#section-2">Timeline</a>
+        <a href="#section-3">Teaching</a>
+        <a href="#section-4">Knowledge</a>
+        <a href="#section-5">Kvothe</a>
+        <a href="#section-6">Names</a>
+        <a href="#section-7">Questions</a>
+        <a href="#section-8">Theories</a>
+      </div>
+
+      <!-- SECTION 1: PHYSICAL DESCRIPTION -->
+      <section class="section" id="section-1">
+        <h2>I. Physical Description & Presence</h2>
+
+        <h3>First Appearance (NOTW, Admissions Chapter 9)</h3>
+
+        <div class="quote">
+          "Elodin was younger than the others by at least a dozen years. Clean shaven with deep
+          eyes. Medium height, medium build, there was nothing particularly striking about him,
+          except for the way he sat at the table, one moment watching something intently, the
+          next minute bored and letting his attention wander among the high beams of the ceiling
+          above. He was almost like a child who had been forced to sit down with adults."
+          <p class="quote-source">NOTW, Ch. 9 — Admissions</p>
+        </div>
+
+        <h3>Voice & Presence</h3>
+
+        <div class="quote">
+          "He had an accent that I couldn't quite place. Or perhaps it was that his voice held a
+          certain resonance. When he spoke, everyone at the desk stirred slightly, then grew
+          still, like leaves touched by the wind."
+          <p class="quote-source">NOTW, Ch. 9</p>
+        </div>
+
+        <h3>Behavioral Markers</h3>
+
+        <ul>
+          <li>Often barefoot or in stocking feet</li>
+          <li>Wears master's robes "haphazardly" or not at all</li>
+          <li>Moves with unusual physical ease (slides on marble floors, leaps for leaves, childlike motion)</li>
+          <li>Eyes described as "deep," "sharp," "alert"—capable of looking <em>into</em> rather than merely <em>at</em> a person</li>
+          <li>His light voice "moves through the deep places in your chest"</li>
+        </ul>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 2: TIMELINE & HISTORY -->
+      <section class="section" id="section-2">
+        <h2>II. Timeline & History</h2>
+
+        <h3>Established Timeline (Both Books)</h3>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Age ~14</div>
+          <div class="timeline-content">
+            <p><strong>Admitted to University</strong> — youngest ever admitted</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: WMF p.46-47</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Age ~18</div>
+          <div class="timeline-content">
+            <p><strong>Made full Arcanist</strong> — youngest ever</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: WMF p.46-47</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Age ~20s</div>
+          <div class="timeline-content">
+            <p><strong>Served as giller</strong> (teaching arcanist)</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: WMF p.46-47</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Age ~25-28</div>
+          <div class="timeline-content">
+            <p><strong>Became Chancellor of University</strong> — youngest Chancellor ever</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: WMF p.46-47</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Age ~30</div>
+          <div class="timeline-content">
+            <p><strong>"It" happened</strong> — Confined to the Rookery</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: WMF p.46-47</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">~2 years</div>
+          <div class="timeline-content">
+            <p><strong>Imprisoned in copper cell</strong> — Unable to hear or feel the wind</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: NOTW Ch. 46</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Age ~30-32</div>
+          <div class="timeline-content">
+            <p><strong>Escaped the Rookery</strong> using the Name of Stone (CYAERBASALIEN)</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: NOTW Ch. 46</p>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-age">Books 1-2</div>
+          <div class="timeline-content">
+            <p><strong>Master Namer; teaches Naming</strong> at the University</p>
+            <p style="font-size: 0.9rem; color: var(--color-accent);">Source: NOTW &amp; WMF</p>
+          </div>
+        </div>
+
+        <h3>His Own Account of Escape</h3>
+
+        <div class="quote">
+          "You see, once upon a time Elodin the Great found himself locked in a high tower. He had
+          been stripped of his tools: his coin, key, and candle. Furthermore, his cell had no door
+          worth mentioning. No window that could be breached. Even the name of the wind was hidden
+          from him by the clever machinations of his captors."
+          <p class="quote-source">NOTW, Ch. 46 — Haven</p>
+        </div>
+
+        <div class="quote">
+          "But Elodin the Great knew the names of all things, and so all things were his to
+          command." He faced the grey wall beside the windows. "He said to the stone: BREAK! and
+          the..." [He speaks CYAERBASALIEN and the stone wall dissolves.]
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <div class="quote">
+          "Two years. Able to see this balcony but not stand on it. Able to see the wind, but not
+          hear it, not feel it on my face."
+          <p class="quote-source">NOTW, Ch. 46 — His description of confinement</p>
+        </div>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 3: TEACHING PHILOSOPHY -->
+      <section class="section" id="section-3">
+        <h2>III. Teaching Philosophy & The Sleeping Mind</h2>
+
+        <h3>The Core Doctrine</h3>
+
+        <div class="quote">
+          "Each of us has two minds: a waking mind and a sleeping mind. Our waking mind is what
+          thinks and talks and reasons. But the sleeping mind is more powerful. It sees deeply to
+          the heart of things. It is the part of us that dreams. It remembers everything. It gives
+          us intuition."
+          <p class="quote-source">NOTW, Ch. 46 — Elodin's Teaching</p>
+        </div>
+
+        <div class="quote">
+          "Your waking mind does not understand the nature of names. Your sleeping mind does. It
+          already knows many things that your waking mind does not."
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <h3>How Names Work</h3>
+
+        <div class="quote">
+          "Names are the shape of the world, and a man who can speak them is on the road to
+          power."
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <div class="quote">
+          "Words can light fires in the minds of men. Words can wring tears from the hardest
+          hearts. There are seven words that will make a person love you. There are ten words that
+          will break a strong man's will. But a word is nothing but a painting of a fire. A name
+          is the fire itself."
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <h3>Teaching Methods: Extreme Pedagogy</h3>
+
+        <h4>From The Name of the Wind:</h4>
+        <ul>
+          <li>The pinecone test (find three pinecones — but the real test is something else entirely)</li>
+          <li>Hours of riddling and questioning</li>
+          <li>Making Kvothe drink applejack then read Teccam's Theophany</li>
+          <li>Three-day blindfold test</li>
+          <li>Sleep deprivation (coffee for nearly five days)</li>
+        </ul>
+
+        <h4>From The Wise Man's Fear (Archive Rooftop Scene):</h4>
+
+        <div class="quote">
+          "There was a great beast of a thunderstorm rolling in, and Elodin decided it would do me
+          good to spend some time in the middle of it... Elodin simply stole the key... Elodin
+          insisted that we strip ourselves naked, wrap our clothes in an oilskin, and weigh them
+          down with a brick."
+          <p class="quote-source">WMF, Ch. 72</p>
+        </div>
+
+        <p>
+          The clothes blow away in the wind. The key blows away. They are found naked and wet on
+          the roof by Lorren and the scribes. Elodin laughs his head off.
+        </p>
+
+        <div class="quote">
+          "Elodin went to great lengths to wake my sleeping mind. Ridiculous lengths, really. And
+          much to my surprise, our work paid dividends. I called the name of the wind three times
+          that term."
+          <p class="quote-source">WMF, Ch. 72 — Kvothe's reflection</p>
+        </div>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 4: KNOWLEDGE & CAPABILITIES -->
+      <section class="section" id="section-4">
+        <h2>IV. What Elodin Knows</h2>
+
+        <h3>He Knows the Faen World</h3>
+
+        <div class="quote">
+          "What's this?" he exclaimed when we crossed paths in a small courtyard outside Mains.
+          "How did you come to be enshaedn? Your cloak, boy. Your turning cape. How in God's sweet
+          grace did you tumble onto a shaed?"
+          <p class="quote-source">WMF, Ch. 71 — Upon seeing Kvothe's Faen cloak</p>
+        </div>
+
+        <div class="quote">
+          "I wouldn't be much of a namer if I couldn't spot a faerie cloak a dozen feet away... Oh,
+          that's just lovely. Here's a piece of old magic man rarely lays a finger on."
+          <p class="quote-source">WMF, Ch. 71</p>
+        </div>
+
+        <h3>He Understands Naming & Identity Deeply</h3>
+
+        <p>
+          When Kvothe asks what he thinks of someone who keeps changing their name, Elodin's first
+          reaction is panic.
+        </p>
+
+        <div class="quote">
+          "What? He sat up suddenly, his eyes wild and panicked. 'What have you done?'"
+          <p class="quote-source">WMF, Ch. 91</p>
+        </div>
+
+        <p>His relief when it's not Fela:</p>
+
+        <div class="quote">
+          "Elodin's face grew ashen. 'Fela?' he said. 'Oh no. No. She wouldn't do something like
+          that. She's too smart for that.'"
+          <p class="quote-source">WMF, Ch. 91</p>
+        </div>
+
+        <p>When he learns it's Denna:</p>
+
+        <div class="quote">
+          "'Oh,' Elodin said, relaxing. He leaned back against the tree, laughing softly. 'Calling
+          names,' he said with tangible relief. 'God's bones, boy, I thought—' He broke off,
+          shaking his head."
+          <p class="quote-source">WMF, Ch. 91</p>
+        </div>
+
+        <h3>He Knows Adem Hand-Talk</h3>
+
+        <div class="quote">
+          "He laughed. 'You chased it to the edge of the map!' he said, making a broad motion with
+          his splayed left hand. Stunned, I realized it was Adem hand-talk for amazed respect."
+          <p class="quote-source">WMF, Ch. 71 — On Kvothe calling the wind</p>
+        </div>
+
+        <h3>He Knows the Four-Plate Door</h3>
+
+        <div class="quote">
+          "'Oh no. No no. You don't aim for small secrets do you?' He clapped me on the back as if
+          I'd just made an especially good joke. 'Valaritas. God. I can still remember what it was
+          like, standing down there looking at the door, wondering.'"
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <div class="quote">
+          "He laughed again. 'Merciful Tehlu, it almost killed me.'"
+          <p class="quote-source">NOTW, Ch. 46 — On the four-plate door</p>
+        </div>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 5: RELATIONSHIP WITH KVOTHE -->
+      <section class="section" id="section-5">
+        <h2>V. His Relationship with Kvothe</h2>
+
+        <h3>The Initial Assessment</h3>
+
+        <p>
+          At Kvothe's Admissions interview, Elodin immediately recognizes something unusual about
+          him:
+        </p>
+
+        <div class="quote">
+          "He lifted a hand, his index finger pointing upward. 'How many fingers am I holding
+          up?'... 'At least one,' I said. 'Probably no more than six.'"
+          <p class="quote-source">NOTW, Ch. 9</p>
+        </div>
+
+        <div class="quote">
+          "He broke into a broad smile... He lowered his hands to the table in front of him, and
+          grew suddenly serious. 'Do you know the seven words that will make a woman love you?' ...
+          'They exist.' He reassured me, and sat back with a look of contentment."
+          <p class="quote-source">NOTW, Ch. 9</p>
+        </div>
+
+        <h3>The Testing Phase</h3>
+
+        <div class="quote">
+          "'Jump,' he said. 'Jump off this roof.'"
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <p>When Kvothe jumps and hits hard:</p>
+
+        <div class="quote">
+          "'Congratulations,' he said. 'That was the stupidest thing I've ever seen.' His
+          expression was a mix of awe and disbelief. 'Ever.'"
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <p>Yet immediately after, he saves Kvothe from expulsion:</p>
+
+        <div class="quote">
+          "Elodin spoke, seeming to startle everyone at the table. 'I can think of students
+          currently enrolled in the Arcanum who would be hard pressed to complete a double binding,
+          let alone draw enough heat to blister a man's foot to the knee.' ... He smiled happily at
+          me again."
+          <p class="quote-source">NOTW, Ch. 46</p>
+        </div>
+
+        <h3>The Calming</h3>
+
+        <p>After Kvothe calls the wind in anger at Ambrose:</p>
+
+        <div class="quote">
+          "Elodin entered the room without knocking or announcing himself... 'Kvothe?' Elodin
+          repeated. When I didn't respond or look up from my lute he reached forward and gently
+          tipped my chin up until I met his eye. 'Aerlevsedi,' he said. 'Say it.'"
+          <p class="quote-source">NOTW, Ch. 51</p>
+        </div>
+
+        <div class="quote">
+          "He leaned forward and his lips brushed my ear. I felt his breath. He spoke... and the
+          storm stilled. I found a place to land."
+          <p class="quote-source">NOTW, Ch. 51</p>
+        </div>
+
+        <p><strong>Elodin knows Kvothe's true name and can use it to calm him at a deep level.</strong></p>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 6: NAMED THINGS -->
+      <section class="section" id="section-6">
+        <h2>VI. Named Things Elodin Has Spoken</h2>
+
+        <h3>CYAERBASALIEN — Stone</h3>
+        <p>
+          <strong>Effect:</strong> Dissolves stone into sand<br />
+          <strong>Source:</strong> NOTW Ch. 46 — Used to escape the Rookery
+        </p>
+
+        <h3>Aerlevsedi — Wind</h3>
+        <p>
+          <strong>Effect:</strong> Calls the wind; can be used to calm<br />
+          <strong>Source:</strong> NOTW Ch. 46, 51; WMF Ch. 72
+        </p>
+
+        <p>
+          Elodin taught this Name to Kvothe. On the nature of the wind itself, Elodin explained:
+        </p>
+
+        <div class="quote">
+          "The more I watched it, the less chaotic it seemed. In fact, I began to sense a greater
+          underlying pattern to the way the wind moved through the courtyard... What's more, it
+          seemed to be always changing. It was a pattern made of changing patterns."
+          <p class="quote-source">WMF, Ch. 72</p>
+        </div>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 7: UNSOLVED QUESTIONS -->
+      <section class="section" id="section-7">
+        <h2>VII. Critical Unsolved Questions</h2>
+
+        <h3>1. What caused the Rookery confinement?</h3>
+        <ul>
+          <li>Did he go too deep into Naming?</li>
+          <li>Did he attempt Shaping?</li>
+          <li>Did he encounter something or someone dangerous?</li>
+          <li>Was he politically confined?</li>
+        </ul>
+
+        <h3>2. Why did copper suppress Aerlevsedi specifically?</h3>
+        <ul>
+          <li>Copper blocks sympathy — why would it block a specific Name?</li>
+          <li>Who chose to suppress the wind's Name?</li>
+          <li>What does this tell us about the nature of Names?</li>
+        </ul>
+
+        <h3>3. Why was Elodin panicked about Fela changing her name?</h3>
+        <ul>
+          <li>Does Fela have something to do with identity or Naming?</li>
+          <li>Is she involved in something dangerous?</li>
+          <li>Does Elodin have strong protective feelings for her?</li>
+        </ul>
+
+        <h3>4. What happened at the four-plate door?</h3>
+        <ul>
+          <li>How did it "almost kill" him?</li>
+          <li>What is behind it?</li>
+          <li>Can he now access it?</li>
+        </ul>
+
+        <h3>5. What is "the seven words that will make a person love you"?</h3>
+        <ul>
+          <li>Is it a Name? A Shaping?</li>
+          <li>Does Elodin possess this knowledge?</li>
+          <li>Is this connected to Denna in some way?</li>
+        </ul>
+
+        <h3>6. Why does Elodin know Adem hand-talk?</h3>
+        <ul>
+          <li>Has he been to Ademre?</li>
+          <li>Is he connected to the Adem's knowledge keepers?</li>
+          <li>Does this relate to his knowledge of Shaping?</li>
+        </ul>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- SECTION 8: THEORIES -->
+      <section class="section" id="section-8">
+        <h2>VIII. Major Theories</h2>
+
+        <h3>Tier 1: Very High Confidence (Strongly Text-Supported)</h3>
+
+        <ol>
+          <li><strong>Elodin knows Kvothe's true Name</strong> — he used it to calm him after the wind-calling</li>
+          <li><strong>He went too deep into Naming</strong> — the Rookery visit confirms this is real, not rumor</li>
+          <li><strong>His escape involved Naming stone</strong> — CYAERBASALIEN is confirmed canon</li>
+          <li><strong>He knows about the Fae realm</strong> — recognizes shaed, discusses Felurian</li>
+          <li><strong>He watches Kvothe with personal investment</strong> — beyond professional obligation</li>
+        </ol>
+
+        <h3>Tier 2: High Confidence</h3>
+
+        <ol start="6">
+          <li>Elodin has some connection to Auri beyond casual acquaintance</li>
+          <li>He has protective feelings for Fela</li>
+          <li>He knows more about Denna than he reveals</li>
+          <li>He understands the distinction between Naming and Shaping intimately</li>
+          <li>Something about Fela changing her name threatens him</li>
+        </ol>
+
+        <h3>Tier 3: Strong Speculation</h3>
+
+        <ol start="11">
+          <li>He was confined for attempting or witnessing Shaping</li>
+          <li>The four-plate door is connected to his confinement</li>
+          <li>He knows about the Lackless/Doors of Stone connection</li>
+          <li>He may be Cthaeh-touched or have spoken with it</li>
+          <li>He may have visited the Faen realm</li>
+        </ol>
+
+        <a href="#top" class="back-to-top">↑ Top</a>
+      </section>
+
+      <!-- FOOTER -->
+      <section style="text-align: center; padding: var(--spacing-xl) 0; color: var(--color-text-dim); border-top: 1px solid var(--color-surface-light);">
+        <p>
+          <a href="./index.html" style="color: var(--color-accent); text-decoration: none;">← Back to Home</a>
+          &nbsp; | &nbsp;
+          <a href="./atlas.html" style="color: var(--color-accent); text-decoration: none;">Open Atlas →</a>
+        </p>
+        <p style="font-size: 0.9rem; margin-top: var(--spacing-lg);">
+          Kingkiller Lore Atlas - Elodin Module<br />
+          All canon sourced from The Name of the Wind and The Wise Man's Fear by Patrick Rothfuss
+        </p>
+      </section>
+    </div>
+  </body>
+</html>
